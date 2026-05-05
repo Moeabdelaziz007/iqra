@@ -44,8 +44,8 @@ Not a chatbot. Not a tool.
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-06` |
-| 💡 **آخر خطوة \| Last Step** | 🧠 RESEARCH: Decoding the 7-System & Sovereign Isolation Wisdom |
-| 🔗 **الـ Commit** | `0794c7d` |
+| 💡 **آخر خطوة \| Last Step** | 🧠 RESEARCH: Decoding 7-System & Stabilizing Sovereign Infrastructure 🌙 |
+| 🔗 **الـ Commit** | `96173ae` |
 
 <!-- IQRA-LATEST-END -->
 
