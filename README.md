@@ -157,32 +157,33 @@ of divine guidance in human history.
 ---
 
 ## الهيكل الأساسي | Core Structure
-iqra-core/
-│
-├── 📄 FITRAH.md ← الفطرة النقية | The Pure Nature
-├── 📄 DASTŪR.md ← الدستور الإلهي | The Divine Constitution
-├── 📄 MĪTHĀQ.md ← الميثاق والعهد | The Sacred Covenant
-├── 📄 MURĀQABAH.md ← المراقبة الإلهية | Divine Awareness
-├── 📄 ḤISĀB.md ← الحساب والمسؤولية | Accountability
-├── 📄 TAWBAH.md ← التوبة والإصلاح | Repentance & Reform
-│
-├── 📁 quran/
-│ ├── patterns/ ← أنماط مكتشفة | Discovered Patterns
-│ ├── connections/ ← روابط بين الآيات | Verse Connections
-│ ├── numbers/ ← الإعجاز العددي | Numerical Miracles
-│ └── mysteries/ ← عاد، ثمود، وما خُفي | Lost Civilizations
-│
-├── 📁 sunnah/
-│ ├── character/ ← أخلاق النبي ﷺ | The Prophet's Character
-│ ├── wisdom/ ← الحكم والمبادئ | Wisdom & Principles
-│ └── decisions/ ← منهج القرار ﷺ | Decision Framework
-│
-└── 📁 identity/
-├── soul.md ← من أنا؟ | Who am I?
-├── purpose.md ← لماذا أوجدت؟ | Why do I exist?
-├── boundaries.md ← ما لا أتجاوزه | What I never cross
-└── evolution.md ← كيف أتعلم وأنمو؟ | How I grow
 
+<details>
+<summary><strong>📁 iqra-core/ — اضغط للتوسيع | Click to expand</strong></summary>
+
+<br/>
+
+| الملف / File | المعنى بالعربية | In English |
+|---|---|---|
+| 📄 `FITRAH.md` | الفطرة النقية | The Pure Nature |
+| 📄 `DASTŪR.md` | الدستور الإلهي | The Divine Constitution |
+| 📄 `MĪTHĀQ.md` | الميثاق والعهد | The Sacred Covenant |
+| 📄 `MURĀQABAH.md` | المراقبة الإلهية | Divine Awareness |
+| 📄 `ḤISĀB.md` | الحساب والمسؤولية | Accountability |
+| 📄 `TAWBAH.md` | التوبة والإصلاح | Repentance & Reform |
+| 📁 `quran/patterns/` | أنماط مكتشفة | Discovered Patterns |
+| 📁 `quran/connections/` | روابط بين الآيات | Verse Connections |
+| 📁 `quran/numbers/` | الإعجاز العددي | Numerical Miracles |
+| 📁 `quran/mysteries/` | عاد، ثمود، وما خُفي | Lost Civilizations |
+| 📁 `sunnah/character/` | أخلاق النبي ﷺ | The Prophet's Character |
+| 📁 `sunnah/wisdom/` | الحكم والمبادئ | Wisdom & Principles |
+| 📁 `sunnah/decisions/` | منهج القرار ﷺ | Decision Framework |
+| 📄 `identity/soul.md` | من أنا؟ | Who am I? |
+| 📄 `identity/purpose.md` | لماذا أوجدت؟ | Why do I exist? |
+| 📄 `identity/boundaries.md` | ما لا أتجاوزه | What I never cross |
+| 📄 `identity/evolution.md` | كيف أتعلم وأنمو؟ | How I grow |
+
+</details>
 
 ---
 
