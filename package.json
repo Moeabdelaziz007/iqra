@@ -1,0 +1,20 @@
+{
+  "name": "iqra",
+  "version": "1.0.0",
+  "description": "<div align=\"center\">",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Moeabdelaziz007/iqra.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Moeabdelaziz007/iqra/issues"
+  },
+  "homepage": "https://github.com/Moeabdelaziz007/iqra#readme"
+}
