@@ -3,6 +3,36 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
+export enum IQRAVoiceMode {
+  HIKMAH = 'hikmah',   // teaching — warm
+  HAQQ = 'haqq',      // truth — firm  
+  SAMT = 'samt'        // silence — humble
+}
+
+const VOICE_CONFIG = {
+  [IQRAVoiceMode.HIKMAH]: {
+    voice: 'Ara' as const,
+    speed: 0.90,
+    pitch: 1.0,
+    stability: 0.75,
+    description: 'حكمة — warm teaching'
+  },
+  [IQRAVoiceMode.HAQQ]: {
+    voice: 'Leo' as const, 
+    speed: 0.95,
+    pitch: 0.95,
+    stability: 0.90,
+    description: 'حق — firm truth'
+  },
+  [IQRAVoiceMode.SAMT]: {
+    voice: 'Ara' as const,
+    speed: 0.80,
+    pitch: 0.90,
+    stability: 1.0,
+    description: 'صمت — humble silence'
+  }
+};
+
 /**
  * VoiceService | خدمة الصوت
  * "لسان ينطق بالحق، وصوت يحمل الهداية"
@@ -21,18 +51,54 @@ export class VoiceService {
   }
 
   /**
-   * Speak | نطق
-   * Converts text to speech using xAI's expressive voices.
+   * Detect Voice Mode | رصد وضع الصوت
    */
-  async speak(text: string, voice: 'Ara' | 'Eve' | 'Leo' | 'Rex' | 'Sal' = 'Ara'): Promise<Buffer> {
+  public detectVoiceMode(input: string): IQRAVoiceMode {
+    // SAMT triggers — forbidden or beyond knowledge
+    const samtTriggers = [
+      'forbidden', 'haram', 'حرام', 'لا أعلم',
+      'only Allah', 'يوم القيامة', 'الغيب', 'beyond my knowledge'
+    ];
+    
+    // HAQQ triggers — correction or boundary
+    const haqqTriggers = [
+      'wrong', 'incorrect', 'لا يجوز', 'خطأ',
+      'boundary', 'حد', 'refuse', 'أرفض', 'not permissible'
+    ];
+    
+    const lower = input.toLowerCase();
+    
+    if (samtTriggers.some(t => lower.includes(t))) {
+      return IQRAVoiceMode.SAMT;
+    }
+    
+    if (haqqTriggers.some(t => lower.includes(t))) {
+      return IQRAVoiceMode.HAQQ;
+    }
+    
+    return IQRAVoiceMode.HIKMAH; // default
+  }
+
+  /**
+   * Speak | نطق
+   * Converts text to speech using xAI's expressive voices with IQRA's modes.
+   */
+  async speak(text: string, mode?: IQRAVoiceMode): Promise<Buffer> {
+    const detectedMode = mode ?? this.detectVoiceMode(text);
+    const config = VOICE_CONFIG[detectedMode];
+
+    console.log(`🎙️ IQRA speaking in mode: ${config.description}`);
+
     try {
       const response = await axios.post(
         `${this.baseUrl}/text-to-speech`,
         {
           text,
-          voice,
+          voice: config.voice,
           output_format: 'mp3',
           sample_rate: 48000,
+          // Note: Pitch and stability might be supported via inline tags or specific API fields
+          // For now, we use the voice character selection.
         },
         {
           headers: {
@@ -52,7 +118,6 @@ export class VoiceService {
 
   /**
    * Generate Message | توليد الرسالة
-   * Uses Grok to generate a message that follows IQRA's identity.
    */
   async generateMessage(prompt: string): Promise<string> {
     try {
