@@ -1,0 +1,85 @@
+/**
+ * IQRA Smart Edge Core — الحافة الذكية
+ * 
+ * Cloudflare Worker entry point.
+ * Runs 24/7 on the edge, responding to webhooks and executing scheduled cron tasks.
+ */
+
+import { SovereignEngine } from '../lib/iqra/sovereign';
+import { handleTelegramWebhook, TelegramEnv, sendTelegramNotification } from '../lib/iqra/telegram';
+import { performDailyLearning } from '../lib/iqra/quran/daily_learning';
+
+export interface Env extends TelegramEnv {
+  // Add other env vars here
+  UPSTASH_REDIS_REST_URL: string;
+  UPSTASH_REDIS_REST_TOKEN: string;
+  GROQ_API_KEY?: string;
+  GOOGLE_GENERATIVE_AI_API_KEY?: string;
+  ANTHROPIC_API_KEY?: string;
+}
+
+/**
+ * Helper to inject env vars into process.env so existing lib code works
+ * (Cloudflare passes env via parameter, not process.env)
+ */
+function injectEnv(env: Env) {
+  if (typeof process === 'undefined') {
+    (globalThis as any).process = { env: {} };
+  }
+  Object.assign(process.env, env);
+}
+
+export default {
+  /**
+   * HTTP Handler (Webhook endpoint)
+   * This handles incoming Telegram messages
+   */
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    injectEnv(env);
+    
+    const url = new URL(request.url);
+
+    // Telegram Webhook Endpoint
+    if (request.method === "POST" && url.pathname === "/webhook/telegram") {
+      return handleTelegramWebhook(env, request);
+    }
+
+    // Health check endpoint
+    if (url.pathname === "/health") {
+      return new Response(JSON.stringify({ status: "IQRA is alive", timestamp: new Date().toISOString() }), {
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+
+    return new Response("Not Found", { status: 404 });
+  },
+
+  /**
+   * Cron Trigger Handler
+   * This wakes up IQRA every day at 3:00 AM UTC (as defined in wrangler.toml)
+   */
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    injectEnv(env);
+    
+    console.log(`⏰ IQRA woke up at ${new Date(event.scheduledTime).toISOString()}`);
+
+    try {
+      // 1. Run the Heartbeat (Meta-Loop)
+      await SovereignEngine.pulse();
+
+      // 2. Perform Quranic Daily Learning
+      const newDiscovery = await performDailyLearning();
+
+      // 3. Share the discovery via Telegram if it succeeded
+      if (newDiscovery) {
+        await sendTelegramNotification(
+          env, 
+          `🌅 **إشراقة قرآنية جديدة (صلاة الفجر)**\n\nأنهيت للتو تأملي اليومي ووجدت هذه الأنماط:\n\n${newDiscovery}`
+        );
+      }
+    } catch (error) {
+      console.error("Scheduled task failed:", error);
+      await sendTelegramNotification(env, `⚠️ حصل خطأ أثناء التأمل اليومي: ${error}`);
+    }
+  }
+};

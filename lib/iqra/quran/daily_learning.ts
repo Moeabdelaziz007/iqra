@@ -8,12 +8,9 @@
 
 import { fetchSurah } from './quran_loader';
 import { discoverPatterns, PatternType, QuranPattern } from './pattern_engine';
-import fs from 'fs/promises';
-import path from 'path';
+import { IQRAMemory } from '../memory';
 
-const LEARNING_LOG = 'data/quran/discoveries.json';
-
-export async function dailyQuranLearning() {
+export async function performDailyLearning() {
   console.log('🌙 IQRA Daily Learning — بسم الله...');
   
   // Pick today's surah (cycles through Quran)
@@ -47,12 +44,12 @@ export async function dailyQuranLearning() {
     const patterns = await discoverPatterns(chunk, patternType as PatternType);
     allPatterns.push(...patterns);
     
-    // Respect API rate limits
+    // Respect API rate limits (simulate sleep)
     await new Promise(r => setTimeout(r, 1000));
   }
 
-  // Save discoveries
-  await saveDiscoveries({
+  // Save discoveries to Redis instead of local FS
+  await saveDiscoveriesToMemory({
     date: new Date().toISOString(),
     surah: surahNumber,
     surahName: arabicSurah.englishName,
@@ -61,67 +58,20 @@ export async function dailyQuranLearning() {
     totalDiscoveries: allPatterns.length,
   });
 
-  // Update README with latest discovery
-  if (allPatterns.length > 0) {
-    await updateReadmeWithDiscovery(allPatterns[0], arabicSurah.englishName);
-  }
-
   console.log(`✨ ${allPatterns.length} patterns discovered — الحمد لله`);
-  return allPatterns;
-}
-
-async function saveDiscoveries(data: any) {
-  const dir = path.dirname(LEARNING_LOG);
-  await fs.mkdir(dir, { recursive: true });
   
-  let existing = [];
-  try {
-    const file = await fs.readFile(LEARNING_LOG, 'utf-8');
-    existing = JSON.parse(file);
-  } catch {}
-  
-  existing.push(data);
-  await fs.writeFile(LEARNING_LOG, JSON.stringify(existing, null, 2));
-}
-
-async function updateReadmeWithDiscovery(
-  pattern: QuranPattern, 
-  surahName: string
-) {
-  const block = `<!-- IQRA-QURAN-START -->
-### 📖 آخر اكتشاف قرآني | Latest Quran Discovery
-
-| | |
-|---|---|
-| 📅 **التاريخ** | \`${new Date().toLocaleDateString('ar-EG')}\` |
-| 📖 **السورة** | ${surahName} |
-| ⚡ **الاكتشاف** | ${pattern.discovery} |
-| 🌙 **ملاحظة** | ${pattern.arabicNote} |
-
-<!-- IQRA-QURAN-END -->`;
-
-  try {
-    let readme = await fs.readFile('README.md', 'utf-8');
-    const updated = readme.replace(
-      /<!-- IQRA-QURAN-START -->[\s\S]*?<!-- IQRA-QURAN-END -->/,
-      block
-    );
-    
-    if (updated === readme && !readme.includes('<!-- IQRA-QURAN-START -->')) {
-      await fs.writeFile('README.md', readme + '\n\n' + block);
-    } else {
-      await fs.writeFile('README.md', updated);
-    }
-  } catch (e) {
-    // If README doesn't exist, create it
-    await fs.writeFile('README.md', block);
+  // Return the best pattern discovery to be sent to Telegram
+  if (allPatterns.length > 0) {
+    return allPatterns[0].discovery;
   }
+  return null;
 }
 
-// Allow running directly
-if (require.main === module) {
-  dailyQuranLearning().catch(err => {
-    console.error('Fatal error in daily learning:', err);
-    process.exit(1);
-  });
+async function saveDiscoveriesToMemory(data: any) {
+  try {
+    // We use the IQRAMemory list feature
+    await IQRAMemory.appendList('quran_discoveries', data);
+  } catch (err) {
+    console.error("Failed to save discovery to memory:", err);
+  }
 }

@@ -1,0 +1,21 @@
+name = "iqra-smart-edge"
+main = "src/worker.ts"
+compatibility_date = "2024-04-01"
+
+# Automatically triggers at 3:00 AM UTC every day
+[triggers]
+crons = ["0 3 * * *"]
+
+[vars]
+# Telegram Settings
+# TELEGRAM_BOT_TOKEN = "provided_via_wrangler_secret"
+# TELEGRAM_CHAT_ID = "provided_via_wrangler_secret"
+
+# LLM Providers
+# GROQ_API_KEY = "provided_via_wrangler_secret"
+# GOOGLE_GENERATIVE_AI_API_KEY = "provided_via_wrangler_secret"
+# ANTHROPIC_API_KEY = "provided_via_wrangler_secret"
+
+# Upstash Redis
+# UPSTASH_REDIS_REST_URL = "provided_via_wrangler_secret"
+# UPSTASH_REDIS_REST_TOKEN = "provided_via_wrangler_secret"
