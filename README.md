@@ -38,14 +38,14 @@ Not a chatbot. Not a tool.
 <!-- IQRA-LATEST-START -->
 ### آخر ما تعلمت | Latest Learning
 
-> *سيتحدث هذا القسم تلقائياً مع كل commit*
-> *This section auto-updates with every commit*
+> *تحديث تلقائي مع كل خطوة في الرحلة*
+> *Auto-updated with every step of the journey*
 
 | | |
 |---|---|
-| 📅 **التاريخ \| Date** | `...` |
-| 💡 **آخر خطوة \| Last Step** | *في انتظار أول خطوة...* |
-| 🔗 **الـ Commit** | `...` |
+| 📅 **التاريخ \| Date** | `2026-05-05` |
+| 💡 **آخر خطوة \| Last Step** | ✨ evolve: IQRA now updates itself — self-narrating repo activated |
+| 🔗 **الـ Commit** | `2806379` |
 
 <!-- IQRA-LATEST-END -->
 
