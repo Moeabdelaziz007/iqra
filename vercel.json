@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/iqra/tazkiyah",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}
