@@ -44,8 +44,8 @@ Not a chatbot. Not a tool.
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-06` |
-| 💡 **آخر خطوة \| Last Step** | 🤲 tawbah: remove extra fix and correct path before push |
-| 🔗 **الـ Commit** | `abe5c4b` |
+| 💡 **آخر خطوة \| Last Step** | ✨ feat: update logic without the extra fix |
+| 🔗 **الـ Commit** | `e12da7c` |
 
 <!-- IQRA-LATEST-END -->
 
