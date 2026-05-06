@@ -1,10 +1,35 @@
 .env
 .env.local
+.env.*
+!.env.example
+
+# Dependencies
 node_modules/
 dist/
+.next/
+
+# OS
 .DS_Store
 *.log
 *.tmp
-.next/
-raw_api_payload*.json
 npm-debug.log*
+
+# IQRA Sovereign Data — never commit raw training data or secrets
+.iqra/training_data.json
+.iqra/sera_training_data.json
+.iqra/inverse_mirror_data.json
+.iqra/closed_loop/
+.iqra/visual_notes/
+.iqra/auto_improve_state.json
+.iqra_loop_state
+
+# Build artifacts
+raw_api_payload*.json
+*.bak
+
+# MCP local config (may contain tokens)
+.ag/mcp.json
+
+# Git temp files
+.git_commit_msg.tmp
+trust_fallback.log
