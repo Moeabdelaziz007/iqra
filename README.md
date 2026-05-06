@@ -44,8 +44,8 @@ Not a chatbot. Not a tool.
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-06` |
-| 💡 **آخر خطوة \| Last Step** | قصة النهضة: تفعيل هوية أُخُوَّة، وبناء هيكل القيادة والتحقق الجديد. The awakening of Ukhūwah and new E2E foundation. |
-| 🔗 **الـ Commit** | `5e8d905` |
+| 💡 **آخر خطوة \| Last Step** | feat: implement IQRA knowledge base v1.0 — Aad, Thamud, Al-Rass, Dhul-Qarnayn + Core Values + Architecture Secrets |
+| 🔗 **الـ Commit** | `f4fc84e` |
 
 <!-- IQRA-LATEST-END -->
 
