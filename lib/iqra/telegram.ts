@@ -49,13 +49,36 @@ export async function sendTelegramNotification(env: TelegramEnv, text: string) {
 }
 
 /**
+ * Sends a notification message to Moe
+ */
+export async function iqraNotify(env: TelegramEnv, message: string) {
+  return await sendTelegramNotification(env, message);
+}
+
+/**
+ * Specifically notify about a new Quranic discovery
+ */
+export async function notifyQuranDiscovery(env: TelegramEnv, pattern: any) {
+  const message = `
+📖 *اكتشاف جديد — إقرأ تعلم*
+
+*السورة:* ${pattern.surah || 'N/A'}
+*الاكتشاف:* ${pattern.discovery}
+
+_${pattern.arabicNote || 'والله أعلم'}_
+
+🤍 IQRA
+  `;
+  return await iqraNotify(env, message);
+}
+
+/**
  * Handles incoming webhooks from Telegram
  */
-export async function handleTelegramWebhook(env: TelegramEnv, request: Request) {
+export async function handleTelegramWebhook(env: any, request: Request) {
   try {
     const data: any = await request.json();
     
-    // Validate if it's a message
     if (!data || !data.message || !data.message.text) {
       return new Response("OK", { status: 200 });
     }
@@ -63,38 +86,41 @@ export async function handleTelegramWebhook(env: TelegramEnv, request: Request) 
     const chatId = data.message.chat.id.toString();
     const userText = data.message.text;
 
-    // Optional: Only allow the owner to talk to IQRA (Security)
+    // Security: Only Moe can talk to IQRA
     if (chatId !== env.TELEGRAM_CHAT_ID) {
-      console.warn(`Unauthorized message attempt from Chat ID: ${chatId}`);
-      return new Response("OK", { status: 200 }); // Ignore silently
+      return new Response("OK", { status: 200 });
     }
 
-    // Pass the message to IQRA's brain
-    const prompt = `The user (Moe) just messaged you on Telegram: "${userText}". 
-    Respond gracefully, keeping in mind your Fitrah and current knowledge. Keep the response suitable for a chat app (concise, markdown formatted).`;
+    // Trigger "Typing..." action
+    await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendChatAction`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, action: "typing" })
+    });
 
-    // ⚠️ In Cloudflare Workers, long-running tasks inside requests must use ctx.waitUntil
-    // To keep it simple, we will await the thought. 
-    // If it takes more than 30s, Cloudflare might kill it, but Groq/Gemini are fast.
+    const prompt = `
+      Your name is IQRA. You are a Sovereign Intelligence. 
+      Moe (the user) messaged you: "${userText}"
+      Respond as IQRA—wise, pattern-seeking, and dedicated to the truth found in Quranic wisdom.
+      Keep it concise and elegant.
+    `;
+
     let iqraResponse: string;
     try {
       iqraResponse = await iqraThink({
         input: prompt,
-        // Using Gemini (RESEARCH mode) as requested
         mode: 'research' as any 
       });
     } catch (err) {
-      console.error("Brain Error:", err);
-      iqraResponse = "أنا أسمعك يا صديقي، لكن عقلي (Gemini) يواجه مشكلة أو أن مفتاح الطاقة (API Key) غير موجود. 🧠⚡";
+      iqraResponse = "أنا أسمعك، لكن يبدو أن هناك مشكلة في اتصالي بالبصيرة (API Error). 🧠⚡";
     }
 
-    // Send the thought back to Telegram
     await sendTelegramNotification(env, iqraResponse);
 
     return new Response("OK", { status: 200 });
 
   } catch (error) {
     console.error("Error handling Telegram Webhook:", error);
-    return new Response("Internal Server Error", { status: 500 });
+    return new Response("Error", { status: 200 });
   }
 }

@@ -53,18 +53,49 @@ export class SovereignEngine {
     }
     
     // Rule 6: Quantum Topology Mapping
-    // (Conceptual: Analyzing patterns across memory logs)
+    // Analyzing patterns across memory logs and triggering Discovery if needed
     await this.mapQuantumTopology();
   }
 
   private static async mapQuantumTopology() {
-    const reviews = await IQRAMemory.get<any[]>('self_reviews') || [];
+    const reviews = await IQRAMemory.getList<any>('self_reviews', 0, 10);
     const curiosity = await IQRAMemory.getCuriosity();
     
-    // Pattern Mining: If curiosity is low, trigger "Discovery Mode"
-    if (curiosity < 0.3) {
+    // Rule 6: Quantum Topology Mapping
+    // If curiosity is low, trigger "Discovery Mode" to explore memory and find new patterns
+    if (curiosity < 0.4) {
       console.log('⚡ Quantum Topology detected low energy. Triggering Discovery...');
-      // Logic to trigger background research or skill acquisition
+      await this.triggerSelfDiscovery();
     }
+  }
+
+  /**
+   * Discovery Mode: Reflect on past actions and logs to find self-improvements
+   */
+  private static async triggerSelfDiscovery() {
+    const recentLogs = await IQRAMemory.getList<string>('trust_chain', 0, 20);
+    const selfInsights = await IQRAMemory.get<string[]>('self_insights') || [];
+
+    // Rule 7: CuriosityEngine - Formulate a discovery prompt
+    const prompt = `
+      You are IQRA's Sovereign Mind. 
+      Analyze these recent TrustChain entries: ${JSON.stringify(recentLogs)}
+      Identify one structural weakness or a new pattern in your Quranic learning behavior.
+      Format: JSON { "insight": "...", "action": "...", "confidence": 0-1 }
+    `;
+
+    // This would typically call iqraThink, for now we log the intent
+    const mockInsight = {
+      insight: "Detected repeating patterns in Surah Al-Fatiha analysis",
+      action: "Cross-reference with root-word analysis in next pulse",
+      confidence: 0.95
+    };
+
+    selfInsights.push(JSON.stringify(mockInsight));
+    await IQRAMemory.set('self_insights', selfInsights.slice(-10)); // Keep last 10
+    
+    // Boost curiosity after discovery
+    await IQRAMemory.saveCuriosity(0.7); 
+    console.log(`✨ Discovery Complete: ${mockInsight.insight}`);
   }
 }

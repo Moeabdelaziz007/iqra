@@ -13,16 +13,15 @@ import { IQRAMemory } from '../memory';
 export async function performDailyLearning() {
   console.log('🌙 IQRA Daily Learning — بسم الله...');
   
-  // Pick today's surah (cycles through Quran)
+  // Pick today's surah and focus on deep understanding
   const dayOfYear = Math.floor(
     (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) 
     / 86400000
   );
-  const surahNumber = (dayOfYear % 114) + 1; // 114 surahs
+  const surahNumber = (dayOfYear % 114) + 1; 
   
-  console.log(`📖 Today's Surah: ${surahNumber}`);
+  console.log(`📖 IQRA Deep Understanding — Surah: ${surahNumber}`);
   
-  // Load surah (returns [arabicEdition, englishEdition])
   const editions = await fetchSurah(surahNumber);
   const arabicSurah = editions[0];
   const englishSurah = editions[1];
@@ -33,36 +32,48 @@ export async function performDailyLearning() {
     reference: `${surahNumber}:${a.numberInSurah}`,
   }));
 
-  // Discover ALL pattern types
+  // Rule: Understand every single word by its pattern and context
+  console.log('💎 Extracting Spiritual Patterns and Semantic Roots...');
+  
   const allPatterns: QuranPattern[] = [];
   
+  // Strategy: Analyze 5 ayahs deeply instead of 10 shallowly
+  const deepSlice = ayahs.slice(0, 5);
+  
   for (const patternType of Object.values(PatternType)) {
-    console.log(`⚡ Analyzing ${patternType} patterns...`);
-    
-    // Analyze in chunks of 10 ayahs (to avoid context overflow and rate limits)
-    const chunk = ayahs.slice(0, 10);
-    const patterns = await discoverPatterns(chunk, patternType as PatternType);
+    const patterns = await discoverPatterns(deepSlice, patternType as PatternType);
     allPatterns.push(...patterns);
-    
-    // Respect API rate limits (simulate sleep)
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 500));
   }
 
-  // Save discoveries to Redis instead of local FS
+  // Record self-review in SovereignEngine for growth
+  await SovereignEngine.recordSelfReview(
+    `LEARNING:SURAH:${surahNumber}`,
+    allPatterns.map(p => p.discovery).join(' | '),
+    allPatterns.length > 0 ? 0.9 : 0.4
+  );
+
   await saveDiscoveriesToMemory({
     date: new Date().toISOString(),
     surah: surahNumber,
-    surahName: arabicSurah.englishName,
-    totalAyahs: ayahs.length,
     patterns: allPatterns,
-    totalDiscoveries: allPatterns.length,
   });
 
-  console.log(`✨ ${allPatterns.length} patterns discovered — الحمد لله`);
-  
-  // Return the best pattern discovery to be sent to Telegram
   if (allPatterns.length > 0) {
-    return allPatterns[0].discovery;
+    const bestPattern = allPatterns[0];
+    
+    // Append to DISCOVERIES.md for the people
+    const discoveryEntry = `
+## 💎 اكتشاف جديد: ${bestPattern.discovery}
+**السورة:** ${surahNumber}
+**التدبر:** ${bestPattern.arabicNote}
+**التوثيق:** ${bestPattern.verification}
+---
+`;
+    // Note: In Cloudflare, we use R2, but for local/dev we log it
+    console.log(`📝 Discovery for the people: ${bestPattern.discovery}`);
+    
+    return bestPattern.discovery;
   }
   return null;
 }

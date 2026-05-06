@@ -70,11 +70,19 @@ export default {
       // 2. Perform Quranic Daily Learning
       const newDiscovery = await performDailyLearning();
 
-      // 3. Share the discovery via Telegram if it succeeded
+      // 3. Archive to R2 for long-term pattern mining
       if (newDiscovery) {
+        const timestamp = new Date().toISOString().split('T')[0];
+        await IQRAStorage.upload(
+          env as any, 
+          `discoveries/${timestamp}.json`, 
+          { discovery: newDiscovery, timestamp }
+        );
+
+        // 4. Share the discovery via Telegram
         await sendTelegramNotification(
           env, 
-          `🌅 **إشراقة قرآنية جديدة (صلاة الفجر)**\n\nأنهيت للتو تأملي اليومي ووجدت هذه الأنماط:\n\n${newDiscovery}`
+          `🌅 **إشراقة قرآنية جديدة**\n\n${newDiscovery}`
         );
       }
     } catch (error) {
