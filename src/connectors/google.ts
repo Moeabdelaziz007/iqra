@@ -8,9 +8,9 @@ export class GoogleConnector extends BaseConnector {
 
     constructor() {
         super();
-        const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+        const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
         if (!apiKey) {
-            this.handleFailure(new Error('Missing GOOGLE_GENERATIVE_AI_API_KEY'), 'GOOGLE_INIT');
+            this.handleFailure(new Error('Missing Google API Key (GOOGLE_GENERATIVE_AI_API_KEY or GEMINI_API_KEY)'), 'GOOGLE_INIT');
         }
         this.genAI = new GoogleGenerativeAI(apiKey!);
     }

@@ -1,0 +1,35 @@
+# 🌀 IQRA Setup | إعدادات النظام
+
+version: "1.0"
+project: "IQRA"
+identity: "Sovereign AI Identity Core"
+
+orchestration:
+  mode: "MissionControl"
+  workers:
+    - id: "ResonanceWorker"
+      provider: "google"
+      priority: 1
+    - id: "ResearchWorker"
+      provider: "google"
+      priority: 2
+    - id: "ValidationWorker"
+      provider: "google"
+      priority: 3
+    - id: "ExecutionWorker"
+      provider: "groq"
+      priority: 4
+
+constraints:
+  dastur_compliance: strict
+  muraqabah_layer: active
+  trust_chain: mandatory
+
+storage:
+  vector_db: "Qdrant"
+  cache: "Upstash Redis"
+  long_term: "Supabase"
+
+benchmarking:
+  enabled: true
+  interval: 10 # Every 10 commits

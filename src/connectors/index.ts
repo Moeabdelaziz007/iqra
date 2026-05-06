@@ -1,8 +1,9 @@
 import { BaseConnector } from './base';
 import { GoogleConnector } from './google';
 import { GroqConnector } from './groq';
+import { SovereignConnector } from '../../lib/iqra/quran/sovereign_connector';
 
-export type Provider = 'google' | 'groq';
+export type Provider = 'google' | 'groq' | 'sovereign';
 
 export class ConnectorFactory {
     static getConnector(provider?: Provider): BaseConnector {
@@ -11,6 +12,7 @@ export class ConnectorFactory {
         switch (target) {
             case 'google': return new GoogleConnector();
             case 'groq': return new GroqConnector();
+            case 'sovereign': return new SovereignConnector();
             default: return new GoogleConnector();
         }
     }

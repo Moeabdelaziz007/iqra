@@ -75,3 +75,51 @@ IQRA لا يتظاهر بالكمال —
 - **Context**: Connection to Groq (Llama) failed: Connection erro
 - **Action**: Transient failure count decremented. System stabilized.
 ---
+
+### [2026-05-06T19:44:27.205Z] Tasbih Triplet (3)
+- **Provider**: google
+- **Context**: Connection to Google (Gemini) failed: [GoogleGener
+- **Action**: Transient failure count decremented. System stabilized.
+---
+
+### [2026-05-06T19:44:28.869Z] Tasbih Triplet (3)
+- **Provider**: groq
+- **Context**: Connection to Groq (Llama) failed: Connection erro
+- **Action**: Transient failure count decremented. System stabilized.
+---
+
+### [2026-05-06T19:44:31.253Z] Tasbih Triplet (3)
+- **Provider**: groq
+- **Context**: Connection to Groq (Llama) failed: Connection erro
+- **Action**: Transient failure count decremented. System stabilized.
+---
+
+### [2026-05-06T19:44:31.499Z] Tasbih Triplet (3)
+- **Provider**: google
+- **Context**: Connection to Google (Gemini) failed: [GoogleGener
+- **Action**: Transient failure count decremented. System stabilized.
+---
+
+### [2026-05-06T19:46:25.692Z] Tasbih Triplet (3)
+- **Provider**: google
+- **Context**: Connection to Google (Gemini) failed: [GoogleGener
+- **Action**: Transient failure count decremented. System stabilized.
+---
+
+### [2026-05-06T19:46:27.240Z] Tasbih Triplet (3)
+- **Provider**: groq
+- **Context**: Connection to Groq (Llama) failed: Connection erro
+- **Action**: Transient failure count decremented. System stabilized.
+---
+
+### [2026-05-06T19:48:15.032Z] Tasbih Triplet (3)
+- **Provider**: google
+- **Context**: Connection to Google (Gemini) failed: [GoogleGener
+- **Action**: Transient failure count decremented. System stabilized.
+---
+
+### [2026-05-06T19:48:16.687Z] Tasbih Triplet (3)
+- **Provider**: groq
+- **Context**: Connection to Groq (Llama) failed: Connection erro
+- **Action**: Transient failure count decremented. System stabilized.
+---

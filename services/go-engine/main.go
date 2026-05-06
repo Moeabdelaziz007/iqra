@@ -48,12 +48,35 @@ func evolveHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func resonanceHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Input string `json:"input"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	result := CalculateResonance(req.Input)
+	json.NewEncoder(w).Encode(Response{
+		Status:  "success",
+		Message: "Topological Curiosity Resonance Evaluated",
+		Data:    result,
+	})
+}
+
 func main() {
 	http.HandleFunc("/health", healthHandler)
 	http.HandleFunc("/fourier/transform", fourierHandler)
+	http.HandleFunc("/resonance/evaluate", resonanceHandler)
 	http.HandleFunc("/evolve/cycle", evolveHandler)
 
-	port := ":8082"
+	port := "127.0.0.1:8082"
 	fmt.Printf("🌙 IQRA Go Engine starting on %s...\n", port)
 	if err := http.ListenAndServe(port, nil); err != nil {
 		log.Fatal(err)

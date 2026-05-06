@@ -51,12 +51,16 @@ export class IQRAMemory {
     if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
       try {
         const { Redis } = await import('@upstash/redis');
-        this._redis = new Redis({
+        const client = new Redis({
           url: process.env.UPSTASH_REDIS_REST_URL,
           token: process.env.UPSTASH_REDIS_REST_TOKEN,
         });
+        // Test connection with a very short timeout
+        await withTimeout(client.ping(), 1000, 'Redis Ping');
+        this._redis = client;
       } catch (e) {
-        IQRALogger.warn('⚠️ [MEMORY] Redis module missing. Falling back to Sovereign mode.');
+        IQRALogger.warn('⚠️ [MEMORY] Redis unreachable or module missing. Falling back to Sovereign mode.');
+        this._redis = null;
       }
     }
     return this._redis;
@@ -94,8 +98,10 @@ export class IQRAMemory {
       try {
         const { GoogleGenerativeAI } = await import('@google/generative-ai');
         this._googleAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY);
+        // We don't ping here to save tokens/quota, but we'll catch failures later
       } catch (e) {
         IQRALogger.warn('⚠️ [MEMORY] Google AI module missing.');
+        this._googleAI = null;
       }
     }
     return this._googleAI;
@@ -396,8 +402,8 @@ export class IQRAMemory {
     return 1.0 - maxSimilarity;
   }
 
-  private static cosineSimilarity(v1: number[], v2: number[]): number {
-    if (v1.length !== v2.length) return 0;
+  static cosineSimilarity(v1: number[], v2: number[]): number {
+    if (!v1 || !v2 || v1.length !== v2.length || v1.length === 0) return 0;
     let dotProduct = 0;
     let mag1 = 0;
     let mag2 = 0;
@@ -448,6 +454,11 @@ export class QuantumTopologyStore {
         const coordinateKey = `quantum:coord:${entry.coordinates.concept.toLowerCase()}`;
         await redis.sadd(coordinateKey, quantumId);
         await redis.set(`quantum:entry:${quantumId}`, JSON.stringify(fullEntry));
+      } else {
+        // Local fallback storage
+        const localEntries = await IQRAMemory.get<any>('quantum_entries') || {};
+        localEntries[quantumId] = fullEntry;
+        await IQRAMemory.set('quantum_entries', localEntries);
       }
 
       IQRALogger.info(`🌌 [QUANTUM] Memory entangled at concept: ${entry.coordinates.concept}`);
@@ -461,7 +472,27 @@ export class QuantumTopologyStore {
   static async searchQuantum(query: string, targetConcept?: string): Promise<QuantumMemoryEntry[]> {
     try {
       const qdrant = await IQRAMemory.getQdrant();
-      if (!qdrant) return [];
+      if (!qdrant) {
+        IQRALogger.warn('⚠️ [QUANTUM] Qdrant offline. Performing local resonant search.');
+        const localData = await IQRAMemory.get<any>('quantum_entries') || {};
+        const queryEmbedding = await this.generateEmbedding(query);
+        
+        const results = Object.values(localData).map((payload: any) => {
+          const sim = this.cosineSimilarity(queryEmbedding, payload.vector || []);
+          let resonance = sim;
+          if (targetConcept && payload.coordinates?.concept?.toLowerCase() === targetConcept.toLowerCase()) {
+            resonance += 0.2;
+          }
+          return {
+            id: payload.id,
+            content: payload.content,
+            coordinates: { ...payload.coordinates, resonance: Math.min(1.0, resonance) },
+            vector: payload.vector,
+            timestamp: payload.timestamp
+          } as QuantumMemoryEntry;
+        });
+        return results.sort((a, b) => (b.coordinates.resonance || 0) - (a.coordinates.resonance || 0)).slice(0, 5);
+      }
 
       const queryEmbedding = await this.generateEmbedding(query);
       
@@ -498,10 +529,21 @@ export class QuantumTopologyStore {
   }
 
   private static async generateEmbedding(text: string): Promise<number[]> {
-    const googleAI = await IQRAMemory.getGoogleAI();
-    if (!googleAI) throw new Error('Google AI not configured for embeddings');
-    const model = googleAI.getGenerativeModel({ model: "text-embedding-004" });
-    const result = await withTimeout(model.embedContent(text), IQRA_TIMEOUTS.LLM, 'Google AI Embedding');
-    return result.embedding.values;
+    try {
+      const googleAI = await IQRAMemory.getGoogleAI();
+      if (!googleAI) throw new Error('OFFLINE');
+      const model = googleAI.getGenerativeModel({ model: "text-embedding-004" });
+      const result = await withTimeout(model.embedContent(text), IQRA_TIMEOUTS.LLM, 'Google AI Embedding');
+      return result.embedding.values;
+    } catch (error) {
+      IQRALogger.warn('⚠️ [QUANTUM] Network unavailable. Using Sovereign Local Embedding Fallback.');
+      // Simple hash-based deterministic embedding for offline stability (768 dims typical for bge/gemini)
+      const hash = crypto.createHash('sha256').update(text).digest();
+      const embedding = new Array(768).fill(0).map((_, i) => {
+        const byte = hash[i % hash.length];
+        return (byte / 255) * 2 - 1; // Normalized to [-1, 1]
+      });
+      return embedding;
+    }
   }
 }

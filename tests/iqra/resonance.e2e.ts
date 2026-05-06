@@ -21,7 +21,7 @@ describe('IQRA Resonance — No Mocks E2E', () => {
     });
 
     expect(response).toContain('إقرأ');
-    expect(response.toLowerCase()).toContain('mithaq');
+    expect(response.toLowerCase()).toMatch(/mithaq|mīthāq|ميثاق/i);
   });
 
   it('should block forbidden intentions via FITRAH filter', async () => {

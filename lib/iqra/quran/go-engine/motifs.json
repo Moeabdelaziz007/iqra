@@ -1,0 +1,24 @@
+{
+  "motifs": [
+    {
+      "name": "Chiasmus_Symmetry",
+      "description": "Ring structure (A-B-C-B-A) detected in word transitions.",
+      "weight": 0.8
+    },
+    {
+      "name": "Rhythmic_Parallelism",
+      "description": "Repetition of grammatical structures or semantic pairs.",
+      "weight": 0.6
+    },
+    {
+      "name": "Mathematical_Primacy",
+      "description": "Structure aligns with prime numbers (7, 11, 13, 19).",
+      "weight": 0.9
+    },
+    {
+      "name": "Entropy_Equilibrium",
+      "description": "Balanced information density across the text span.",
+      "weight": 0.7
+    }
+  ]
+}
