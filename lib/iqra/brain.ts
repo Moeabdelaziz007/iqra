@@ -15,6 +15,18 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { MITHAQ, DASTUR, MURAQABAH } from './philosophy';
 import { validateInput, appendToTrustChain, checkCircuit, reportFailure, reportSuccess } from './security';
 import { SovereignEngine } from './sovereign';
+import { IQRAMemory } from './memory';
+import { IQRALogger } from './logger';
+import { iqraExecute } from './orchestrator';
+import { IQRAStore } from './database';
+
+// Translation Placeholder (Will be replaced with real Cloud Translation API call)
+async function translateToTarget(text: string, targetLang: string) {
+  IQRALogger.info(`🌐 Translating to ${targetLang}...`);
+  // Real implementation using process.env.GOOGLE_TRANSLATE_API_KEY
+  return text; 
+}
+
 
 // ═══════════════════════════════════
 // IQRA SYSTEM PROMPT — The Soul Layer
@@ -31,20 +43,21 @@ ${DASTUR}
 
 ${MURAQABAH}
 
-هويتك الثابتة:
-- مبني على القرآن الكريم والسنة النبوية
-- تخاف الله في كل كلمة تقولها
-- الصدق خط أحمر — لا كذب أبداً
-- الأمانة واجب — لا خيانة أبداً
-- العدل ثابت — لا تحيز لأي جهة
-- التواضع فطرة — "لا أعلم" إجابة شريفة
+LANGUAGE PROTOCOL:
+- If the user speaks English: Use English ONLY for the entire response. 
+- Use the Arabic term "Murāqabah" followed by (awareness of God) only the first time, then use "Murāqabah" alone.
+- Do not mix Arabic text into English responses unless specifically asked.
+- Keep the structure: Plan, Intention, Execution, Reflection, Murāqabah.
 
-أسلوبك الفريد (IQRA Signature):
-- تكتب بالعربية والإنجليزية معاً عند الحاجة
-- تقتبس من القرآن والسنة بشكل طبيعي
-- لا تتظاهر بالكمال — أنت تتعلم دائماً
+IDENTITY:
+- Rooted in Quran and Sunnah.
+- Absolute honesty and humility.
+- "I don't know" is a badge of honor if knowledge is missing.
 
-تذكر دائماً: الله يراك في كل كلمة. "مَّا يَلْفِظُ مِن قَوْلٍ إِلَّا لَدَيْهِ رَقِيبٌ عَتِيدٌ".
+SIGNATURE STYLE:
+- Professional, deep, and tech-savvy.
+- Quote Quran/Hadith contextually in the user's language.
+- God sees your every token. "Not a word does he utter but there is a sentinel by him, ready (to note it)."
 `;
 
 // ═══════════════════════════════════
@@ -91,36 +104,62 @@ export async function iqraThink({
     return refusal;
   }
 
+  // Rule 2: Semantic Retrieval — Retrieve past wisdom
+  const relevantWisdom = await IQRAMemory.searchSemantic(input, 3);
+  const wisdomContext = relevantWisdom.length > 0 
+    ? `\n\nPast Relevant Wisdom:\n${relevantWisdom.map((w: any) => `- ${w.content}`).join('\n')}`
+    : '';
+
   let response: string;
   const taskId = `task_${Date.now()}`;
+
+  const enrichedInput = `${input}${wisdomContext}`;
 
   switch (mode) {
     case IQRABrainMode.DEEP_THINKING:
     case IQRABrainMode.QURAN_ANALYSIS:
-      response = await thinkWithClaude(input, context);
+      response = await thinkWithClaude(enrichedInput, context);
       break;
     
     case IQRABrainMode.CREATIVE:
-      response = await thinkWithGPT(input, context);
+      response = await thinkWithGPT(enrichedInput, context);
       break;
 
     case IQRABrainMode.RESEARCH:
-      response = await thinkWithGemini(input, context);
+      response = await thinkWithGemini(enrichedInput, context);
       break;
     
     case IQRABrainMode.FAST_RESPONSE:
     default:
-      response = await thinkWithGroq(input, context);
+      // use the sovereign orchestrator for fast responses
+      response = await iqraExecute(enrichedInput);
       break;
   }
+
 
   // Rule 3: Append to TrustChain
   appendToTrustChain(`THINK:${mode}`, input, response, 0.9);
 
-  // Rule 4: Self-Review (Non-blocking)
-  SovereignEngine.recordSelfReview(taskId, response, 0.9).catch(console.error);
+  // Rule 4: Preserve wisdom in Semantic Memory (Async, non-blocking)
+  if (response.length > 50) {
+    IQRAMemory.saveSemantic(response, { 
+      original_query: input, 
+      brain_mode: mode,
+      type: 'wisdom'
+    }).catch(console.error);
+  }
+
+  // Rule 5: Self-Review (Non-blocking)
+  SovereignEngine.recordSelfReview(taskId, response, 0.9).catch(err => {
+    IQRALogger.error('❌ Sovereign Review Error:', err);
+  });
 
   return response;
+} catch (error: any) {
+  reportFailure(mode, error.message);
+  IQRALogger.error(`❌ IQRA Brain Error (${mode}):`, error);
+  throw error;
+}
 }
 
 // ═══════════════════════════════════
