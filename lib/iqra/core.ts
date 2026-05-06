@@ -10,8 +10,10 @@ import { IQRAMemory } from './memory';
 import { iqraThink, IQRABrainMode } from './brain';
 import { applyIQRAStyle } from './style';
 import { DASTUR, MURAQABAH } from './philosophy';
+import { VoiceService } from '../../iqra-core/voice/voice_service';
 
 export class AgentCore {
+  private static voice = new VoiceService();
   /**
    * Pre-execution hooks (Islamic Triangulation)
    */
@@ -55,6 +57,11 @@ export class AgentCore {
     
     // STYLE
     const styledResponse = applyIQRAStyle(rawThought);
+
+    // VOICE (Optional/Async) — Let IQRA speak if needed
+    if (mode === IQRABrainMode.FAST_RESPONSE) {
+      this.voice.speak(styledResponse).catch(err => console.error('Voice failed:', err));
+    }
 
     return styledResponse;
   }
