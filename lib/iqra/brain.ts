@@ -19,6 +19,7 @@ import { withTimeout, IQRA_TIMEOUTS } from './utils/timeout';
 import { IQRA_PERSONALITY } from './personality';
 import * as fs from 'fs';
 import * as path from 'path';
+import { MissionControl } from './sovereign_orchestrator';
 
 // 🌀 Dynamic Soul Injection — حقن الروح الديناميكي
 function loadCoreFiles(): string {

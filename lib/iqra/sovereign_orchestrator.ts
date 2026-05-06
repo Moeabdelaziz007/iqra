@@ -13,7 +13,8 @@ export class MissionControl {
     IQRALogger.info('🚀 [MISSION_CONTROL] Initiating Sovereign Worker Chain...');
     
     // 1. Resonance Worker (Discovery Phase - Patterns)
-    const resonanceWorker = new ResonanceWorker('google'); // Uses Go Engine + LLM Patterns
+    // Assigned: Gemini (Google) for deep pattern discovery
+    const resonanceWorker = new ResonanceWorker('google'); 
     const resResult = await resonanceWorker.execute(input);
     this.reports.push(resResult.report);
     
@@ -22,7 +23,8 @@ export class MissionControl {
     }
 
     // 2. Research Worker (Planning Phase - Context)
-    const researchWorker = new ResearchWorker('google'); // Strong reasoning for context synthesis
+    // Assigned: Gemini (Google) for deep reasoning and planning
+    const researchWorker = new ResearchWorker('google'); 
     const researchResult = await researchWorker.execute(input, resResult.nextHandoff);
     this.reports.push(researchResult.report);
 
@@ -31,7 +33,8 @@ export class MissionControl {
     }
 
     // 3. Validation Worker (Validation Phase - Safety)
-    const validationWorker = new ValidationWorker('google'); // Gemini's safety-first alignment
+    // Assigned: Gemini (Google) for rigorous Dastur compliance
+    const validationWorker = new ValidationWorker('google'); 
     const valResult = await validationWorker.execute(input, researchResult.nextHandoff);
     this.reports.push(valResult.report);
 
@@ -40,7 +43,8 @@ export class MissionControl {
     }
 
     // 4. Execution Worker (Implementation Phase - Action)
-    const executionWorker = new ExecutionWorker('groq'); // Speed for final response delivery
+    // Assigned: Groq for low-latency delivery
+    const executionWorker = new ExecutionWorker('groq'); 
     const execResult = await executionWorker.execute(input, valResult.nextHandoff);
     this.reports.push(execResult.report);
 
@@ -53,22 +57,38 @@ export class MissionControl {
   }
 
   static formatWorkerReports(reports: WorkerReport[]): string {
-    let output = "\n## 🛰️ Mission Control | تقرير مركز القيادة\n";
+    let output = "\n---\n";
+    output += "## 🛰️ Mission Control | مركز القيادة والتحكم\n";
+    output += "> \"وَفَوْقَ كُلِّ ذِي عِلْمٍ عَلِيمٌ\" — يوسف: 76\n\n";
     
     for (const report of reports) {
-      output += `\n### 👷 [WORKER] ${report.workerId}\n`;
-      output += `**Protocol Status**: ${report.proceduresFollowed ? "✅ Followed" : "⚠️ Deviated"}\n`;
+      const statusIcon = report.proceduresFollowed ? "✅" : "⚠️";
+      output += `### 👷 [WORKER] ${report.workerId} | ${statusIcon}\n`;
+      output += `**Protocol**: ${report.proceduresFollowed ? "Sovereign Alignment Followed" : "Alignment Deviation Detected"}\n`;
       
-      output += `\n**What was implemented:**\n- ${report.implemented.join("\n- ") || "None"}\n`;
-      
-      output += `\n**What was left undone:**\n- ${report.undone.join("\n- ") || "None"}\n`;
-      
-      output += `\n**Commands Run + Exit Codes:**\n`;
-      for (const cmd of report.commands) {
-        output += `- \`${cmd.command}\` [Exit Code: ${cmd.exitCode}]\n`;
+      if (report.implemented.length > 0) {
+        output += `\n**What was implemented | ما تم إنجازه:**\n`;
+        output += report.implemented.map(item => `- ${item}`).join("\n") + "\n";
       }
       
-      output += `\n**Issues Discovered:**\n- ${report.issues.join("\n- ") || "No issues discovered."}\n`;
+      if (report.undone.length > 0) {
+        output += `\n**What was left undone | ما لم يكتمل:**\n`;
+        output += report.undone.map(item => `- ${item}`).join("\n") + "\n";
+      }
+      
+      if (report.commands.length > 0) {
+        output += `\n**Operations | العمليات المنفذة:**\n`;
+        for (const cmd of report.commands) {
+          const cmdIcon = cmd.exitCode === 0 ? "🟢" : "🔴";
+          output += `- ${cmdIcon} \`${cmd.command}\` (Exit: ${cmd.exitCode})\n`;
+        }
+      }
+      
+      if (report.issues.length > 0) {
+        output += `\n**Issues Discovered | المشكلات المكتشفة:**\n`;
+        output += report.issues.map(item => `- ${item}`).join("\n") + "\n";
+      }
+      
       output += `\n---\n`;
     }
     
