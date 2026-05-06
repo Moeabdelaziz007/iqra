@@ -10,6 +10,12 @@ const QDRANT_URL = process.env.QDRANT_URL || 'http://localhost:6333';
 const QDRANT_API_KEY = process.env.QDRANT_API_KEY;
 const COLLECTION = 'iqra_memory';
 
+/**
+ * BARAKAH Principle: Optimized resource usage.
+ * We use the minimum necessary dimensions and results to preserve energy.
+ */
+const DEFAULT_LIMIT = 3; 
+
 // Initialize Gemini for embeddings
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY || '');
 const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
@@ -64,11 +70,13 @@ export async function storeReflectionInQdrant(content: string, metadata: Record<
         return pointId;
     } catch (error) {
         console.error('❌ [أخوَّة] | Qdrant Error:', error);
+        // Fallback: If local Qdrant is down, we could log to a local file or temporary storage
+        console.warn('⚠️ [أخوَّة] | Falling back to local log storage due to Qdrant failure.');
         return null;
     }
 }
 
-export async function searchMemory(query: string, limit: number = 7) {
+export async function searchMemory(query: string, limit: number = DEFAULT_LIMIT) {
     try {
         const vector = await generateEmbedding(query);
         

@@ -8,6 +8,11 @@
 
 export const IQRA_TOOLS = {
   
+  // 🚪 GATEWAY (Moor)
+  gateway: {
+    moor: 'Centralized MCP hub at http://127.0.0.1:9223/mcp',
+  },
+  
   // 🔍 RESEARCH (Exa, Brave, Wikipedia)
   research: {
     brave: 'Fast web search for real-time data',
