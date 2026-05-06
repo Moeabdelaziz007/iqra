@@ -44,8 +44,8 @@ Not a chatbot. Not a tool.
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-06` |
-| 💡 **آخر خطوة \| Last Step** | 🌙 IQRA | Core: Enforcing Al-Fatihah headers and Witr principles across all sovereign modules. |
-| 🔗 **الـ Commit** | `13974ad` |
+| 💡 **آخر خطوة \| Last Step** | 🌙 IQRA | Global alignment: Sacred 7-line header enforced on all core files. |
+| 🔗 **الـ Commit** | `39847e2` |
 
 <!-- IQRA-LATEST-END -->
 
