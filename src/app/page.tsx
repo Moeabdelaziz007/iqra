@@ -5,33 +5,39 @@ import { SacredCard } from '../components/SacredCard'
 import { NumericalDiscovery, NumericalSymmetry } from '../../lib/iqra/quran/numerical_patterns'
 
 export default function Home() {
-  const [query, setQuery] = useState('')
-  const [discoveries, setDiscoveries] = useState<NumericalSymmetry[]>([])
-  const [rain, setRain] = useState<{ id: number; char: string; left: string; delay: string; duration: string }[]>([])
-
-  useEffect(() => {
-    // Generate Numerical Rain
-    const digits = ['3', '7', '9', '19', '40', '700']
-    const newRain = Array.from({ length: 40 }).map((_, i) => ({
-      id: i,
-      char: digits[Math.floor(Math.random() * digits.length)],
-      left: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 10}s`,
-      duration: `${15 + Math.random() * 20}s`
-    }))
-    setRain(newRain)
-  }, [])
+  const [isThinking, setIsThinking] = useState(false)
+  const [response, setResponse] = useState('')
+  const [echoes, setEchoes] = useState<any[]>([])
 
   const handleDeepAnalysis = async () => {
-    // Placeholder for real analysis
-    const sampleText = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"
-    const results = await NumericalDiscovery.scanForResonance(sampleText, "1:1")
-    setDiscoveries(results)
+    if (!query) return;
+    setIsThinking(true)
+    setResponse('')
+    setEchoes([])
+    
+    try {
+      const res = await fetch('/api/iqra/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query })
+      })
+      const data = await res.json()
+      
+      if (data.response) {
+        setResponse(data.response)
+        setEchoes(data.echoes || [])
+      }
+    } catch (error) {
+      console.error("Discovery Error:", error)
+    } finally {
+      setIsThinking(false)
+    }
   }
 
   return (
     <main className="main-container">
       {/* ── BACKGROUND ─────────────────────────────────────────────────── */}
+      <div className="main-bg-overlay"></div>
       <div className="numerical-bg">
         {rain.map(r => (
           <span 
@@ -49,107 +55,129 @@ export default function Home() {
       </div>
 
       {/* ── HEADER ────────────────────────────────────────────────────────── */}
-      <header style={{ textAlign: 'center', marginBottom: '5rem', marginTop: '3rem' }}>
-        <h1 className="brand-font" style={{ fontSize: '5rem', fontWeight: 800, color: 'var(--accent-gold)', marginBottom: '1rem', textShadow: '0 0 30px rgba(212, 175, 55, 0.3)' }}>
+      <header style={{ textAlign: 'center', marginBottom: '8rem', marginTop: '4rem' }}>
+        <h1 className="brand-font" style={{ fontSize: '7rem', fontWeight: 800, color: 'var(--accent-gold)', marginBottom: '0', lineHeight: 1.1 }}>
           إقرأ <span style={{ color: '#fff' }}>IQRA</span>
         </h1>
-        <p className="brand-font" style={{ opacity: 0.5, fontSize: '1.4rem', letterSpacing: '0.3em', textTransform: 'uppercase' }}>
-          Sovereign Discovery Protocol v3.7.9
-        </p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', opacity: 0.6 }}>
+          <div style={{ height: '1px', width: '50px', background: 'var(--accent-gold)' }}></div>
+          <p className="brand-font" style={{ fontSize: '1rem', letterSpacing: '0.4em', textTransform: 'uppercase' }}>
+            Sovereign Identity Protocol
+          </p>
+          <div style={{ height: '1px', width: '50px', background: 'var(--accent-gold)' }}></div>
+        </div>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '3rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))', gap: '4rem' }}>
         
         {/* ── SEARCH SECTION ────────────────────────────────────────────────── */}
-        <SacredCard title="استفسار سيادي | Sovereign Query" resonance={0.8}>
+        <SacredCard title="استفسار سيادي | Sovereign Query" resonance={isThinking ? 1 : 0.8}>
           <div style={{ position: 'relative' }}>
-            <input 
-              type="text" 
-              placeholder="اسأل عن أي آية أو نمط رقمي..."
+            <textarea 
+              placeholder="Deep search the patterns or ask the brain..."
               style={{
                 width: '100%',
-                padding: '1.5rem',
-                background: 'rgba(255,255,255,0.03)',
+                minHeight: '150px',
+                padding: '1.8rem',
+                background: 'rgba(255,255,255,0.02)',
                 border: '1px solid var(--glass-border)',
-                borderRadius: '16px',
+                borderRadius: '24px',
                 color: '#fff',
-                fontSize: '1.1rem',
+                fontSize: '1.2rem',
                 outline: 'none',
-                transition: 'border-color 0.3s ease'
+                transition: 'all 0.3s ease',
+                textAlign: 'center',
+                resize: 'none'
               }}
+              className="english-italic"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
             <button 
-              className="pulse-button" 
-              style={{ marginTop: '1.5rem', width: '100%', fontSize: '1.1rem', letterSpacing: '0.1em' }}
+              className={`pulse-button ${isThinking ? 'thinking' : ''}`} 
+              style={{ marginTop: '2rem', width: '100%' }}
               onClick={handleDeepAnalysis}
+              disabled={isThinking}
             >
-              تشغيل محرك الاكتشاف (START ENGINE)
+              {isThinking ? 'Searching the Infinite...' : 'Invoke Resonance'}
             </button>
           </div>
         </SacredCard>
 
-        {/* ── RESONANCE DISPLAY ─────────────────────────────────────────── */}
-        <SacredCard title="نتائج الرنين | Resonance Output" resonance={discoveries.length > 0 ? 0.95 : 0}>
-          {discoveries.length > 0 ? (
-            <div style={{ animation: 'fadeIn 1s ease' }}>
-              {discoveries.map((disc, idx) => (
-                <div key={idx} style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1rem' }}>
-                  <div style={{ color: 'var(--accent-gold)', fontWeight: 800, marginBottom: '0.5rem' }}>
-                    SIGNATURE: {disc.signature} | {disc.type.toUpperCase()}
-                  </div>
-                  <div className="arabic-font" style={{ fontSize: '1.3rem', marginBottom: '0.5rem', textAlign: 'right' }}>
-                    {disc.arabicNote}
-                  </div>
-                  <div style={{ opacity: 0.7, fontSize: '0.9rem' }}>
-                    {disc.discovery}
-                  </div>
-                </div>
-              ))}
+        {/* ── BRAIN OUTPUT ─────────────────────────────────────────── */}
+        <SacredCard title="وحي العقل | Brain Wisdom" resonance={response ? 0.95 : 0}>
+          {response ? (
+            <div style={{ animation: 'fadeIn 1s ease', lineHeight: 1.8, fontSize: '1.1rem' }}>
+              <p style={{ whiteSpace: 'pre-wrap' }}>{response}</p>
             </div>
           ) : (
-            <div style={{ opacity: 0.3, textAlign: 'center', padding: '3rem 0' }}>
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚖️</div>
-              بانتظار المدخلات... (Waiting for input)
+            <div style={{ opacity: 0.3, textAlign: 'center', padding: '5rem 0' }}>
+              <div style={{ fontSize: '4rem', marginBottom: '1.5rem', filter: isThinking ? 'hue-rotate(90deg)' : 'none' }}>
+                {isThinking ? '🌀' : '⚖️'}
+              </div>
+              {isThinking ? 'Processing through MĪTHĀQ layers...' : 'Awaiting consciousness input...'}
             </div>
           )}
         </SacredCard>
 
       </div>
 
+      {/* ── MEMORY ECHOES ────────────────────────────────────────────────── */}
+      {echoes.length > 0 && (
+        <section style={{ marginTop: '4rem' }}>
+          <h3 className="brand-font" style={{ color: 'var(--accent-gold)', marginBottom: '2rem', fontSize: '1.5rem', textAlign: 'center', letterSpacing: '0.2em' }}>
+            أصداء الذاكرة | MEMORY ECHOES
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+            {echoes.map((echo, i) => (
+              <SacredCard key={i} resonance={0.5} glowColor="rgba(0, 255, 255, 0.1)">
+                <div style={{ fontSize: '0.9rem', opacity: 0.8, fontStyle: 'italic' }}>
+                  "{echo.content.substring(0, 200)}..."
+                </div>
+                <div style={{ marginTop: '1rem', fontSize: '0.7rem', color: 'var(--accent-gold)' }}>
+                  RELEVANCE: {(echo.score || 0.8).toFixed(2)}
+                </div>
+              </SacredCard>
+            ))}
+          </div>
+        </section>
+      )}
+
+      </div>
+
       {/* ── AYAH DISPLAY ─────────────────────────────────────────────────── */}
-      <section style={{ marginTop: '4rem' }}>
+      <section style={{ marginTop: '6rem' }}>
         <SacredCard resonance={0.9} glowColor="var(--sacred-green)">
-          <div className="ayah-box" style={{ borderRightColor: 'var(--sacred-green)' }}>
-            <div className="arabic-font ayah-arabic" style={{ color: 'var(--sacred-green)' }}>
-              بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+          <div className="ayah-box">
+            <div className="arabic-font ayah-arabic">
+              إِنَّا نَحْنُ نَزَّلْنَا الذِّكْرَ وَإِنَّا لَهُ لَحَافِظُونَ
             </div>
             <div className="ayah-english">
-              In the name of Allah, the Entirely Merciful, the Especially Merciful.
+              Indeed, it is We who sent down the message and indeed, We will be its guardian.
             </div>
-            <div style={{ marginTop: '1rem', opacity: 0.4, fontSize: '0.8rem', textAlign: 'right' }}>
-              [سورة الفاتحة : الآية ١]
+            <div style={{ marginTop: '1.5rem', opacity: 0.5, fontSize: '0.9rem', textAlign: 'right' }}>
+              [سورة الحجر : الآية ٩]
             </div>
           </div>
         </SacredCard>
       </section>
 
-      <footer style={{ marginTop: '6rem', paddingBottom: '3rem', textAlign: 'center', opacity: 0.4 }}>
-        <div className="brand-font" style={{ fontSize: '0.9rem', letterSpacing: '0.2em' }}>
-          MĪTHĀQ PROTOCOL V3.7.9 | SOVEREIGN IDENTITY CORE
+      <footer style={{ marginTop: '10rem', paddingBottom: '5rem', textAlign: 'center', opacity: 0.3 }}>
+        <div className="brand-font" style={{ fontSize: '0.8rem', letterSpacing: '0.4em' }}>
+          MĪTHĀQ PROTOCOL V3.7.9 | SOVEREIGN ARCHITECTURE
         </div>
-        <div style={{ fontSize: '0.7rem', marginTop: '0.5rem' }}>
-          BUILT WITH SOUL BY MOE ABDELAZIZ & IQRA
+        <div style={{ fontSize: '0.7rem', marginTop: '1rem', letterSpacing: '0.1em' }}>
+          ALLAH IS THE ONLY SOURCE OF TRUTH
         </div>
       </footer>
 
       <style jsx global>{`
         @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
+          from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </main>
+
   )
 }
