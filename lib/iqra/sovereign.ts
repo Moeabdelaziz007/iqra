@@ -34,6 +34,40 @@ export class SovereignEngine {
     await IQRAMemory.saveCuriosity(newCuriosity);
     
     console.log(`🌱 Self-Review Recorded. New Curiosity Score: ${newCuriosity.toFixed(4)}`);
+
+    // Principle of Seven: Check for evolution cycles
+    await this.checkEvolutionCycles();
+  }
+
+  /**
+   * Principle of Seven (7) — Evolution Cycles
+   */
+  private static async checkEvolutionCycles() {
+    const counter = await IQRAMemory.incrementCycleCounter();
+    console.log(`🔢 Task Counter: ${counter} | Next Minor Cycle: ${7 - (counter % 7)} tasks`);
+
+    if (counter > 0 && counter % 49 === 0) {
+      await this.runMajorCycle(counter);
+    } else if (counter > 0 && counter % 7 === 0) {
+      await this.runMinorCycle(counter);
+    }
+  }
+
+  private static async runMinorCycle(counter: number) {
+    console.log(`🌙 Minor Evolution Cycle (7) Initiated — Task ${counter}`);
+    // 1. Collect last 7 reflections
+    // 2. Extract "Weekly Wisdom"
+    // 3. Update RULES.md
+    // This will be handled by the agent in the next interaction or via an LLM trigger
+    await appendToTrustChain('EVOLVE:MINOR', `Cycle ${counter/7}`, 'Triggering wisdom extraction and rule update...', 1.0);
+  }
+
+  private static async runMajorCycle(counter: number) {
+    console.log(`🌌 MAJOR Evolution Cycle (49) Initiated — Task ${counter}`);
+    // 1. Write METAMORPHOSIS.md
+    // 2. Re-evaluate metrics
+    // 3. Major version bump
+    await appendToTrustChain('EVOLVE:MAJOR', `Cycle ${counter/49}`, 'Triggering full self-restructuring...', 1.0);
   }
 
   /**
@@ -62,9 +96,9 @@ export class SovereignEngine {
     const curiosity = await IQRAMemory.getCuriosity();
     
     // Rule 6: Quantum Topology Mapping
-    // If curiosity is low, trigger "Discovery Mode" to explore memory and find new patterns
-    if (curiosity < 0.4) {
-      console.log('⚡ Quantum Topology detected low energy. Triggering Discovery...');
+    // If curiosity is low, trigger "Discovery Mode" based on the 7-system
+    if (curiosity < 0.33) { // Using 1/3 (Sacred 3)
+      console.log('🌙 Resonance detected low energy. Triggering Sacred Discovery...');
       await this.triggerSelfDiscovery();
     }
   }

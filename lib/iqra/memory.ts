@@ -61,4 +61,28 @@ export class IQRAMemory {
   static async getCuriosity(): Promise<number> {
     return (await redis.get<number>('iqra:curiosity_score')) || 0.5;
   }
+
+  /**
+   * Soft Reset (Tasbih)
+   * Clears transient working memory/cache to reset context
+   */
+  static async softReset() {
+    // In a stateless worker, this could clear local cache or specific temporary keys
+    await redis.del('iqra:working_memory');
+    console.log('📿 Tasbih: Working memory soft-reset complete.');
+  }
+
+  /**
+   * Increment task/cycle counter
+   */
+  static async incrementCycleCounter(): Promise<number> {
+    return await redis.incr('iqra:cycle_counter');
+  }
+
+  /**
+   * Get current cycle counter
+   */
+  static async getCycleCounter(): Promise<number> {
+    return (await redis.get<number>('iqra:cycle_counter')) || 0;
+  }
 }

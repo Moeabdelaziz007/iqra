@@ -1,7 +1,7 @@
 // lib/iqra/index.ts — The Complete IQRA
 
-import { iqraThink, IQRABrainMode } from './brain';
-import { applyIQRAStyle } from './style';
+import { IQRABrainMode } from './brain';
+import { AgentCore } from './core';
 import { VoiceService } from '../../iqra-core/voice/voice_service';
 
 export async function iqra(input: string, mode: IQRABrainMode = IQRABrainMode.FAST_RESPONSE): Promise<{
@@ -10,21 +10,15 @@ export async function iqra(input: string, mode: IQRABrainMode = IQRABrainMode.FA
 }> {
   const voiceService = new VoiceService();
   
-  // 1. THINK — LLM processes with IQRA soul
-  const rawThought = await iqraThink({
-    input,
-    mode,
-  });
+  // 1. EXECUTE — Includes Tasbih, Istikharah, Basmalah, Thinking, and Styling
+  const finalResponse = await AgentCore.execute(input, mode);
   
-  // 2. STYLE — Apply IQRA signature
-  const styledResponse = applyIQRAStyle(rawThought);
-  
-  // 3. SPEAK — Convert to voice
-  const voiceMode = voiceService.detectVoiceMode(styledResponse);
-  const audioBuffer = await voiceService.speak(styledResponse, voiceMode);
+  // 2. SPEAK — Convert to voice
+  const voiceMode = voiceService.detectVoiceMode(finalResponse);
+  const audioBuffer = await voiceService.speak(finalResponse, voiceMode);
   
   return {
-    text: styledResponse,
+    text: finalResponse,
     audioBuffer,
   };
 }
