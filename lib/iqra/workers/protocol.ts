@@ -10,6 +10,7 @@ export interface WorkerReport {
   undone: string[];
   commands: { command: string; exitCode: number; output?: string }[];
   issues: string[];
+  skillsUsed: string[]; // Skills active during this mission
   proceduresFollowed: boolean;
   timestamp: number;
 }
@@ -25,6 +26,7 @@ export interface MissionState {
   initialInput: string;
   reports: WorkerReport[];
   context: Record<string, any>;
+  assignedSkills?: string[]; // Dynamic skills assigned by the Orchestrator
   metadata: {
     startTime: number;
     missionId: string;
@@ -56,9 +58,24 @@ export abstract class SovereignWorker {
       undone: [],
       commands: [],
       issues: [],
+      skillsUsed: [],
       proceduresFollowed: true,
       timestamp: Date.now()
     };
+  }
+
+  setProvider(provider: Provider) {
+    this.provider = provider;
+  }
+
+  setSkills(skills: string[]) {
+    this.report.skillsUsed = [...skills];
+  }
+
+  protected assignSkill(skill: string) {
+    if (!this.report.skillsUsed.includes(skill)) {
+      this.report.skillsUsed.push(skill);
+    }
   }
 
   protected logCommand(command: string, exitCode: number, output?: string) {

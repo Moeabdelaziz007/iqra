@@ -1,5 +1,5 @@
 import { SovereignWorker, WorkerResult } from './protocol.ts';
-import { ConnectorFactory, Provider } from '../../src/connectors/index.ts';
+import { ConnectorFactory, Provider } from '../../../src/connectors/index.ts';
 import { FULL_SYSTEM_PROMPT } from '../brain.ts'; // We might need to export this
 import { IQRAMemory } from '../memory.ts';
 

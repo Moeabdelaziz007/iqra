@@ -1,0 +1,29 @@
+{
+  "mission_mapping": {
+    "RESEARCH": {
+      "provider": "google",
+      "model": "gemini-pro",
+      "skills": ["web_search", "context_retrieval", "deep_analysis"]
+    },
+    "ANALYSIS": {
+      "provider": "google",
+      "model": "gemini-pro",
+      "skills": ["pattern_recognition", "quran_alignment", "resonance_calculation"]
+    },
+    "EXECUTION": {
+      "provider": "groq",
+      "model": "llama3-70b",
+      "skills": ["code_generation", "shell_execution", "logic_optimization"]
+    },
+    "VALIDATION": {
+      "provider": "google",
+      "model": "gemini-pro",
+      "skills": ["dastur_compliance", "security_audit", "ethical_filter"]
+    },
+    "DEFAULT": {
+      "provider": "google",
+      "model": "gemini-pro",
+      "skills": ["general_assistance"]
+    }
+  }
+}

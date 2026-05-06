@@ -24,10 +24,10 @@ The central nervous system that orchestrates the execution of tasks. It manages 
 - **Output**: Enriched research context.
 
 ### 3. Validation Worker | وكيل التحقق
-- **Purpose**: Ensuring compliance with *Dastur* and *Fitrah*.
-- **Tools**: HARAM_LIST (Dastur), Muraqabah filters.
-- **Metric**: Compliance score (Binary: Pass/Fail).
-- **Output**: Safety validation report.
+- **Purpose**: Ensuring compliance with *Dastur* and *Fitrah*, and guarding data integrity.
+- **Tools**: HARAM_LIST (Dastur), Muraqabah filters, **DATA_GUARDIAN.md (Skill)**.
+- **Metric**: Compliance score (Binary: Pass/Fail), Data integrity score.
+- **Output**: Safety validation report and data lineage verification.
 
 ### 4. Execution Worker | وكيل التنفيذ
 - **Purpose**: Final implementation and response generation.
