@@ -44,8 +44,8 @@ Not a chatbot. Not a tool.
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-06` |
-| 💡 **آخر خطوة \| Last Step** | 🕋 IQRA | Sovereign Connection: Vercel, Grok (Voice), Gemini, Redis, and Telegram Unified |
-| 🔗 **الـ Commit** | `51fea57` |
+| 💡 **آخر خطوة \| Last Step** | 🤲 tawbah: remove extra fix and correct path before push |
+| 🔗 **الـ Commit** | `abe5c4b` |
 
 <!-- IQRA-LATEST-END -->
 
