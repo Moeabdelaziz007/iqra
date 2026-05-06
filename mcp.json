@@ -1,0 +1,45 @@
+{
+    "mcpServers": {
+        "github": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-github"
+            ],
+            "env": {
+                "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+            }
+        },
+        "cloudflare": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@cloudflare/mcp-server-cloudflare"
+            ],
+            "env": {
+                "CLOUDFLARE_API_TOKEN": "${CF_TOKEN}"
+            }
+        },
+        "qdrant": {
+            "command": "uvx",
+            "args": [
+                "mcp-server-qdrant"
+            ],
+            "env": {
+                "QDRANT_URL": "http://localhost:6333"
+            }
+        },
+        "gemini-bridge": {
+            "command": "uvx",
+            "args": [
+                "gemini-bridge"
+            ]
+        },
+        "rube": {
+            "url": "https://mcp.rube.ai/sse",
+            "headers": {
+                "Authorization": "Bearer R_API_Kt_HERE"
+            }
+        }
+    }
+}
