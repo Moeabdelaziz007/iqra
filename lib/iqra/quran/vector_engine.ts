@@ -55,25 +55,27 @@ export class VectorEngine {
    * Insert or update embeddings for ayahs
    */
   async upsertAyahs(ayahs: { id: string; text: string; metadata: any }[]) {
-    const vectors = [];
-    
-    for (const ayah of ayahs) {
-      try {
+    try {
+      // 1. Generate embeddings in parallel batches
+      const embeddingPromises = ayahs.map(async (ayah) => {
         const { data } = await this.env.AI.run(VectorEngine.EMBEDDING_MODEL, {
           text: [ayah.text],
         });
-        vectors.push({
+        return {
           id: ayah.id,
           values: data[0],
           metadata: ayah.metadata,
-        });
-      } catch (e) {
-        console.error(`Failed to embed ayah ${ayah.id}:`, e);
-      }
-    }
+        };
+      });
 
-    if (vectors.length > 0) {
-      await this.env.VECTORIZE.upsert(vectors);
+      const vectors = await Promise.all(embeddingPromises);
+
+      // 2. Upsert to Vectorize
+      if (vectors.length > 0) {
+        await this.env.VECTORIZE.upsert(vectors);
+      }
+    } catch (e) {
+      console.error("Vector Upsert Error:", e);
     }
   }
 }

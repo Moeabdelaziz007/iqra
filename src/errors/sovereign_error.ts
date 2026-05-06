@@ -36,7 +36,25 @@ export class SovereignError extends Error {
     }
 
     private logSovereignly() {
+        const fs = require('fs');
+        const path = require('path');
+        const logPath = path.join(process.cwd(), 'FAILURES.md');
+        
+        const entry = `
+### ❌ [SOVEREIGN_FAILURE] | ${this.timestamp}
+- **Code**: ${this.code}
+- **Message**: ${this.message}
+- **Severity**: ${this.metadata.severity}
+- **Source**: ${this.metadata.source}
+- **Recovery**: ${this.metadata.recovery_strategy}
+---
+`;
+        try {
+            fs.appendFileSync(logPath, entry);
+        } catch (e) {
+            console.error('Failed to log to FAILURES.md:', e);
+        }
+        
         console.error(`🕋 [SOVEREIGN_ERROR] | ${this.code} | ${this.message}`);
-        // In a real implementation, this would append to FAILURES.md or a centralized log
     }
 }

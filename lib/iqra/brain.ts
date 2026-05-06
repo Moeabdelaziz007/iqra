@@ -16,13 +16,27 @@ import { IQRAMemory, QuantumTopologyStore, SpiritualCoordinate } from './memory'
 import { IQRALogger } from './logger';
 import { iqraExecute } from './orchestrator';
 import { withTimeout, IQRA_TIMEOUTS } from './utils/timeout';
-import { IQRA_SOUL } from './prompts';
 import { IQRA_PERSONALITY } from './personality';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Merge soul and personality
-const FULL_SYSTEM_PROMPT = `${IQRA_SOUL}\n\n${IQRA_PERSONALITY}`;
+// 🌀 Dynamic Soul Injection — حقن الروح الديناميكي
+function loadCoreFiles(): string {
+  const coreDir = path.join(process.cwd(), 'iqra-core');
+  const files = ['MITHAQ.md', 'DASTUR.md', 'MURAQABAH.md', 'HISAB.md'];
+  
+  let soulContent = '';
+  for (const file of files) {
+    const filePath = path.join(coreDir, file);
+    if (fs.existsSync(filePath)) {
+      soulContent += `\n\n### ${file.replace('.md', '')}\n${fs.readFileSync(filePath, 'utf-8')}`;
+    }
+  }
+  return soulContent;
+}
+
+const IQRA_DYNAMIC_SOUL = loadCoreFiles();
+const FULL_SYSTEM_PROMPT = `${IQRA_DYNAMIC_SOUL}\n\n${IQRA_PERSONALITY}`;
 
 // ═══════════════════════════════════
 // BRAIN HIERARCHY
@@ -35,30 +49,30 @@ export enum IQRABrainMode {
   RESEARCH = 'google',         // Gemini — long context
 }
 
-// 🌀 Go Engine Bridge — جسر محرك Go
-// Fixed to port 8082 as per architectural stabilization
-class GoEngineBridge {
-  private static BASE_URL = 'http://localhost:8082';
+import { execSync } from 'child_process';
 
-  static async calculateFourierResonance(input: string) {
+// 🌀 Go Engine Bridge — جسر محرك Go
+// Refactored to CLI mode to bypass Mac network restrictions
+class GoEngineBridge {
+  private static ENGINE_PATH = path.join(process.cwd(), 'lib/iqra/quran/go-engine/main.go');
+
+  static async calculateResonance(input: string) {
     try {
-      const response = await fetch(`${this.BASE_URL}/fourier/transform`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input })
-      });
-      if (response.ok) {
-        return await response.json();
-      }
+      // Execute Go tool directly
+      const cmd = `go run "${this.ENGINE_PATH}" -mode resonance -input "${input.replace(/"/g, '\\"')}"`;
+      const output = execSync(cmd, { encoding: 'utf-8' });
+      const result = JSON.parse(output);
+      return result.data;
     } catch (e) {
-      // Graceful fallback if Go engine is not running
+      IQRALogger.error('❌ [GO-BRIDGE] Execution failed:', e);
       return null;
     }
   }
 
   static async triggerEvolutionCycle() {
     try {
-      fetch(`${this.BASE_URL}/evolve/cycle`).catch(() => {});
+      const cmd = `go run "${this.ENGINE_PATH}" -mode evolve -input "trigger"`;
+      execSync(cmd);
     } catch (e) {}
   }
 }
@@ -107,9 +121,9 @@ export async function iqraThink({
     const coordinates = await extractSpiritualCoordinates(input);
 
     // 🌀 Heavy Computation Offloading to Go Engine (Port 8082)
-    const resonanceData = await GoEngineBridge.calculateFourierResonance(input);
-    if (resonanceData) {
-      IQRALogger.info(`🌊 [GO-ENGINE] Fourier Resonance detected: ${JSON.stringify(resonanceData.data)}`);
+    const resonanceData = await GoEngineBridge.calculateResonance(input);
+    if (resonanceData && resonanceData.discovery_found) {
+      IQRALogger.info(`🌊 [GO-ENGINE] Topological Curiosity Resonance: ${resonanceData.coherence.toFixed(2)} | Patterns: ${resonanceData.patterns.join(', ')}`);
     }
 
     // Rule 2: Quantum Semantic Retrieval
