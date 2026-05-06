@@ -92,4 +92,19 @@ export class IQRAMemory {
   static async getCycleCounter(): Promise<number> {
     return (await redis.get<number>('iqra:cycle_counter')) || 0;
   }
+
+  /**
+   * Arba'un Purification (40)
+   * Deep cleansing of temporary contexts every 40 cycles.
+   */
+  static async performPurification() {
+    console.log('🧼 Arba\'ūn: Starting purification cycle...');
+    await redis.del('iqra:working_memory');
+    await redis.del('iqra:temp_context');
+    // Save a reflection about the purification
+    await this.appendList('purification_logs', {
+      timestamp: Date.now(),
+      message: 'Reached 40 cycles. Purification performed to restore Fitrah.'
+    });
+  }
 }

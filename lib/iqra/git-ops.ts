@@ -105,6 +105,10 @@ export function istilan(retries = 3) {
 export async function sovereignSync() {
   console.log('🕋 [أخوَّة] | Commencing Sovereign Pulse...');
   
+  // Principle of Seven (7) - Sab'iyyah Stabilization
+  const { sabiyyahWisdom } = await import('./security');
+  await sabiyyahWisdom();
+
   // 1. Commit what we have
   istidrak();
   
