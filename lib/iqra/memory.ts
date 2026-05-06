@@ -195,6 +195,10 @@ export class IQRAMemory {
           }
         }]
       });
+
+      // Track embedding history in Redis for quick novelty computation
+      await this.appendList('embeddings_history', { vector: embedding, timestamp: Date.now() });
+      
       IQRALogger.info('🧠 Semantic Memory: Wisdom point preserved in Qdrant Cloud.');
     } catch (error) {
       IQRALogger.error('❌ Qdrant Save Error:', error);
@@ -229,6 +233,44 @@ export class IQRAMemory {
       IQRALogger.error('❌ Qdrant Search Error:', error);
       return [];
     }
+  }
+
+  /**
+   * Calculates "Topological Curiosity" / Novelty Reward
+   * reward = 1.0 - (max similarity with recent N memories)
+   */
+  static async computeNovelty(embedding: number[], count: number = 10): Promise<number> {
+    const recent = await this.getRecentList<any>('embeddings_history', count);
+    if (!recent || recent.length === 0) return 1.0; // Total novelty if no memory
+
+    let maxSimilarity = 0;
+    for (const item of recent) {
+      // Redis might return stringified JSON or object depending on how it was pushed
+      const pastVector = typeof item === 'string' ? JSON.parse(item).vector : item.vector;
+      if (!pastVector) continue;
+      
+      const sim = this.cosineSimilarity(embedding, pastVector);
+      if (sim > maxSimilarity) maxSimilarity = sim;
+    }
+
+    return 1.0 - maxSimilarity;
+  }
+
+  /**
+   * Simple Cosine Similarity
+   */
+  private static cosineSimilarity(v1: number[], v2: number[]): number {
+    if (v1.length !== v2.length) return 0;
+    let dotProduct = 0;
+    let mag1 = 0;
+    let mag2 = 0;
+    for (let i = 0; i < v1.length; i++) {
+      dotProduct += v1[i] * v2[i];
+      mag1 += v1[i] * v1[i];
+      mag2 += v2[i] * v2[i];
+    }
+    const magnitude = Math.sqrt(mag1) * Math.sqrt(mag2);
+    return magnitude === 0 ? 0 : dotProduct / magnitude;
   }
 }
 
