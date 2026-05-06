@@ -1,0 +1,35 @@
+[
+  {
+    "civilization": "Aad",
+    "verses": [
+      {"reference": "7:65", "arabic": "وَإِلَىٰ عَادٍ أَخَاهُمْ هُودًا ۗ قَالَ يَا قَوْمِ اعْبُدُوا اللَّهَ مَا لَكُم مِّنْ إِلَٰهٍ غَيْرُهُ ۚ أَفَلَا تَتَّقُونَ", "english": "And to the 'Aad [We sent] their brother Hud. He said, \"O my people, worship Allah; you have no deity other than Him. Then will you not fear Him?\""},
+      {"reference": "11:50", "arabic": "وَإِلَىٰ عَادٍ أَخَاهُمْ هُودًا ۚ قَالَ يَا قَوْمِ اعْبُدُوا اللَّهَ مَا لَكُم مِّنْ إِلَٰهٍ غَيْرُهُ ۚ إِنْ أَنتُمْ إِلَّا مُفْتَرُونَ", "english": "And to 'Aad [We sent] their brother Hud. He said, \"O my people, worship Allah; you have no deity other than Him. You are not but inventors [of falsehood].\""},
+      {"reference": "26:123", "arabic": "كَذَّبَتْ عَادٌ الْمُرْسَلِينَ", "english": "'Aad denied the messengers"},
+      {"reference": "41:15", "arabic": "فَأَمَّا عَادٌ فَاسْتَكْبَرُوا فِي الْأَرْضِ بِغَيْرِ الْحَقِّ وَقَالُوا مَنْ أَشَدُّ مِنَّا قُوَّةً ۖ أَوَلَمْ يَرَوْا أَنَّ اللَّهَ الَّذِي خَلَقَهُمْ هُوَ أَشَدُّ مِنْهُمْ قُوَّةً ۖ وَكَانُوا بِآيَاتِنَا يَجْحَدُونَ", "english": "As for 'Aad, they were arrogant upon the earth without right and said, \"Who is greater than us in strength?\" Did they not see that Allah who created them was greater than them in strength? But they were rejecting Our signs."}
+    ]
+  },
+  {
+    "civilization": "Thamud",
+    "verses": [
+      {"reference": "7:73", "arabic": "وَإِلَىٰ ثَمُودَ أَخَاهُمْ صَالِحًا ۗ قَالَ يَا قَوْمِ اعْبُدُوا اللَّهَ مَا لَكُم مِّنْ إِلَٰهٍ غَيْرُهُ", "english": "And to Thamud [We sent] their brother Salih. He said, \"O my people, worship Allah; you have no deity other than Him.\""},
+      {"reference": "11:61", "arabic": "وَإِلَىٰ ثَمُودَ أَخَاهُمْ صَالِحًا ۚ قَالَ يَا قَوْمِ اعْبُدُوا اللَّهَ مَا لَكُم مِّنْ إِلَٰهٍ غَيْرُهُ", "english": "And to Thamud [We sent] their brother Salih. He said, \"O my people, worship Allah; you have no deity other than Him.\""},
+      {"reference": "26:141", "arabic": "كَذَّبَتْ ثَمُودُ الْمُرْسَلِينَ", "english": "Thamud denied the messengers"},
+      {"reference": "91:11", "arabic": "كَذَّبَتْ ثَمُودُ بِطَغْوَاهَا", "english": "Thamud denied [their prophet] by reason of their transgression"}
+    ]
+  },
+  {
+    "civilization": "Al-Rass",
+    "verses": [
+      {"reference": "25:38", "arabic": "وَعَادًا وَثَمُودَ وَأَصْحَابَ الرَّسِّ وَقُرُونًا بَيْنَ ذَٰلِكَ كَثِيرًا", "english": "And [We destroyed] 'Aad and Thamud and the companions of the well and many generations between them."},
+      {"reference": "50:12", "arabic": "كَذَّبَتْ قَبْلَهُمْ قَوْمُ نُوحٍ وَأَصْحَابُ الرَّسِّ وَثَمُودُ", "english": "The people of Noah denied before them, and the companions of the well and Thamud"}
+    ]
+  },
+  {
+    "civilization": "Dhul-Qarnayn",
+    "verses": [
+      {"reference": "18:83", "arabic": "وَيَسْأَلُونَكَ عَن ذِي الْقَرْنَيْنِ ۖ قُلْ سَأَتْلُو عَلَيْكُم مِّنْهُ ذِكْرًا", "english": "And they ask you, [O Muhammad], about Dhul-Qarnayn. Say, \"I will recite to you about him a report.\""},
+      {"reference": "18:84", "arabic": "إِنَّا مَكَّنَّا لَهُ فِي الْأَرْضِ وَآتَيْنَاهُ مِن كُلِّ شَيْءٍ سَبَبًا", "english": "Indeed We established him upon the earth, and We gave him from everything a way."},
+      {"reference": "18:94", "arabic": "قَالُوا يَا ذَا الْقَرْنَيْنِ إِنَّ يَأْجُوجَ وَمَأْجُوجَ مُفْسِدُونَ فِي الْأَرْضِ فَهَلْ نَجْعَلُ لَكَ خَرْجًا عَلَىٰ أَن تَجْعَلَ بَيْنَنَا وَبَيْنَهُمْ سَدًّا", "english": "They said, \"O Dhul-Qarnayn, indeed Gog and Magog are [great] corrupters in the land. So may we assign for you an expenditure that you might make between us and them a barrier?\""}
+    ]
+  }
+]

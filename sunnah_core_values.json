@@ -1,0 +1,29 @@
+[
+  {
+    "value": "Knowledge (Al-Ilm)",
+    "hadiths": [
+      {"reference": "Sahih al-Bukhari 100", "arabic": "إِنَّ اللَّهَ لاَ يَقْبِضُ الْعِلْمَ انْتِزَاعًا، يَنْتَزِعُهُ مِنَ الْعِبَادِ، وَلَكِنْ يَقْبِضُ الْعِلْمَ بِقَبْضِ الْعُلَمَاءِ", "english": "Allah does not take away the knowledge, by taking it away from (the hearts of) the people, but He takes it away by the death of the religious learned men."},
+      {"reference": "Sunan Abi Dawud 3641", "arabic": "مَنْ سَلَكَ طَرِيقًا يَطْلُبُ فِيهِ عِلْمًا سَلَكَ اللَّهُ بِهِ طَرِيقًا مِنْ طُرُقِ الْجَنَّةِ", "english": "If anyone travels on a road in search of knowledge, Allah will cause him to travel on one of the roads of Paradise."}
+    ]
+  },
+  {
+    "value": "Trust (Al-Amanah)",
+    "hadiths": [
+      {"reference": "Sahih al-Bukhari 6496", "arabic": "الأَمَانَةُ نَزَلَتْ فِي جَذْرِ قُلُوبِ الرِّجَالِ، ثُمَّ نَزَلَ الْقُرْآنُ فَعَلِمُوا مِنَ الْقُرْآنِ، وَعَلِمُوا مِنَ السُّنَّةِ", "english": "Amanah (honesty or the trust) was revealed in the roots of the hearts of men, then the Quran was revealed and then they learned (honesty) from the Quran and then they learned it from the Sunnah."},
+      {"reference": "Sahih al-Bukhari 1837", "arabic": "إِذَا وُسِّدَ الأَمْرُ إِلَى غَيْرِ أَهْلِهِ فَانْتَظِرِ السَّاعَةَ", "english": "When the power or authority comes into the hands of unfit persons, then wait for the Hour (Doomsday)."}
+    ]
+  },
+  {
+    "value": "Justice (Al-Adl)",
+    "hadiths": [
+      {"reference": "Sahih Muslim 1827", "arabic": "إِنَّ الْمُقْسِطِينَ عِنْدَ اللَّهِ عَلَى مَنَابِرَ مِنْ نُورٍ عَنْ يَمِينِ الرَّحْمَنِ عَزَّ وَجَلَّ وَكِلْتَا يَدَيْهِ يَمِينٌ الَّذِينَ يَعْدِلُونَ فِي حُكْمِهِمْ وَأَهْلِيهِمْ وَمَا وَلُوا", "english": "Behold, the equitable in the sight of Allah will be on pinnacles of light on the right hand of the Merciful, the Mighty and Magnificent, and both His hands are right; those who are equitable in their judgment, their family and that with which they are entrusted."}
+    ]
+  },
+  {
+    "value": "Mercy (Al-Rahmah)",
+    "hadiths": [
+      {"reference": "Sahih al-Bukhari 7376", "arabic": "مَنْ لاَ يَرْحَمُ لاَ يُرْحَمُ", "english": "Whoever is not merciful to others will not be treated mercifully."},
+      {"reference": "Sahih Muslim 2752", "arabic": "إِنَّ اللَّهَ خَلَقَ الرَّحْمَةَ يَوْمَ خَلَقَهَا مِائَةَ رَحْمَةٍ فَأَمْسَكَ عِنْدَهُ تِسْعًا وَتِسْعِينَ رَحْمَةً وَأَرْسَلَ فِي خَلْقِهِ كُلِّهِمْ رَحْمَةً وَاحِدَةً", "english": "Allah created mercy in one hundred parts on the day He created it. He kept ninety-nine parts with Him and sent down one part to all His creatures."}
+    ]
+  }
+]
