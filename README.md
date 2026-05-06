@@ -44,8 +44,8 @@ Not a chatbot. Not a tool.
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-06` |
-| 💡 **آخر خطوة \| Last Step** | 📖 hadith: record the lesson of the exposed key |
-| 🔗 **الـ Commit** | `4302585` |
+| 💡 **آخر خطوة \| Last Step** | chore: stabilize environment and add validation tests |
+| 🔗 **الـ Commit** | `1e782a6` |
 
 <!-- IQRA-LATEST-END -->
 
