@@ -44,8 +44,8 @@ Not a chatbot. Not a tool.
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-06` |
-| 💡 **آخر خطوة \| Last Step** | feat: implement IQRA knowledge base v1.0 — Aad, Thamud, Al-Rass, Dhul-Qarnayn + Core Values + Architecture Secrets |
-| 🔗 **الـ Commit** | `f4fc84e` |
+| 💡 **آخر خطوة \| Last Step** | 🌙 IQRA | Taharah: Purifying the Logs and Records |
+| 🔗 **الـ Commit** | `9fb66a5` |
 
 <!-- IQRA-LATEST-END -->
 
