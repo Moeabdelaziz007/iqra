@@ -20,17 +20,9 @@ export async function callEconomyModel(input: string, context: any[]): Promise<s
     const baseURL = useGlm ? "https://open.bigmodel.cn/api/paas/v4/" : "https://dashscope.aliyuncs.com/compatible-mode/v1";
 
     if (!apiKey) {
-        IQRALogger.warn(`⚠️ [ECONOMY] No API Key for ${model}. Falling back to Mock.`);
-        
-        // Specialized Mock logic for Research Models
-        if (model.includes("minimax")) {
-            return `[MINIMAX M2.7] Self-evolution trace: Problem analyzed -> Correction planned -> IQRA code verified.`;
-        }
-        if (model.includes("internlm")) {
-            return `[INTERNLM S1 PRO] FoPE analysis: Detected harmonic resonance between local linguistic particles and global thematic waves.`;
-        }
-
-        return `[ECONOMY MOCK] Using ${model}: In-depth analysis of patterns in text complete.`;
+        const errorMsg = `❌ [SOVEREIGN_ERROR] No API Key for ${model}. Mocks are forbidden.`;
+        IQRALogger.error(errorMsg);
+        throw new Error(errorMsg);
     }
 
     try {
