@@ -53,7 +53,7 @@ func main() {
 	http.HandleFunc("/fourier/transform", fourierHandler)
 	http.HandleFunc("/evolve/cycle", evolveHandler)
 
-	port := ":8080"
+	port := ":8082"
 	fmt.Printf("🌙 IQRA Go Engine starting on %s...\n", port)
 	if err := http.ListenAndServe(port, nil); err != nil {
 		log.Fatal(err)

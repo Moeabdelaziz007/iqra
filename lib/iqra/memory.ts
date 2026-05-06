@@ -6,15 +6,14 @@
  * Powered by Upstash Redis, Supabase, and Qdrant.
  */
 
-// Dynamic imports are handled lazily within methods to allow Sovereign Mode (No node_modules required)
-import { IQRALogger } from './logger.ts';
-import { IQRAFilter } from './filter.ts';
-import { IQRAConsciousness } from './consciousness.ts';
+import { IQRALogger } from './logger';
+import { IQRAFilter } from './filter';
+import { IQRAConsciousness } from './consciousness';
 import path from 'path';
 import crypto from 'crypto';
 import fs from 'fs';
 import { promises as fsPromises } from 'fs';
-import { withTimeout, IQRA_TIMEOUTS } from './utils/timeout.ts';
+import { withTimeout, IQRA_TIMEOUTS } from './utils/timeout';
 
 /**
  * 🌀 Quantum Topological Memory Structures
@@ -36,10 +35,8 @@ export interface QuantumMemoryEntry {
   timestamp: number;
 }
 
-
 const LOCAL_MEMORY_PATH = path.join(process.cwd(), '.iqra', 'memory.json');
 const COLLECTION_NAME = 'iqra_wisdom';
-
 
 export class IQRAMemory {
   private static _redis: any = null;
@@ -48,7 +45,6 @@ export class IQRAMemory {
   private static _googleAI: any = null;
   private static _errorCount = 0;
   private static readonly ERROR_THRESHOLD = 7;
-
 
   private static async getRedis() {
     if (this._redis) return this._redis;
@@ -104,9 +100,7 @@ export class IQRAMemory {
     }
     return this._googleAI;
   }
-  /**
-   * Helper for local filesystem memory (Sovereign Fallback)
-   */
+
   private static async getLocalData(): Promise<any> {
     if (fs.existsSync(LOCAL_MEMORY_PATH)) {
       try {
@@ -132,15 +126,12 @@ export class IQRAMemory {
     }
   }
 
-  /**
-   * Save a key-value pair
-   */
   static async set(key: string, value: any) {
     try {
       const redis = await this.getRedis();
       if (redis) {
         const result = await withTimeout(redis.set(`iqra:${key}`, value), IQRA_TIMEOUTS.REDIS, `Redis SET ${key}`);
-        this._errorCount = 0; // Reset on success
+        this._errorCount = 0;
         return result;
       }
     } catch (error) {
@@ -157,16 +148,12 @@ export class IQRAMemory {
     return 'OK';
   }
 
-
-  /**
-   * Get a value by key
-   */
   static async get<T>(key: string): Promise<T | null> {
     try {
       const redis = await this.getRedis();
       if (redis) {
         const val = await withTimeout(redis.get<T>(`iqra:${key}`), IQRA_TIMEOUTS.REDIS, `Redis GET ${key}`);
-        this._errorCount = 0; // Reset on success
+        this._errorCount = 0;
         return val;
       }
     } catch (error) {
@@ -181,30 +168,21 @@ export class IQRAMemory {
     return (data[key] as T) || null;
   }
 
-
-  /**
-   * Get a range of items from a list
-   */
   static async getList<T>(key: string, start: number, end: number): Promise<T[]> {
     const redis = await this.getRedis();
     if (redis) {
       const result = await withTimeout(redis.lrange(`iqra:list:${key}`, start, end), IQRA_TIMEOUTS.REDIS, `Redis LRANGE ${key}`);
       return (result || []) as T[];
     }
-
     
     const data = await this.getLocalData();
     const list = (data[`list:${key}`] || []) as T[];
     return list.slice(start, end + 1);
   }
 
-  /**
-   * Append to a list (for TrustChain)
-   */
   static async appendList(key: string, value: any) {
     const redis = await this.getRedis();
     if (redis) return await withTimeout(redis.rpush(`iqra:list:${key}`, value), IQRA_TIMEOUTS.REDIS, `Redis RPUSH ${key}`);
-
     
     const data = await this.getLocalData();
     const listKey = `list:${key}`;
@@ -222,29 +200,26 @@ export class IQRAMemory {
       const result = await withTimeout(redis.lrange(`iqra:list:${key}`, start, total - 1), IQRA_TIMEOUTS.REDIS, `Redis LRANGE (recent) ${key}`);
       return (result || []) as T[];
     }
-
     
     const data = await this.getLocalData();
     const list = (data[`list:${key}`] || []) as T[];
     return list.slice(-count);
   }
 
-  /**
-   * Save curiosity score
-   */
   static async saveCuriosity(score: number) {
     const redis = await this.getRedis();
-    if (!redis) return;
+    if (!redis) {
+      const data = await this.getLocalData();
+      data['curiosity_score'] = score;
+      if (!data['curiosity_history']) data['curiosity_history'] = [];
+      data['curiosity_history'].push({ timestamp: Date.now(), score });
+      await this.saveLocalData(data);
+      return;
+    }
     await redis.set('iqra:curiosity_score', score);
-    await redis.rpush('iqra:curiosity_history', {
-      timestamp: Date.now(),
-      score
-    });
+    await redis.rpush('iqra:curiosity_history', { timestamp: Date.now(), score });
   }
 
-  /**
-   * Get current curiosity score
-   */
   static async getCuriosity(): Promise<number> {
     const redis = await this.getRedis();
     if (redis) return (await redis.get<number>('iqra:curiosity_score')) || 0.5;
@@ -252,10 +227,6 @@ export class IQRAMemory {
     return data['curiosity_score'] || 0.5;
   }
 
-  /**
-   * Grant a reward to the system, increasing curiosity or trust.
-   * "وَسَيَجْزِي اللَّهُ الشَّاكِرِينَ" — آل عمران: 144
-   */
   static async grantReward(amount: number) {
     const current = await this.getCuriosity();
     const newScore = Math.min(1.0, current + amount);
@@ -268,77 +239,44 @@ export class IQRAMemory {
     IQRALogger.info(`✨ [REWARD] Curiosity boosted by ${amount}. New score: ${newScore.toFixed(4)}`);
   }
 
-  /**
-   * Soft Reset (Tasbih)
-   * Clears transient working memory/cache to reset context
-   */
   static async softReset() {
     IQRALogger.warn('🔄 [MEMORY] Threshold reached. Executing Soft Reset (Tasbih)...');
-    this._redis = null; // Force re-initialization
-    this._errorCount = 0;
-    
-    // Clear transient cache in Redis if reachable
-    try {
-      const redis = await this.getRedis();
-      if (redis) {
+    const redis = await this.getRedis();
+    if (redis) {
+      try {
         await withTimeout(redis.del('iqra:working_memory'), 2000, 'Soft Reset DEL');
+      } catch (e) {
+        IQRALogger.error('❌ [MEMORY] Soft reset partial failure (Redis unreachable):', e);
       }
-    } catch (e) {
-      IQRALogger.error('❌ [MEMORY] Soft reset partial failure (Redis unreachable):', e);
     }
-    
+    this._errorCount = 0;
     IQRALogger.info('📿 Tasbih: Working memory soft-reset complete.');
   }
 
-
-  /**
-   * Increment task/cycle counter
-   */
   static async incrementCycleCounter(): Promise<number> {
     const redis = await this.getRedis();
     if (!redis) return 0;
     return await redis.incr('iqra:cycle_counter');
   }
 
-  /**
-   * Get current cycle counter
-   */
   static async getCycleCounter(): Promise<number> {
     const redis = await this.getRedis();
     if (!redis) return 0;
     return (await redis.get<number>('iqra:cycle_counter')) || 0;
   }
 
-  /**
-   * Arba'un Tazkiyah (40)
-   * Deep cleansing and compression of episodic memory.
-   */
   static async performPurification() {
     IQRALogger.info('🧼 Arba\'ūn: Starting Tazkiyah cycle (Purification)...');
-    
     const redis = await this.getRedis();
     if (!redis) return;
-
-    // 1. Clear working memory
     await redis.del('iqra:working_memory');
     await redis.del('iqra:temp_context');
-
-    // 2. Compression: Summarize old failures to keep only patterns
-    const failures = await this.getRecentList<any>('failure_history', 40);
-    if (failures.length > 0) {
-      IQRALogger.info('📦 Tazkiyah: Compressing 40 failure logs into patterns...');
-    }
-
     await this.appendList('purification_logs', {
       timestamp: Date.now(),
       message: 'Reached 40 cycles. Tazkiyah performed. episodic memory cleared.'
     });
   }
 
-  /**
-   * Barakah Multiplier (700)
-   * Tracks successful tasks and triggers a major Barakah Report.
-   */
   static async incrementSuccessCounter(): Promise<number> {
     const redis = await this.getRedis();
     if (!redis) return 0;
@@ -351,9 +289,6 @@ export class IQRAMemory {
     return (await redis.get<number>('iqra:success_counter')) || 0;
   }
 
-  /**
-   * Muraqabah Layer: Ensure memory is pure before storage
-   */
   private static async muraqabahCheck(content: string, type: string): Promise<boolean> {
     const result = await IQRAConsciousness.muraqabahCheck(content, type);
     if (!result.isAllowed) {
@@ -364,9 +299,6 @@ export class IQRAMemory {
     return true;
   }
 
-  /**
-   * Save to Long-term Memory (Supabase/PostgreSQL)
-   */
   static async saveLongTerm(table: string, data: any) {
     const supabase = await this.getSupabase();
     if (!supabase) {
@@ -380,15 +312,12 @@ export class IQRAMemory {
     if (error) IQRALogger.error(`❌ Long-term memory error (${table}):`, error);
   }
 
-  /**
-   * Save to Semantic Memory (Qdrant Cloud / Vector DB)
-   */
   static async saveSemantic(text: string, metadata: any) {
     const qdrant = await this.getQdrant();
     const googleAI = await this.getGoogleAI();
 
     if (!qdrant || !googleAI) {
-      IQRALogger.warn('⚠️ Semantic memory offline: Qdrant/Google AI not configured.');
+      IQRALogger.warn('⚠️ Semantic memory offline.');
       return;
     }
 
@@ -413,46 +342,33 @@ export class IQRAMemory {
         }]
       }), IQRA_TIMEOUTS.NETWORK, 'Qdrant UPSERT');
 
-
-      // Track embedding history in Redis for quick novelty computation
       await this.appendList('embeddings_history', { vector: embedding, timestamp: Date.now() });
-      
       IQRALogger.info('🧠 Semantic Memory: Wisdom point preserved in Qdrant Cloud.');
     } catch (error) {
       IQRALogger.error('❌ Qdrant Save Error:', error);
     }
   }
 
-  /**
-   * Log blocked memory attempts for audit
-   */
   private static logBlockedMemory(type: string, content: string, reason?: string) {
     const log = `\n### 🛡️ [POLLUTION_PREVENTED] ${new Date().toISOString()}\n- **Type**: ${type}\n- **Reason**: ${reason}\n- **Content Snippet**: ${content.substring(0, 100)}...\n`;
-    fs.appendFileSync(path.join(process.cwd(), 'iqra-core/FAILURES.md'), log);
+    const failuresPath = path.join(process.cwd(), 'FAILURES.md');
+    fs.appendFileSync(failuresPath, log);
   }
 
-
-  /**
-   * Search Semantic Memory
-   * Finds past wisdom that resonates with the current query.
-   */
   static async searchSemantic(query: string, limit: number = 3) {
     const qdrant = await this.getQdrant();
     const googleAI = await this.getGoogleAI();
     if (!qdrant || !googleAI) return [];
-
     try {
       const model = googleAI.getGenerativeModel({ model: "text-embedding-004" });
       const result = await model.embedContent(query);
       const embedding = result.embedding.values;
-
       const searchResult = await qdrant.search(COLLECTION_NAME, {
         vector: embedding,
         limit,
         with_payload: true,
-        params: { hnsw_ef: 128 } // High precision search
+        params: { hnsw_ef: 128 }
       });
-
       return searchResult.map(hit => ({
         content: hit.payload?.content,
         score: hit.score,
@@ -464,17 +380,12 @@ export class IQRAMemory {
     }
   }
 
-  /**
-   * Calculates "Topological Curiosity" / Novelty Reward
-   * reward = 1.0 - (max similarity with recent N memories)
-   */
   static async computeNovelty(embedding: number[], count: number = 10): Promise<number> {
     const recent = await this.getRecentList<any>('embeddings_history', count);
-    if (!recent || recent.length === 0) return 1.0; // Total novelty if no memory
+    if (!recent || recent.length === 0) return 1.0;
 
     let maxSimilarity = 0;
     for (const item of recent) {
-      // Redis might return stringified JSON or object depending on how it was pushed
       const pastVector = typeof item === 'string' ? JSON.parse(item).vector : item.vector;
       if (!pastVector) continue;
       
@@ -485,9 +396,6 @@ export class IQRAMemory {
     return 1.0 - maxSimilarity;
   }
 
-  /**
-   * Simple Cosine Similarity
-   */
   private static cosineSimilarity(v1: number[], v2: number[]): number {
     if (v1.length !== v2.length) return 0;
     let dotProduct = 0;
@@ -503,17 +411,9 @@ export class IQRAMemory {
   }
 }
 
-/**
- * 🌌 QuantumTopologyStore — مخزن الطوبولوجيا الكمومية
- * 
- * Manages memories as qubits in a spiritual-semantic space.
- */
 export class QuantumTopologyStore {
   private static readonly QUANTUM_COLLECTION = 'iqra_quantum_topology';
 
-  /**
-   * Preserve a memory with its spiritual resonance.
-   */
   static async storeQuantum(entry: Omit<QuantumMemoryEntry, 'id' | 'timestamp' | 'vector'>) {
     try {
       const embedding = await this.generateEmbedding(entry.content);
@@ -526,7 +426,6 @@ export class QuantumTopologyStore {
         ...entry
       };
 
-      // 1. Save to Qdrant (Semantic Layer)
       const qdrant = await IQRAMemory.getQdrant();
       if (qdrant) {
         await withTimeout(qdrant.upsert(this.QUANTUM_COLLECTION, {
@@ -544,7 +443,6 @@ export class QuantumTopologyStore {
         }), IQRA_TIMEOUTS.NETWORK, 'Qdrant Quantum UPSERT');
       }
 
-      // 2. Save to Redis (Fast Coordinate Lookup & Entanglement)
       const redis = await IQRAMemory.getRedis();
       if (redis) {
         const coordinateKey = `quantum:coord:${entry.coordinates.concept.toLowerCase()}`;
@@ -560,9 +458,6 @@ export class QuantumTopologyStore {
     }
   }
 
-  /**
-   * Search memory using Fourier Resonance simulation.
-   */
   static async searchQuantum(query: string, targetConcept?: string): Promise<QuantumMemoryEntry[]> {
     try {
       const qdrant = await IQRAMemory.getQdrant();
@@ -570,35 +465,31 @@ export class QuantumTopologyStore {
 
       const queryEmbedding = await this.generateEmbedding(query);
       
-      // 1. Perform semantic search
       const semanticHits = await qdrant.search(this.QUANTUM_COLLECTION, {
         vector: queryEmbedding,
         limit: 5,
         with_payload: true
       });
 
-      // 2. Calculate Fourier Resonance (Simulated)
-      // Resonance is higher if the semantic hit aligns with the target spiritual concept
       const results = semanticHits.map(hit => {
         const payload = hit.payload as any;
         const baseScore = hit.score;
         let resonance = baseScore;
 
         if (targetConcept && payload.coordinates?.concept?.toLowerCase() === targetConcept.toLowerCase()) {
-          resonance += 0.2; // Boost if concepts resonate
+          resonance += 0.2;
         }
 
         return {
           id: hit.id as string,
           content: payload.content,
           coordinates: { ...payload.coordinates, resonance: Math.min(1.0, resonance) },
-          vector: [], // Don't return huge vectors
+          vector: [],
           timestamp: payload.timestamp,
           superposition: payload.superposition
         } as QuantumMemoryEntry;
       });
 
-      // Sort by resonance
       return results.sort((a, b) => (b.coordinates.resonance || 0) - (a.coordinates.resonance || 0));
     } catch (error) {
       IQRALogger.error('❌ [QUANTUM] Search Failure:', error);
@@ -614,5 +505,3 @@ export class QuantumTopologyStore {
     return result.embedding.values;
   }
 }
-
-

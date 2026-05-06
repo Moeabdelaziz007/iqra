@@ -1,7 +1,8 @@
 /**
- * IQRA Vector Engine
+ * IQRA Vector Engine — محرك المتجهات
  * 
  * Semantic search and pattern recognition using Cloudflare Vectorize.
+ * Optimized for Multilingual (Arabic/English) support.
  */
 
 export interface VectorMatch {
@@ -11,6 +12,9 @@ export interface VectorMatch {
 }
 
 export class VectorEngine {
+  // Use a multilingual model for Arabic support
+  private static EMBEDDING_MODEL = '@cf/baai/bge-m3';
+
   constructor(private env: any) {}
 
   /**
@@ -22,24 +26,29 @@ export class VectorEngine {
       return [];
     }
 
-    // 1. Generate embedding using Workers AI
-    const { data } = await this.env.AI.run('@cf/baai/bge-base-en-v1.5', {
-      text: [text],
-    });
-    const embedding = data[0];
+    try {
+      // 1. Generate embedding using Workers AI Multilingual Model
+      const { data } = await this.env.AI.run(VectorEngine.EMBEDDING_MODEL, {
+        text: [text],
+      });
+      const embedding = data[0];
 
-    // 2. Query Vectorize
-    const results = await this.env.VECTORIZE.query(embedding, {
-      topK,
-      returnValues: true,
-      returnMetadata: true,
-    });
+      // 2. Query Vectorize
+      const results = await this.env.VECTORIZE.query(embedding, {
+        topK,
+        returnValues: true,
+        returnMetadata: true,
+      });
 
-    return results.matches.map((m: any) => ({
-      id: m.id,
-      score: m.score,
-      metadata: m.metadata,
-    }));
+      return results.matches.map((m: any) => ({
+        id: m.id,
+        score: m.score,
+        metadata: m.metadata,
+      }));
+    } catch (e) {
+      console.error("Vector Search Error:", e);
+      return [];
+    }
   }
 
   /**
@@ -49,16 +58,22 @@ export class VectorEngine {
     const vectors = [];
     
     for (const ayah of ayahs) {
-      const { data } = await this.env.AI.run('@cf/baai/bge-base-en-v1.5', {
-        text: [ayah.text],
-      });
-      vectors.push({
-        id: ayah.id,
-        values: data[0],
-        metadata: ayah.metadata,
-      });
+      try {
+        const { data } = await this.env.AI.run(VectorEngine.EMBEDDING_MODEL, {
+          text: [ayah.text],
+        });
+        vectors.push({
+          id: ayah.id,
+          values: data[0],
+          metadata: ayah.metadata,
+        });
+      } catch (e) {
+        console.error(`Failed to embed ayah ${ayah.id}:`, e);
+      }
     }
 
-    await this.env.VECTORIZE.upsert(vectors);
+    if (vectors.length > 0) {
+      await this.env.VECTORIZE.upsert(vectors);
+    }
   }
 }
