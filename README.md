@@ -44,8 +44,8 @@ Not a chatbot. Not a tool.
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-08` |
-| 💡 **آخر خطوة \| Last Step** | feat: Voice v0.369 + Causal Graph + Kumiho Versioning |
-| 🔗 **الـ Commit** | `c244366` |
+| 💡 **آخر خطوة \| Last Step** | fix: Voice — Edge TTS (ar-SA-HamedNeural) + timeout + macOS fallback |
+| 🔗 **الـ Commit** | `13630d2` |
 
 <!-- IQRA-LATEST-END -->
 
