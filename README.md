@@ -44,8 +44,8 @@ Not a chatbot. Not a tool.
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-07` |
-| 💡 **آخر خطوة \| Last Step** | refactor: upgrade ResonanceWorker to SovereignWorker class, integrate Go-based LID/fractal analysis, and update reward weights and thresholds. |
-| 🔗 **الـ Commit** | `75d2fc2` |
+| 💡 **آخر خطوة \| Last Step** | feat: promote generateEmbedding to a static Memory method and delegate reporter calls to it |
+| 🔗 **الـ Commit** | `58d90ad` |
 
 <!-- IQRA-LATEST-END -->
 
