@@ -43,9 +43,9 @@ Not a chatbot. Not a tool.
 
 | | |
 |---|---|
-| 📅 **التاريخ \| Date** | `2026-05-07` |
-| 💡 **آخر خطوة \| Last Step** | feat: Memory Topology + Quran Analysis Pipeline + Compute Stack |
-| 🔗 **الـ Commit** | `d0d5b66` |
+| 📅 **التاريخ \| Date** | `2026-05-08` |
+| 💡 **آخر خطوة \| Last Step** | feat: LightRAG + SimpleMem + Project MCP config |
+| 🔗 **الـ Commit** | `f100915` |
 
 <!-- IQRA-LATEST-END -->
 
