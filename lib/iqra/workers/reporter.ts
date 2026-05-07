@@ -17,6 +17,7 @@ import { RewardLedger } from '../../../ledger/reward-ledger.ts';
 import { IQRAMemory } from '../memory.ts';
 import type { RewardInput, RewardEntry } from '../../../rewards/types.ts';
 import type { ValidationReport } from './mission_validator.ts';
+import type { ResearchOutput } from './researcher.ts';
 
 export async function executeReporter(context: MissionContext): Promise<HandoffResult> {
   const { scope, workingDir, previousOutput } = context;
@@ -46,18 +47,31 @@ export async function executeReporter(context: MissionContext): Promise<HandoffR
     }
     implemented.push('Validation gate passed');
 
-    // ── 3. Compute novelty from memory ────────────────────────────────────────
-    let novelty_score = 0.5; // default if memory unavailable
+    // ── 3. Compute novelty from real evidence ────────────────────────────────
+    let novelty_score = 0.5;
     try {
-      // Use a simple hash of mission+verse as embedding proxy
-      const fakeEmbedding = Array.from(
-        { length: 10 },
-        (_, i) => Math.sin(scope.mission_id.charCodeAt(i % scope.mission_id.length) * (i + 1))
-      );
-      novelty_score = await IQRAMemory.computeNovelty(fakeEmbedding, 10);
-      implemented.push(`Novelty computed: ${novelty_score.toFixed(3)}`);
-    } catch {
-      issues.push('Memory unavailable for novelty — using default 0.5');
+      // Load research output to get content for embedding
+      const researchPath = previousOutput?.outputPath as string
+        || path.join(workingDir, 'research_output.json');
+      
+      const research: ResearchOutput = JSON.parse(fs.readFileSync(researchPath, 'utf-8'));
+      
+      // Combine evidence and reasoning for a rich semantic representation
+      const contentToEmbed = `${research.evidence} ${research.reasoning}`;
+      
+      const realEmbedding = await IQRAMemory.generateEmbedding(contentToEmbed);
+      novelty_score = await IQRAMemory.computeNovelty(realEmbedding, 10);
+      
+      // Save this embedding to history for future novelty checks
+      await IQRAMemory.appendList('embeddings_history', { 
+        vector: realEmbedding, 
+        timestamp: Date.now(),
+        mission_id: scope.mission_id
+      });
+      
+      implemented.push(`Novelty computed honestly: ${novelty_score.toFixed(3)}`);
+    } catch (err: any) {
+      issues.push(`Memory/Embedding error: ${err.message} — using default 0.5`);
     }
 
     // ── 4. Topology score — ratio of completed steps ──────────────────────────

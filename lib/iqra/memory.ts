@@ -393,6 +393,29 @@ export class IQRAMemory {
     }
   }
 
+  /**
+   * 🧮 Generate a 768-dimensional embedding
+   * Uses Google AI text-embedding-004 or SHA-256 hash fallback
+   */
+  static async generateEmbedding(text: string): Promise<number[]> {
+    try {
+      const googleAI = await this.getGoogleAI();
+      if (!googleAI) throw new Error('OFFLINE');
+      const model = googleAI.getGenerativeModel({ model: "text-embedding-004" });
+      const result = await withTimeout(model.embedContent(text), IQRA_TIMEOUTS.LLM, 'Google AI Embedding');
+      return result.embedding.values;
+    } catch (error) {
+      IQRALogger.warn('⚠️ [MEMORY] Network unavailable or Google AI failed. Using Sovereign Local Embedding Fallback.');
+      // Simple hash-based deterministic embedding for offline stability (768 dims)
+      const hash = crypto.createHash('sha256').update(text).digest();
+      const embedding = new Array(768).fill(0).map((_, i) => {
+        const byte = hash[i % hash.length];
+        return (byte / 255) * 2 - 1; // Normalized to [-1, 1]
+      });
+      return embedding;
+    }
+  }
+
   static async computeNovelty(embedding: number[], count: number = 10): Promise<number> {
     const recent = await this.getRecentList<any>('embeddings_history', count);
     if (!recent || recent.length === 0) return 1.0;
@@ -536,21 +559,6 @@ export class QuantumTopologyStore {
   }
 
   private static async generateEmbedding(text: string): Promise<number[]> {
-    try {
-      const googleAI = await IQRAMemory.getGoogleAI();
-      if (!googleAI) throw new Error('OFFLINE');
-      const model = googleAI.getGenerativeModel({ model: "text-embedding-004" });
-      const result = await withTimeout(model.embedContent(text), IQRA_TIMEOUTS.LLM, 'Google AI Embedding');
-      return result.embedding.values;
-    } catch (error) {
-      IQRALogger.warn('⚠️ [QUANTUM] Network unavailable. Using Sovereign Local Embedding Fallback.');
-      // Simple hash-based deterministic embedding for offline stability (768 dims typical for bge/gemini)
-      const hash = crypto.createHash('sha256').update(text).digest();
-      const embedding = new Array(768).fill(0).map((_, i) => {
-        const byte = hash[i % hash.length];
-        return (byte / 255) * 2 - 1; // Normalized to [-1, 1]
-      });
-      return embedding;
-    }
+    return await IQRAMemory.generateEmbedding(text);
   }
 }
