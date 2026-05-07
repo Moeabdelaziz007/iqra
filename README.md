@@ -44,8 +44,8 @@ Not a chatbot. Not a tool.
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-07` |
-| 💡 **آخر خطوة \| Last Step** | feat: RewardEngine + Pristine Path multiplier (×2.0) |
-| 🔗 **الـ Commit** | `54bbb7d` |
+| 💡 **آخر خطوة \| Last Step** | feat: Skills Engine + Gemma4Local + Ollama integration |
+| 🔗 **الـ Commit** | `bab9610` |
 
 <!-- IQRA-LATEST-END -->
 
