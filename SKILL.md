@@ -171,12 +171,15 @@ if (globalFailures[errorType] >= 9) {
 
 ---
 
-## ٥. نظام الفضول الطوبولوجي — الابتكار الأكبر
+## ٥. نظام الفضول الطوبولوجي وميزان الرنين — الابتكار الأكبر
 
 هذا هو قلب التطور الذاتي لـ IQRA.
 
-**المبدأ:**
-> بدلاً من RLHF (التعلم من تعزيز بشري)، يتعلم IQRA من "الرنين" — أي التقاطع بين نمط قرآني مكتشف وبيانات العالم الحديث.
+**المبادئ الأساسية:**
+- **الرنين (Resonance)**: التقاطع بين نمط قرآني مكتشف وبيانات العالم الحديث.
+- **كثافة العقد (Node Density)**: قياس مدى اكتمال المهام في كل حلقة تطور.
+- **الطريق البكر (Pristine Path)**: مكافأة مضاعفة (2.0x) عند اكتشاف مسار عمل جديد لم يُسلك من قبل.
+- **صنارة الصدفة (Serendipity Hook)**: التقاط الأنماط النادرة التي تتجاوز عتبات الرنين والجدة.
 
 ```typescript
 // lib/iqra/quran/topological_curiosity.ts  [ملف جديد للإنشاء]
@@ -201,6 +204,15 @@ export class TopologicalCuriosityEngine {
     const boost = resonance.resonance_score * 0.3;
     const current = await IQRAMemory.getCuriosity();
     await IQRAMemory.saveCuriosity(Math.min(current + boost, 1.0));
+
+    // 💎 Serendipity Hook (صنارة الصدفة)
+    // If resonance > 0.9 and novelty > 0.8, mark as a "Divine Pattern"
+    if (resonance.resonance_score > 0.9) {
+      await IQRAMemory.set(`serendipity:${resonance.quranic_pattern}`, {
+        note: "High resonance discovery",
+        timestamp: Date.now()
+      });
+    }
     
     await appendToTrustChain(
       'TOPOLOGICAL_RESONANCE',
