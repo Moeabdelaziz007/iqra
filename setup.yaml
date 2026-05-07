@@ -1,46 +1,31 @@
-project:
-  name: "IQRA"
-  version: "1.1.0"
-  description: "IQRA self-sovereign mission control config."
+# 🕋 IQRA Sovereign Setup
+# "وَأَمْرُهُمْ شُورَىٰ بَيْنَهُمْ"
 
-identity:
-  fitrah: "iqra-core/FITRAH.md"
-  dastur: "iqra-core/DASTUR.md"
-  mithaq: "iqra-core/MITHAQ.md"
-  muraqabah: "iqra-core/MURĀQABAH.md"
+system:
+  name: "IQRA_SOVEREIGN_CORE"
+  version: "1.0.0"
+  embedding_model: "@cf/baai/bge-m3" # Arabic semantic depth
+  resonance_threshold: 0.6
 
-database:
-  quran_d1: "iqra-core/data/quran_local.db"
-  local_memory: ".iqra/memory.json"
-  reward_ledger: "ledger/rewards.jsonl"
+missions:
+  - id: "curiosity_topology_bootstrap"
+    mission_scope: "mission-scope.yml"
+    knowledge_root: "knowledge/"
+    workers:
+      - role: "PLANNER_AGENT"
+        model: "llama-3.1-70b-versatile" # Groq for speed
+      - role: "BUILDER_AGENT"
+        model: "claude-3-opus" # High reasoning
+      - role: "VALIDATOR_AGENT"
+        model: "gemini-1.5-pro" # Huge context window for Dastur verification
 
-mission:
-  mission_scope: "mission-scope.yml"
-  missions_dir: "missions/"
-  mission_control: "lib/iqra/sovereign_orchestrator.ts"
-  execution_flow: "orchestrator/topological-loop.ts"
+execution:
+  mode: "serial" # Serial beats parallel for preserving Truth context
+  require_muraqabah: true
 
-knowledge:
-  root: "knowledge/"
-  simulated: "knowledge/simulated/"
-
-workers:
-  - id: "Planner"
-    active: true
-    model: "gemini-1.5-pro"
-  - id: "Researcher"
-    active: true
-    model: "gemini-1.5-flash"
-  - id: "Builder"
-    active: true
-    model: "llama-3.1-70b"
-  - id: "Validator"
-    active: true
-    model: "gemini-1.5-flash"
-  - id: "Reporter"
-    active: true
-    model: "gpt-4.1"
-
-simulation:
-  enabled: true
-  path: "knowledge/simulated/"
+reward_ledger:
+  db: "D1"
+  table: "trust_chain"
+  file: "ledger/rewards.jsonl"
+  currency: "Resonance_Score"
+  max_multiplier: 7 # بركة السبع

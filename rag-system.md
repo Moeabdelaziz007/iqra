@@ -251,7 +251,7 @@ CREATE INDEX IF NOT EXISTS idx_pattern_type ON pattern_discoveries(type);
 # ١. إنشاء الموارد على Cloudflare (مرة واحدة فقط)
 wrangler d1 create iqra-quran-db
 wrangler vectorize create iqra-quran-index \
-  --dimensions=384 \
+  --dimensions=1024 \
   --metric=cosine
 wrangler kv namespace create IQRA_CACHE
 

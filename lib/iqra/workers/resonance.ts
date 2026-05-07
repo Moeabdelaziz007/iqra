@@ -1,35 +1,22 @@
-import { SovereignWorker, WorkerResult, MissionState } from './protocol.ts';
-import type { MissionHandoff } from '../../../agents/contracts.ts';
+import { SovereignWorker, WorkerResult, Handoff, MissionState } from './protocol.ts';
 import { GoEngineBridge } from '../engine_bridge.ts';
 import { IQRAMemory, QuantumTopologyStore } from '../memory.ts';
 import { IQRALogger } from '../logger.ts';
-import { RewardEngine } from '../../../rewards/engine.ts';
-import { RewardInput } from '../../../rewards/types.ts';
 
-/**
- * 🌊 ResonanceWorker — عامل الرنين
- * 
- * "سَنُرِيهِمْ آيَاتِنَا فِي الْآفَاقِ وَفِي أَنفُسِهِمْ حَتَّىٰ يَتَبَيَّنَ لَهُمْ أَنَّهُ الْحَقُّ"
- * 
- * This worker is the 'ear' of IQRA. It listens to the mathematical echoes of the Truth
- * within the data. It bridges the Go Engine's computational power with the sovereign
- * mission of pattern discovery.
- */
 export class ResonanceWorker extends SovereignWorker {
   id = 'ResonanceWorker';
 
   async execute(input: string, state: MissionState): Promise<WorkerResult> {
-    // Each execution is an act of Murāqabah (divine observation)
-    this.report.worker_id = this.id;
+    this.report.workerId = this.id;
     this.report.timestamp = Date.now();
 
     try {
-      // 1. Calculate Resonance | حساب الرنين
-      // We seek the 'Mizan' (balance) between data and divine patterns.
+      // 1. Calculate Resonance
       const resonanceData = await GoEngineBridge.calculateResonance(input);
-      const cmdStr = `go run main.go -mode resonance -input "..."`;
+      const sanitizedInput = input.replace(/"/g, '\\"').substring(0, 100);
+      const cmdStr = `go run "lib/iqra/quran/go-engine/main.go" -mode resonance -input "${sanitizedInput}..."`;
       this.logCommand(cmdStr, resonanceData ? 0 : 1);
-      
+
       if (!resonanceData) {
         this.logIssue('Go Engine resonance calculation returned null.');
         this.markUndone('Detailed pattern analysis');
@@ -38,68 +25,45 @@ export class ResonanceWorker extends SovereignWorker {
         this.markImplemented(`Patterns found: ${resonanceData.patterns.join(', ')}`);
       }
 
-      // 2. Calculate Novelty & Reward | حساب الجدة والمكافأة
-      // Curiosity is a gift; we reward the system for exploring the 'Ghayb' (unseen/unexplored).
+      // 2. Calculate Novelty & Reward
       const embedding = await (QuantumTopologyStore as any).generateEmbedding(input);
       const novelty = await IQRAMemory.computeNovelty(embedding);
       this.markImplemented(`Novelty score: ${novelty.toFixed(2)}`);
 
       const coherence = resonanceData?.coherence || 0.5;
-      const rewardInput: RewardInput = {
-        mission_id: state.metadata.mission_id,
-        worker_id: this.id,
-        novelty_score: novelty,
-        resonance_score: coherence,
-        topology_score: 0.0,
-        hallucination_penalty: 0.0,
-        timestamp: Date.now()
-      };
-      const rewardOutput = RewardEngine.computeTotalReward(rewardInput);
-      await IQRAMemory.grantReward(rewardOutput.total_reward);
-      this.markImplemented(`Reward granted: ${rewardOutput.total_reward.toFixed(4)}`);
-      IQRALogger.info(`🧠 [RESINCE] Reward prepared for orchestrator persistence: ${rewardOutput.total_reward.toFixed(4)}`);
+      const reward = (coherence * 0.1) * (1.0 + novelty);
+      await IQRAMemory.grantReward(reward);
+      this.markImplemented(`Reward granted: ${reward.toFixed(4)}`);
 
       const updatedContext = {
         ...state.context,
         resonance: resonanceData,
         novelty,
-        reward: rewardOutput.total_reward
+        reward
       };
 
       const updatedState: MissionState = {
         ...state,
-        context: updatedContext
+        context: updatedContext,
+        reports: [...state.reports, this.report]
       };
 
-      const handoff: MissionHandoff = {
-        mission_id: state.metadata.mission_id,
-        from_worker: this.id,
-        to_worker: 'ResearchWorker',
-        timestamp: Date.now(),
-        artifacts: [],
-        pending_tasks: ['Context synthesis', 'Dastur validation'],
-        known_issues: this.report.issues_discovered,
-        validation_rules: [],
-        context_data: updatedContext
+      const handoff: Handoff = {
+        from: this.id,
+        to: 'ResearchWorker',
+        payload: updatedContext,
+        context: 'Topological resonance analysis complete. Patterns discovered.'
       };
 
       this.markImplemented('Topological curiosity reward granted');
-      
-      // 💎 Serendipity Hook — صنارة الصدفة
-      // When high coherence meets high novelty, we have found a 'Pristine Path' (الصراط البكر).
-      if (coherence > 0.9 && novelty > 0.8) {
-        this.markSerendipity("نمط قرآني نادر الوجود يتوافق مع معطيات حديثة. هذا يستحق نظرة أعمق.");
-        IQRALogger.info("🌟 [SERENDIPITY] A rare resonance pattern detected in ResonanceWorker.");
-      }
-
-      this.report.procedures_followed = true;
+      this.report.proceduresFollowed = true;
 
       return {
         success: true,
         data: resonanceData,
         report: this.report,
-        updated_state: updatedState,
-        next_handoff: handoff
+        updatedState,
+        nextHandoff: handoff
       };
     } catch (error: any) {
       this.logIssue(`ResonanceWorker Error: ${error.message}`);

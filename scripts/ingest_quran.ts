@@ -27,8 +27,6 @@ interface Ayah {
   english: string;
   juz: number;
   page: number;
-  source: string; // [DATA_GUARDIAN] Source tracking
-  verified: boolean; // [DATA_GUARDIAN] Verification flag
 }
 
 async function fetchAllAyat(): Promise<Ayah[]> {
@@ -58,8 +56,6 @@ async function fetchAllAyat(): Promise<Ayah[]> {
         english: en?.translations?.[0]?.text ?? '',
         juz: en?.juz_number ?? 0,
         page: en?.page_number ?? 0,
-        source: 'api.quran.com/v4', // Source lineage
-        verified: true
       });
     }
 
@@ -84,8 +80,6 @@ CREATE TABLE IF NOT EXISTS ayat (
   english     TEXT NOT NULL,
   juz         INTEGER,
   page        INTEGER,
-  source      TEXT DEFAULT 'api.quran.com',
-  verified    INTEGER DEFAULT 1,
   created_at  INTEGER DEFAULT (unixepoch())
 );
 
@@ -114,7 +108,7 @@ CREATE INDEX IF NOT EXISTS idx_tafsir_ayah ON tafsir(ayah_id);
   const schemaPath = path.join(process.cwd(), 'iqra-core', 'schema.sql');
   fs.writeFileSync(schemaPath, sql);
   console.log(`📋 Schema saved to ${schemaPath}`);
-  
+
   // Note: Local sandbox might not have wrangler logged in, 
   // so we skip direct execution and let the user run it.
   console.log('📋 Running D1 schema migration... (manual step required)');

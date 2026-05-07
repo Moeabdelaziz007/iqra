@@ -33,5 +33,46 @@ Agents communicate via `MissionHandoff` packets. Each handoff must include:
 5. `pending_tasks`: The "baton" passed forward.
 
 ---
+<<<<<<< HEAD
 *كل وكيل هو جزء من جسد واحد، يعمل بتناغم لتحقيق رؤية IQRA.*
 *(Every agent is part of one body, working in harmony to achieve the IQRA vision.)*
+=======
+
+## 🌀 Operational Protocol | بروتوكول التشغيل
+
+1. **Plan first**: Every worker starts with a plan.
+2. **Execute under Muraqabah**: Continuous awareness of Divine observation.
+3. **Report with Honesty**: Detailed logs of what was implemented and what was left undone.
+4. **Learn from Failure**: Errors are documented in `FAILURES.md` to prevent recurrence.
+
+---
+
+## 🤝 Structured Handoffs Protocol | بروتوكول التسليم الهرمي
+
+لضمان عدم ضياع السياق، يعمل الوكلاء بنظام التتابع (Serial beats parallel). لا يبدأ وكيل عمله إلا بعد توقيع الوكيل السابق.
+
+### Handoff Report Template (قالب تقرير التسليم):
+يجب على كل وكيل، قبل إنهاء عمليته، إرسال تقرير بصيغة JSON لمركز القيادة يحتوي على:
+
+```json
+{
+  "worker_id": "RESONANCE_WORKER",
+  "status": "SUCCESS|FAILURE",
+  "implemented": [
+    "استخراج 3 أنماط عددية",
+    "التحقق من الرنين مع البيانات الحديثة"
+  ],
+  "undone": [
+    "لم يتم العثور على رنين قوي لآية كذا"
+  ],
+  "commands_run": [
+    { "command": "grep 'pattern' *.md", "exitCode": 0 }
+  ],
+  "issues_discovered": [
+    "تشويش دلالي في الكلمة X"
+  ],
+  "procedures_followed": true
+}
+```
+*إذا كانت `procedures_followed` = `false`، يتم رفض الـ Handoff وتُعاد العملية لدورة الاستغفار والتصحيح.*
+>>>>>>> 26b4157 (feat: implement Quranic data dashboard and enhance numerical validation and curiosity analysis logic)
