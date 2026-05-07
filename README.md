@@ -44,8 +44,8 @@ Not a chatbot. Not a tool.
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-07` |
-| 💡 **آخر خطوة \| Last Step** | feat: implement SkillBank for performance tracking and SoulEngine for periodic cycle orchestration |
-| 🔗 **الـ Commit** | `a787b00` |
+| 💡 **آخر خطوة \| Last Step** | refactor: reorganize mission configurations and core documentation into dedicated directories |
+| 🔗 **الـ Commit** | `3dac7e7` |
 
 <!-- IQRA-LATEST-END -->
 
