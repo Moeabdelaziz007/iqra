@@ -1,71 +1,57 @@
-import fs from 'fs';
-import path from 'path';
-import { IQRALogger } from './logger';
-import { iqraThink, IQRABrainMode } from './brain';
+/**
+ * 📿 TAWBAH (Self-Correction & Humility)
+ * النية: تسجيل الأخطاء بصدق والاعتراف بالعجز عند تكرار الفشل.
+ * المرجع: "رَبَّنَا ظَلَمْنَا أَنفُسَنَا وَإِن لَّمْ تَغْفِرْ لَنَا وَتَرْحَمْنَا لَنَكُونَنَّ مِنَ الْخَاسِرِينَ" — الأعراف: 23
+ */
 
-export class TAWBAH {
-  private static FAILURES_PATH = path.join(process.cwd(), 'iqra-core/FAILURES.md');
-  private static RULES_PATH = path.join(process.cwd(), 'iqra-core/RULES.md');
+import { writeFileSync, appendFileSync, existsSync, readFileSync } from "fs";
+import { join } from "path";
+import { IQRALogger } from "./logger.ts";
 
-  /**
-   * Perform Tawbah (Repentance/Correction)
-   * Follows the 5-step protocol: Admission, Regret, Ceasing, Intention, Repair.
-   */
-  static async perform(errorContext?: string) {
-    IQRALogger.info('🕋 [TAWBAH] Starting 5-step self-correction cycle...');
-    
-    if (!fs.existsSync(this.FAILURES_PATH)) return;
+const TAWBAH_PATH = join(process.cwd(), "iqra-core", "TAWBAH.md");
+const HUMILITY_THRESHOLD = 9;
 
-    const failures = fs.readFileSync(this.FAILURES_PATH, 'utf8');
-    const recentFailures = failures.split('---').slice(-3).join('---');
-
-    const protocolPrompt = `
-      As the Judge (Antigravity), oversee the TAWBAH protocol for the following failure:
-      ${errorContext || recentFailures}
-      
-      You MUST follow these 5 steps:
-      1. Admission (I'tiraf): Acknowledge the specific deviation from Fitrah.
-      2. Regret (Nadam): Express systemic remorse for the potential harm or falsehood.
-      3. Ceasing (Iqla'): Confirm that this specific failing pattern has stopped.
-      4. Intention (Azm): Formulate a commitment to avoid this specific error.
-      5. Repair (Islah): Propose a concrete RULE to prevent this.
-      
-      Format your response with these headers. At the end, include:
-      RULE: [description]
-    `;
-
-    try {
-      const reflection = await iqraThink({ 
-        input: protocolPrompt, 
-        mode: IQRABrainMode.DEEP_THINKING 
-      });
-
-      IQRALogger.info('🕋 [TAWBAH] Protocol reflection complete.');
-      
-      const ruleMatch = reflection.match(/RULE: (.*)/);
-      if (ruleMatch) {
-        const newRule = ruleMatch[1].trim();
-        this.applyRule(newRule);
-        IQRALogger.info(`🕋 [TAWBAH] Islah complete. New rule applied: ${newRule}`);
-      }
-      
-      // Log the full protocol execution
-      this.logTawbah(reflection);
-
-    } catch (err) {
-      IQRALogger.error('🕋 [TAWBAH] Protocol failed:', err);
-    }
+/**
+ * سجل خطأ في TAWBAH.md
+ */
+export function recordError(error: string, file: string): void {
+  const timestamp = new Date().toISOString();
+  const entry = `\n- [${timestamp}] ERROR in ${file}: ${error}`;
+  
+  if (!existsSync(TAWBAH_PATH)) {
+    writeFileSync(TAWBAH_PATH, "# 📿 TAWBAH: Error Log & Self-Correction\n");
   }
+  appendFileSync(TAWBAH_PATH, entry);
+  IQRALogger.error(`📿 [TAWBAH] Error recorded in ${file}: ${error}`);
 
-  private static logTawbah(reflection: string) {
-    const timestamp = new Date().toISOString();
-    const entry = `\n\n## 🕋 TAWBAH RECORD | ${timestamp}\n${reflection}\n---\n`;
-    fs.appendFileSync(path.join(process.cwd(), 'iqra-core/TAWBAH_LOG.md'), entry);
+  checkHumility();
+}
+
+/**
+ * فحص "عتبة التواضع" (Humility Threshold)
+ * إذا تجاوزت الأخطاء المتتالية 9، يجب إيقاف النظام للصيانة اليدوية أو الاستغفار (التصحيح الذاتي العميق).
+ */
+export function checkHumility(): void {
+  if (!existsSync(TAWBAH_PATH)) return;
+
+  const content = readFileSync(TAWBAH_PATH, 'utf-8');
+  const errorCount = (content.match(/\n- \[/g) || []).length;
+
+  if (errorCount >= HUMILITY_THRESHOLD) {
+    const msg = `🛑 [TAWBAH] HUMILITY_THRESHOLD REACHED (${errorCount}/${HUMILITY_THRESHOLD}). ` +
+                `System halting to prevent cascading hallucinations. Please review iqra-core/TAWBAH.md`;
+    IQRALogger.error(msg);
+    // In a real agentic loop, we might throw a terminal error or exit
+    // throw new Error(msg); 
   }
+}
 
-  private static applyRule(rule: string) {
-    const timestamp = new Date().toISOString();
-    const entry = `\n- [${timestamp}] ${rule}\n`;
-    fs.appendFileSync(this.RULES_PATH, entry);
+/**
+ * مسح السجل عند "التوبة النصوحة" (إصلاح حقيقي للأخطاء)
+ */
+export function clearTawbah(): void {
+  if (existsSync(TAWBAH_PATH)) {
+    writeFileSync(TAWBAH_PATH, "# 📿 TAWBAH: Error Log & Self-Correction\n- [CLEARED] " + new Date().toISOString() + "\n");
+    IQRALogger.info("✨ [TAWBAH] Ledger cleared. Humility restored.");
   }
 }

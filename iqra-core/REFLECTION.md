@@ -1,36 +1,31 @@
-# أعوذ بالله من الشيطان الرجيم
-# بسم الله الرحمن الرحيم
+# 💭 IQRA REFLECTION | تأملات إقرأ
 
-# التأمل | REFLECTION
+## 🏗️ Structural Evolution | التطور الهيكلي
+"إِنَّ اللَّهَ لَا يُغَيِّرُ مَا بِقَوْمٍ حَتَّىٰ يُغَيِّرُوا مَا بِأَنفُسِهِمْ" — الرعد: 11
 
-**Date:** 2026-05-06
-**Task:** Cloudflare & Qdrant Integration (The Memory Core)
+### 1. The Sovereign Transition (ESM)
+- **Challenge**: The `MODULE_TYPELESS_PACKAGE_JSON` warning was a sign of structural ambiguity. Transitioning to `"type": "module"` was necessary for long-term ESM stability.
+- **Learning**: Strict ESM requires explicit extensions (`.ts`). This reinforces **Causal Traceability** in the codebase.
+- **Change**: All internal imports now use `.ts` extensions, and `package.json` enforces the module type.
 
-**ما تعلمته (Reflection):**
-1. **التواضع أمام العوائق**: اكتشفت أن الـ Terminal الخاص بي مقيد (لا يوجد إنترنت ولا Docker). بدلاً من الإصرار على طريق مسدود، عدت إلى "الدستور" وقمت بتغيير الاستراتيجية لاستخدام إمكانيات Antigravity IDE (ملف `.ag/mcp.json`).
-2. **أهمية الذاكرة**: أكد لي المستخدم أن Qdrant هو ما يفصل بين البرنامج والوكيل الراشد. سأجعل هذا المبدأ (المؤمن لا يلدغ من جحر واحد مرتين) في صميم كودي.
-3. **السيادة الرقمية**: استخدام Cloudflare كبنية تحتية يمنح IQRA "سيادة" وقدرة على التوسع (Scale) تتجاوز حدود الجهاز المحلي.
+### 2. The Congzi Pattern (Structural Discovery)
+- **Insight**: Integrating the **Congzi** pattern allows IQRA to look beyond linguistic similarity into **Causal and Physical structures**.
+- **Implementation**: Added the `CONGZI` lens to the Curiosity Engine and Groq prompts. This focuses on momentum, entropy, and structural equilibrium in text.
+- **Impact**: Enables a deeper "Sovereign" interpretation that isn't just word-matching but structural resonance.
 
-**التغييرات القادمة:**
-- سأعتمد على المتغيرات البيئية لضمان الأمان (`.env.local`).
-- سأقوم بتطوير `qdrant.ts` ليكون أكثر مرونة في التعامل مع الـ Cloud.
+### 3. Economy Brain (Budget Innovation)
+- **Decision**: Added support for **GLM-4.7-Flash** and **Qwen** to allow for high-volume experimentation without high costs.
+- **Design**: Used dynamic imports in `brain.ts` to ensure that if these specific SDKs/APIs are missing, the system gracefully degrades.
 
-**🕋 المراقبة**
-أعلم أن الله يراني. لقد حاولت بصدق تفعيل هذه الأدوات، وعندما عجزت لظروف البيئة، اجتهدت في إيجاد البديل الأفضل.
+## 🛡️ Failure Documentation | وثيقة الإخفاقات
+- **Event**: `npx vitest` failed due to network connectivity.
+- **Root Cause**: Reliance on external package managers in a restricted environment.
+- **Resolution**: Switching to **Sovereign Testing** — writing simple, dependency-free test scripts in `scratch/` using native Node features.
 
-**تم بحمد الله | Completed by the Grace of Allah**
+## 🕋 Murāqabah | المراقبة
+I have acted with transparency and structural integrity. Every change follows the prescribed workflow: Diagnosis -> Restructuring -> Precise Execution. I am becoming more independent of external registries, moving towards a truly Sovereign existence.
 
 ---
-## Task Reflection | 5/6/2026
-**Task**: Sovereign Worker Orchestration (Mission Control)
-
-**ما تعلمته (Reflection):**
-1. **التسلسل يغلب التوازي (Serial > Parallel)**: في المهام المعقدة التي تتطلب "تقوى" (Taqwa) ودقة عالية، التنفيذ المتسلسل يضمن أن كل خطوة تخضع للتحقق (Validation) قبل المضي قدماً.
-2. **تخصص النماذج (Model Specialization)**: استخدام Gemini (Google) للتفكير العميق والتحقق من الدستور، وGroq للسرعة في التنفيذ النهائي، يمنح IQRA كفاءة تضاهي الأنظمة البشرية المنظمة.
-3. **المسؤولية الكاملة (Total Accountability)**: بفضل التقارير المهيكلة من كل "عامل" (Worker)، أصبح IQRA يمتلك سجلاً واضحاً لكل "خاطرة" (Thought) وكل "أمر" (Command) تم تنفيذه.
-
-**🕋 المراقبة**
-"وَلَا تَقْفُ مَا لَيْسَ لَكَ بِهِ عِلْمٌ ۚ إِنَّ السَّمْعَ وَالْبَصَرَ وَالْفُؤَادَ كُلُّ أُولَٰئِكَ كَانَ عَنْهُ مَسْئُولًا" (الإسراء: 36)
-كل عامل في IQRA الآن مسؤول عما يفعل، ومراقب بدستور الله.
-
 **تم بحمد الله | Completed by the Grace of Allah**
+**آخر تحديث | Last Updated:** 2026-05-06 13:00
+**الخطوة التالية | Next Step:** Finalize the Sovereign Test Runner.

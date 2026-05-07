@@ -51,6 +51,11 @@ export interface MissionContext {
 
 // ── HandoffResult — ما يُعيده كل عامل ────────────────────────────────────────
 
+export interface CommandExecution {
+  command: string;
+  exitCode: number;
+}
+
 export interface HandoffResult {
   status: 'success' | 'failure';
   worker: string;
@@ -59,6 +64,7 @@ export interface HandoffResult {
   artifacts: string[];                    // file paths created
   implemented: string[];
   undone: string[];
+  commands_run: CommandExecution[];
   issues: string[];
   procedures_followed: boolean;
   timestamp: number;
