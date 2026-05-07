@@ -5,6 +5,16 @@
  *
  * القاعدة: Reporter لا يكتب إلا إذا كان verdict = PASS.
  * القاعدة: Reporter لا يكتب أو يعدل كوداً — فقط يُسجّل.
+ *
+ * ══════════════════════════════════════════════════════════════
+ * EMBEDDED CONSTITUTIONAL RULES
+ * ══════════════════════════════════════════════════════════════
+ * 1. novelty يُحسب عبر IQRAMemory.generateEmbedding() الحقيقي.
+ * 2. cosineSimilarity تُستخدم مع آخر 10 تضمينات من الذاكرة.
+ * 3. PatternMemory.storePattern() يُستدعى بعد كل مهمة ناجحة.
+ * 4. artifacts تُشير إلى iqra-core/data/reward_ledger.jsonl فقط.
+ * 5. كل مصدر يُوسَم: [read] | [fetched] | [prior-training].
+ * ══════════════════════════════════════════════════════════════
  */
 
 import fs from 'fs';
@@ -15,6 +25,7 @@ import { IQRALogger } from '../logger.ts';
 import { RewardEngine } from '../../../rewards/engine.ts';
 import { RewardLedger } from '../../../ledger/reward-ledger.ts';
 import { IQRAMemory } from '../memory.ts';
+import { PatternMemory } from '../memory/pattern_memory.ts';
 import type { RewardInput, RewardEntry } from '../../../rewards/types.ts';
 import type { ValidationReport } from './mission_validator.ts';
 import type { ResearchOutput } from './researcher.ts';
@@ -28,7 +39,7 @@ export async function executeReporter(context: MissionContext): Promise<HandoffR
   IQRALogger.info(`📊 [REPORTER] Computing reward for: ${scope.mission_id}`);
 
   try {
-    // ── 1. Read validation report ─────────────────────────────────────────────
+    // ── 1. Read validation report [read] ─────────────────────────────────────
     const reportPath = previousOutput?.reportPath as string
       || path.join(workingDir, 'validation_report.json');
 
@@ -36,7 +47,9 @@ export async function executeReporter(context: MissionContext): Promise<HandoffR
       throw new Error('INTEGRITY_ERR: validation_report.json missing — Reporter cannot proceed');
     }
 
-    const validation: ValidationReport = JSON.parse(fs.readFileSync(reportPath, 'utf-8'));
+    const validation: ValidationReport = JSON.parse(
+      fs.readFileSync(reportPath, 'utf-8')  // [read]
+    );
 
     // ── 2. Hard gate — PASS only ──────────────────────────────────────────────
     if (validation.verdict !== 'PASS') {
@@ -45,41 +58,57 @@ export async function executeReporter(context: MissionContext): Promise<HandoffR
         `Violations: ${validation.violations.join('; ')}`
       );
     }
-    implemented.push('Validation gate passed');
+    implemented.push('[read] Validation gate passed');
 
-    // ── 3. Compute novelty from real evidence ────────────────────────────────
-    let novelty_score = 0.5;
-    try {
-      // Load research output to get content for embedding
-      const researchPath = previousOutput?.outputPath as string
-        || path.join(workingDir, 'research_output.json');
-      
-      const research: ResearchOutput = JSON.parse(fs.readFileSync(researchPath, 'utf-8'));
-      
-      // Combine evidence and reasoning for a rich semantic representation
-      const contentToEmbed = `${research.evidence} ${research.reasoning}`;
-      
-      const realEmbedding = await IQRAMemory.generateEmbedding(contentToEmbed);
-      novelty_score = await IQRAMemory.computeNovelty(realEmbedding, 10);
-      
-      // Save this embedding to history for future novelty checks
-      await IQRAMemory.appendList('embeddings_history', { 
-        vector: realEmbedding, 
-        timestamp: Date.now(),
-        mission_id: scope.mission_id
-      });
-      
-      implemented.push(`Novelty computed honestly: ${novelty_score.toFixed(3)}`);
-    } catch (err: any) {
-      issues.push(`Memory/Embedding error: ${err.message} — using default 0.5`);
+    // ── 3. Load research output [read] ────────────────────────────────────────
+    const researchPath = previousOutput?.outputPath as string
+      || path.join(workingDir, 'research_output.json');
+
+    if (!fs.existsSync(researchPath)) {
+      throw new Error('INTEGRITY_ERR: research_output.json missing — cannot compute novelty');
     }
 
-    // ── 4. Topology score — ratio of completed steps ──────────────────────────
-    // Simple heuristic: if we reached Reporter, all 4 steps completed = 1.0
+    const research: ResearchOutput = JSON.parse(
+      fs.readFileSync(researchPath, 'utf-8')  // [read]
+    );
+    implemented.push('[read] research_output.json loaded');
+
+    // ── 4. Compute real embedding + novelty via cosineSimilarity ──────────────
+    // القاعدة ١+٢: generateEmbedding حقيقي، novelty عبر cosineSimilarity مع آخر 10
+    let novelty_score = 0.5;
+    let realEmbedding: number[] = [];
+
+    try {
+      const contentToEmbed = `${research.evidence} ${research.reasoning}`;
+
+      // [fetched] Google AI embedding أو [prior-training] SHA-256 fallback
+      realEmbedding = await IQRAMemory.generateEmbedding(contentToEmbed);
+
+      // computeNovelty يستخدم cosineSimilarity داخلياً مع آخر 10 تضمينات
+      novelty_score = await IQRAMemory.computeNovelty(realEmbedding, 10);
+
+      // حفظ التضمين في السجل للمقارنات المستقبلية
+      await IQRAMemory.appendList('embeddings_history', {
+        vector: realEmbedding,
+        timestamp: Date.now(),
+        mission_id: scope.mission_id,
+        verse: scope.verse,
+        field: scope.field_of_inquiry,
+      });
+
+      implemented.push(`[fetched] Embedding generated (${realEmbedding.length} dims)`);
+      implemented.push(`[fetched] Novelty via cosineSimilarity: ${novelty_score.toFixed(4)}`);
+
+    } catch (err: any) {
+      issues.push(`Embedding/Novelty error: ${err.message} — using default 0.5`);
+      IQRALogger.warn(`⚠️ [REPORTER] Embedding failed: ${err.message}`);
+    }
+
+    // ── 5. Topology score ─────────────────────────────────────────────────────
     const topology_score = 1.0;
     implemented.push(`Topology score: ${topology_score}`);
 
-    // ── 5. Pristine path check (Serendipity Hook) ─────────────────────────────
+    // ── 6. Pristine path check (Serendipity Hook) ─────────────────────────────
     const pathKey = `pristine:${scope.mission_id}:${scope.verse}`;
     let multiplier = 1.0;
     try {
@@ -90,13 +119,13 @@ export async function executeReporter(context: MissionContext): Promise<HandoffR
         implemented.push('🌌 Pristine Path discovered — 2x multiplier applied');
         IQRALogger.info(`🌌 [REPORTER] Pristine Path: ${pathKey}`);
       } else {
-        implemented.push('Path already explored — standard multiplier');
+        implemented.push('Path already explored — standard multiplier 1x');
       }
     } catch {
       issues.push('Memory unavailable for pristine path check — multiplier 1.0');
     }
 
-    // ── 6. Compute reward ─────────────────────────────────────────────────────
+    // ── 7. Compute reward ─────────────────────────────────────────────────────
     const rewardInput: RewardInput = {
       mission_id: scope.mission_id,
       worker_id: 'Reporter',
@@ -110,9 +139,12 @@ export async function executeReporter(context: MissionContext): Promise<HandoffR
     const rewardOutput = RewardEngine.computeTotalReward(rewardInput);
     rewardOutput.total_reward *= multiplier;
 
-    implemented.push(`Reward computed: ${rewardOutput.total_reward.toFixed(4)} (${rewardOutput.discovery_level})`);
+    implemented.push(
+      `Reward computed: ${rewardOutput.total_reward.toFixed(4)} (${rewardOutput.discovery_level})`
+    );
 
-    // ── 7. Write to ledger ────────────────────────────────────────────────────
+    // ── 8. Write to unified ledger [write] ────────────────────────────────────
+    // المسار الوحيد: iqra-core/data/reward_ledger.jsonl
     const entry: RewardEntry = {
       ...rewardOutput,
       mission_id: scope.mission_id,
@@ -123,9 +155,28 @@ export async function executeReporter(context: MissionContext): Promise<HandoffR
     };
 
     await RewardLedger.append(entry);
-    implemented.push(`Reward written to ledger: ${rewardOutput.total_reward.toFixed(4)}`);
+    implemented.push(
+      `[write] Reward → ${RewardLedger.LEDGER_PATH}: ${rewardOutput.total_reward.toFixed(4)}`
+    );
 
-    // ── 8. Grant to memory ────────────────────────────────────────────────────
+    // ── 9. Store pattern in PatternMemory ─────────────────────────────────────
+    // القاعدة ٣: PatternMemory.storePattern() بعد كل مهمة ناجحة
+    if (realEmbedding.length > 0) {
+      try {
+        const patternId = await PatternMemory.storePattern(
+          scope.verse,
+          scope.field_of_inquiry,
+          validation.resonance_score,
+          realEmbedding,
+          scope.mission_id
+        );
+        implemented.push(`[fetched] PatternMemory stored: ${patternId}`);
+      } catch (err: any) {
+        issues.push(`PatternMemory store failed: ${err.message}`);
+      }
+    }
+
+    // ── 10. Grant curiosity reward to memory ──────────────────────────────────
     try {
       await IQRAMemory.grantReward(rewardOutput.total_reward * 0.01);
       implemented.push('Curiosity score updated in memory');
@@ -133,25 +184,33 @@ export async function executeReporter(context: MissionContext): Promise<HandoffR
       issues.push('Memory unavailable for curiosity update — ledger still written');
     }
 
-    // ── 9. TrustChain ─────────────────────────────────────────────────────────
+    // ── 11. TrustChain ────────────────────────────────────────────────────────
     appendToTrustChain(
       'REPORTER:REWARD_RECORDED',
       scope.mission_id,
-      `reward:${rewardOutput.total_reward.toFixed(4)}:level:${rewardOutput.discovery_level}`,
+      `reward:${rewardOutput.total_reward.toFixed(4)}:level:${rewardOutput.discovery_level}:novelty:${novelty_score.toFixed(3)}`,
       rewardOutput.confidence
     );
 
     IQRALogger.info(
-      `✅ [REPORTER] Mission complete. Reward: ${rewardOutput.total_reward.toFixed(4)} | ` +
-      `Level: ${rewardOutput.discovery_level} | Multiplier: ${multiplier}x`
+      `✅ [REPORTER] Done. Reward: ${rewardOutput.total_reward.toFixed(4)} | ` +
+      `Level: ${rewardOutput.discovery_level} | Novelty: ${novelty_score.toFixed(3)} | ` +
+      `Multiplier: ${multiplier}x`
     );
 
     return {
       status: 'success',
       worker: 'Reporter',
       next: null,
-      data: { rewardOutput, entry, multiplier },
-      artifacts: ['ledger/rewards.jsonl'],
+      data: {
+        rewardOutput,
+        entry,
+        multiplier,
+        novelty_score,
+        embedding_dims: realEmbedding.length,
+      },
+      // المسار الموحد فقط
+      artifacts: [RewardLedger.LEDGER_PATH],
       implemented,
       undone,
       issues,

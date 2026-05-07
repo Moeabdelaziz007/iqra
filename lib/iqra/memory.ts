@@ -1,10 +1,23 @@
 /**
  * IQRA Memory — الذاكرة
- * 
+ *
  * "وَمَا كَانَ رَبُّكَ نَسِيًّا" — مريم: 64
- * 
- * Powered by Upstash Redis, Supabase, and Qdrant.
+ *
+ * Powered by Upstash Redis (TTL=7 days), Supabase, and Qdrant.
+ *
+ * ══════════════════════════════════════════════════════════════
+ * EMBEDDED CONSTITUTIONAL RULES
+ * ══════════════════════════════════════════════════════════════
+ * 1. كل embedding حقيقي (Google AI) أو SHA-256 fallback موثّق.
+ * 2. cosineSimilarity مُصدَّرة وتُستخدم في Reporter و PatternMemory.
+ * 3. set() يكتب بـ TTL=7 أيام في Upstash تلقائياً.
+ * 4. getContextForMission() تُرجع أفضل 7 ذكريات ذات صلة.
+ * 5. pruneEmbeddingsHistory() تنظّف التضمينات القديمة دورياً.
+ * ══════════════════════════════════════════════════════════════
  */
+
+// TTL للذاكرة العاملة في Upstash Redis: 7 أيام بالثواني
+const REDIS_TTL_SECONDS = 7 * 24 * 60 * 60; // 604800
 
 import { IQRALogger } from './logger';
 import { IQRAFilter } from './filter';
@@ -136,7 +149,12 @@ export class IQRAMemory {
     try {
       const redis = await this.getRedis();
       if (redis) {
-        const result = await withTimeout(redis.set(`iqra:${key}`, value), IQRA_TIMEOUTS.REDIS, `Redis SET ${key}`);
+        // TTL=7 أيام — القاعدة ٣: كتابة فورية مع انتهاء صلاحية تلقائي
+        const result = await withTimeout(
+          redis.set(`iqra:${key}`, value, { ex: REDIS_TTL_SECONDS }),
+          IQRA_TIMEOUTS.REDIS,
+          `Redis SET ${key}`
+        );
         this._errorCount = 0;
         return result;
       }
@@ -147,7 +165,7 @@ export class IQRAMemory {
         await this.softReset();
       }
     }
-    
+
     const data = await this.getLocalData();
     data[key] = value;
     await this.saveLocalData(data);
@@ -424,7 +442,7 @@ export class IQRAMemory {
     for (const item of recent) {
       const pastVector = typeof item === 'string' ? JSON.parse(item).vector : item.vector;
       if (!pastVector) continue;
-      
+
       const sim = this.cosineSimilarity(embedding, pastVector);
       if (sim > maxSimilarity) maxSimilarity = sim;
     }
@@ -432,6 +450,68 @@ export class IQRAMemory {
     return 1.0 - maxSimilarity;
   }
 
+  // ── getContextForMission ──────────────────────────────────────────────────
+  /**
+   * يُرجع أفضل 7 ذكريات ذات صلة بمهمة معينة — القاعدة ٤.
+   * يستخدم cosineSimilarity مع آخر 49 تضمين محفوظ.
+   * [read] من الذاكرة المحلية أو Redis
+   */
+  static async getContextForMission(
+    embedding: number[],
+    missionId: string,
+    topK: number = 7
+  ): Promise<Array<{ mission_id: string; verse: string; field: string; similarity: number; timestamp: number }>> {
+    const recent = await this.getRecentList<any>('embeddings_history', 49);
+    if (!recent || recent.length === 0) return [];
+
+    const scored = recent
+      .filter(item => {
+        const parsed = typeof item === 'string' ? JSON.parse(item) : item;
+        return parsed.vector && parsed.mission_id !== missionId;
+      })
+      .map(item => {
+        const parsed = typeof item === 'string' ? JSON.parse(item) : item;
+        return {
+          mission_id: parsed.mission_id ?? 'unknown',
+          verse:      parsed.verse      ?? '',
+          field:      parsed.field      ?? '',
+          similarity: this.cosineSimilarity(embedding, parsed.vector),
+          timestamp:  parsed.timestamp  ?? 0,
+        };
+      })
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, topK);
+
+    IQRALogger.info(
+      `🧠 [MEMORY] getContextForMission: ${scored.length} relevant memories found [read]`
+    );
+    return scored;
+  }
+
+  // ── pruneEmbeddingsHistory ────────────────────────────────────────────────
+  /**
+   * تنظيف دوري للتضمينات القديمة في الذاكرة المحلية.
+   * يحتفظ فقط بآخر maxKeep تضمين.
+   * [read] من الملف المحلي
+   */
+  static async pruneEmbeddingsHistory(maxKeep: number = 100): Promise<number> {
+    const data = await this.getLocalData();
+    const listKey = 'list:embeddings_history';
+    const list = data[listKey] as any[] | undefined;
+    if (!list || list.length <= maxKeep) return 0;
+
+    const pruned = list.length - maxKeep;
+    data[listKey] = list.slice(-maxKeep);
+    await this.saveLocalData(data);
+    IQRALogger.info(`🧹 [MEMORY] Pruned ${pruned} old embeddings from local history [read]`);
+    return pruned;
+  }
+
+  // ── cosineSimilarity (exported — used by Reporter & PatternMemory) ─────────
+  /**
+   * حساب تشابه جيب التمام بين متجهين.
+   * مُصدَّرة للاستخدام في Reporter و PatternMemory — القاعدة ٢.
+   */
   static cosineSimilarity(v1: number[], v2: number[]): number {
     if (!v1 || !v2 || v1.length !== v2.length || v1.length === 0) return 0;
     let dotProduct = 0;

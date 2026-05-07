@@ -14,12 +14,14 @@ describe('Topological Reward E2E', () => {
     const missionPath = path.resolve('topology-mission-e2e.yml');
     
     // 1. ملف مهمة يركز على "الفضول الطوبولوجي"
+    // dev_mode: true مطلوب صريحاً لتشغيل provider: simulated — القاعدة ٢
     const missionScope = `
 mission_id: topology_reward_test_001
 objective: "Analyze the topological structure of divine remembrance in Surah Al-Hijr 15:9"
 verse: "15:9"
 field_of_inquiry: "Numerical Topology of Remembrance"
 provider: "simulated"
+dev_mode: true
 allowed_tools: ["topology_engine", "read_db"]
 `;
     

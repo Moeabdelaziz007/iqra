@@ -2,6 +2,15 @@
  * 🌙 IQRA Mission Context — سياق المهمة
  * النية: تعريف العقود المشتركة بين جميع العمال
  * المرجع: "وَأَمْرُهُمْ شُورَىٰ بَيْنَهُمْ" — الشورى: 38
+ *
+ * ══════════════════════════════════════════════════════════════
+ * EMBEDDED CONSTITUTIONAL RULES (الدستور المضمّن)
+ * ══════════════════════════════════════════════════════════════
+ * 1. كل حقل يجب أن يكون له قيمة حقيقية — لا undefined ولا null.
+ * 2. لا mock ولا simulated provider إلا إذا كان dev_mode: true صريحاً.
+ * 3. parseMissionScope تُجهض المهمة فوراً إذا وجدت simulated بدون إذن.
+ * 4. لا تقل "تم" بدون diff أو اختبار أو مسار ملف.
+ * ══════════════════════════════════════════════════════════════
  */
 
 import fs from 'fs';
@@ -14,7 +23,7 @@ export interface MissionScope {
   mission_id: string;
   version?: string;
   objective: string;
-  verse: string;                          // e.g. "2:255"
+  verse: string;                          // e.g. "2:255" — مطلوب، لا يقبل فارغاً
   field_of_inquiry: string;
   provider?: 'google' | 'groq' | 'simulated';
   model?: string;
@@ -23,6 +32,11 @@ export interface MissionScope {
   success_criteria?: string[];
   status: 'planned' | 'running' | 'completed' | 'failed';
   workers?: Array<{ id: string; role: string; skills: string[] }>;
+
+  // ── No-Mock Gate (القاعدة ٢) ─────────────────────────────────────────────
+  // يجب أن يكون true صريحاً في ملف المهمة لتشغيل provider: simulated.
+  // في الإنتاج يُترك غائباً أو false.
+  dev_mode?: boolean;
 }
 
 // ── MissionContext — يُمرَّر بين العمال ──────────────────────────────────────
@@ -57,18 +71,37 @@ export function parseMissionScope(scopePath: string): MissionScope {
     throw new Error(`INTEGRITY_ERR: mission-scope.yml not found at ${scopePath}`);
   }
 
-  const raw = fs.readFileSync(scopePath, 'utf-8');
+  const raw = fs.readFileSync(scopePath, 'utf-8');   // [read]
   const parsed = yaml.load(raw) as MissionScope;
 
-  // Validate required fields
-  if (!parsed.mission_id) throw new Error('INTEGRITY_ERR: mission_id is required');
-  if (!parsed.objective)  throw new Error('INTEGRITY_ERR: objective is required');
-  if (!parsed.verse)      throw new Error('INTEGRITY_ERR: verse is required');
+  // ── Validate required fields ──────────────────────────────────────────────
+  if (!parsed.mission_id)       throw new Error('INTEGRITY_ERR: mission_id is required');
+  if (!parsed.objective)        throw new Error('INTEGRITY_ERR: objective is required');
+  if (!parsed.verse)            throw new Error('INTEGRITY_ERR: verse is required');
+  if (!parsed.field_of_inquiry) throw new Error('INTEGRITY_ERR: field_of_inquiry is required');
+
+  // ── Verse format check ────────────────────────────────────────────────────
+  if (!parsed.verse.match(/^\d+:\d+$/)) {
+    throw new Error(
+      `INTEGRITY_ERR: verse must be in "surah:ayah" format (e.g. "2:255"), got: "${parsed.verse}"`
+    );
+  }
+
+  // ── No-Mock Gate (القاعدة ٢) ─────────────────────────────────────────────
+  // إذا كان provider = simulated ولم يكن dev_mode = true → أجهض فوراً.
+  const resolvedProvider = parsed.provider || 'google';
+  if (resolvedProvider === 'simulated' && parsed.dev_mode !== true) {
+    throw new Error(
+      'NO_MOCK_ERR: provider "simulated" is forbidden in production. ' +
+      'Add "dev_mode: true" to the mission file to allow simulation in development.'
+    );
+  }
 
   return {
     ...parsed,
     status: parsed.status || 'planned',
-    provider: parsed.provider || 'google',
+    provider: resolvedProvider,
+    dev_mode: parsed.dev_mode ?? false,
   };
 }
 

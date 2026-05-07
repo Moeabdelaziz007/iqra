@@ -3,9 +3,20 @@
  * النية: تنفيذ حلقة مهمة كاملة من YAML إلى مكافأة في السجل
  * المرجع: "فَإِذَا عَزَمْتَ فَتَوَكَّلْ عَلَى اللَّهِ" — آل عمران: 159
  *
- * التسلسل: Planner → Researcher → Builder → Validator → Reporter
+ * التسلسل: Planner → Researcher → Resonance → Builder → Validator → Reporter
  * القاعدة: Serial beats parallel — كل عامل ينتظر السابق.
  * القاعدة: أي فشل يوقف الحلقة فوراً مع تقرير واضح.
+ *
+ * ══════════════════════════════════════════════════════════════
+ * EMBEDDED CONSTITUTIONAL RULES (الدستور المضمّن)
+ * ══════════════════════════════════════════════════════════════
+ * 1. كل حقل يجب أن يكون له قيمة حقيقية — لا undefined ولا null.
+ * 2. لا mock ولا simulated provider إلا إذا كان dev_mode: true صريحاً.
+ *    الفحص يحدث في parseMissionScope — أي محاولة تجاوزه = INTEGRITY_ERR.
+ * 3. كل مصدر معلومة يُوسَم: [read] | [fetched] | [prior-training].
+ * 4. لا تقل "تم" بدون diff أو اختبار أو مسار ملف.
+ * 5. لا تستدعِ دوالاً أو ملفات إلا بعد التأكد من وجودها.
+ * ══════════════════════════════════════════════════════════════
  */
 
 import fs from 'fs';
@@ -22,8 +33,8 @@ import { executePlanner }          from './workers/planner.ts';
 import { executeResearcher }       from './workers/researcher.ts';
 import { executeBuilder }          from './workers/builder.ts';
 import { executeMissionValidator } from './workers/mission_validator.ts';
-import { executeResonanceWorker }   from './workers/resonance.ts';
-import { executeReporter }        from './workers/reporter.ts';
+import { executeResonanceWorker }  from './workers/resonance.ts';
+import { executeReporter }         from './workers/reporter.ts';
 import { appendToTrustChain }      from './security.ts';
 import { IQRALogger }              from './logger.ts';
 
@@ -42,6 +53,18 @@ export interface MissionResult {
   error?: string;
 }
 
+// ── No-Mock Pre-flight Check ──────────────────────────────────────────────────
+// فحص مستقل قبل بدء أي مهمة.
+// parseMissionScope تُجهض بالفعل — هذا طبقة ثانية للتأكيد.
+function assertNoMockInProduction(scope: MissionScope): void {
+  if (scope.provider === 'simulated' && scope.dev_mode !== true) {
+    throw new Error(
+      `NO_MOCK_ERR: Mission "${scope.mission_id}" uses provider "simulated" ` +
+      `without dev_mode: true. Aborting to protect production integrity.`
+    );
+  }
+}
+
 // ── Main Runner ───────────────────────────────────────────────────────────────
 
 export async function runMission(
@@ -51,11 +74,17 @@ export async function runMission(
 
   const startTime = Date.now();
 
-  // ── 0. Parse scope ────────────────────────────────────────────────────────
+  // ── 0. Parse scope [read] ─────────────────────────────────────────────────
+  // parseMissionScope يقرأ الملف من القرص [read] ويُجهض إذا وجد simulated بدون dev_mode.
   const scope = parseMissionScope(missionPath);
+
+  // ── 0b. No-Mock double-check ──────────────────────────────────────────────
+  assertNoMockInProduction(scope);
+
   IQRALogger.info(`🚀 [MISSION_RUNNER] Starting: ${scope.mission_id}`);
   IQRALogger.info(`   Verse: ${scope.verse} | Field: ${scope.field_of_inquiry}`);
-  IQRALogger.info(`   Provider: ${scope.provider || 'google'}`);
+  IQRALogger.info(`   Provider: ${scope.provider} | DevMode: ${scope.dev_mode ?? false}`);
+  IQRALogger.info(`   Source: [read] ${missionPath}`);
 
   // ── 1. Working directory ──────────────────────────────────────────────────
   const tmpDir = workingDir || fs.mkdtempSync(path.join(os.tmpdir(), `iqra-${scope.mission_id}-`));
@@ -101,7 +130,11 @@ export async function runMission(
     _assertSuccess(resonanceResult, 'Resonance');
     stepsCompleted.push('Resonance');
     allArtifacts.push(...resonanceResult.artifacts);
-    context.previousOutput = resonanceResult.data;
+    // Preserve research path + add resonance data
+    context.previousOutput = {
+      ...context.previousOutput,
+      ...resonanceResult.data,
+    };
 
     // ── Step 4: Builder ───────────────────────────────────────────────────
     IQRALogger.info('🏗️ [MISSION_RUNNER] Step 4/6: Builder');
@@ -109,7 +142,6 @@ export async function runMission(
     _assertSuccess(buildResult, 'Builder');
     stepsCompleted.push('Builder');
     allArtifacts.push(...buildResult.artifacts);
-    // Merge previous output so Validator gets both research path and node path
     context.previousOutput = {
       ...context.previousOutput,
       ...buildResult.data,
@@ -190,7 +222,10 @@ export async function runMission(
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 
-function _assertSuccess(result: { status: string; worker: string; issues: string[] }, step: string): void {
+function _assertSuccess(
+  result: { status: string; worker: string; issues: string[] },
+  step: string
+): void {
   if (result.status !== 'success') {
     const reason = result.issues.join('; ') || 'unknown failure';
     throw new Error(`[${step}] INTEGRITY_ERR: ${reason}`);
