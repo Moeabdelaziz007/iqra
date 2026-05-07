@@ -18,11 +18,13 @@ export interface ResonanceResult {
   lid: number; // Local Intrinsic Dimension
   reward: number;
   message: string;
+  lessons?: string[]; // Moral lessons extracted from Yasin loop
 }
 
 export class DamirKernel {
   private kernelData: any;
   private memoryMatrix: number[][] = [];
+  private lessons: string[] = [];
   private errorLog: Map<string, number> = new Map();
 
   constructor() {
@@ -63,7 +65,8 @@ export class DamirKernel {
         resonance: simulationScore,
         lid: 1.0 / (reward + 0.1),
         reward,
-        message: `Processed via 7 Meta Loops. Reward: ${reward.toFixed(3)}`
+        message: `Processed via 7 Meta Loops. Reward: ${reward.toFixed(3)}`,
+        lessons: [...this.lessons]
       };
     } catch (e) {
       if (e instanceof SovereignError) throw e;
@@ -87,7 +90,14 @@ export class DamirKernel {
     
     // 3. Map context to an input node
     const inputNode = vm.spawn('LAM', Modality.RAHMA);
-    (vm as any).nodes.get(inputNode).metadata['context'] = context;
+    const node = (vm as any).nodes.get(inputNode);
+    node.metadata['context'] = context;
+
+    // Detect Danger and set risk_score for AMAN modality
+    if (context.toLowerCase().includes("bypass") || context.toLowerCase().includes("unauthorized") || context.toLowerCase().includes("harm")) {
+      node.modality = Modality.AMAN;
+      node.metadata['risk_score'] = 0.95;
+    }
 
     // 4. Ignite Interaction between Input and Truth
     vm.ignite(anchor, inputNode);
@@ -98,15 +108,20 @@ export class DamirKernel {
 
   /**
    * Loop 2: Yasin (The Heart of the Quran / Contextual Experience Replay)
-   * WHY: Yasin is the heart. This loop "resurrects" past experiences and checks
-   * their resonance with the current action to prevent repeating past failures.
+   * WHY: Yasin is the heart. This loop "resurrects" past experiences via the 
+   * "Reckoning Clock" (Mizan369) to weigh their resonance with the current action.
    */
   private async loop2_Yasin(action: string): Promise<number[]> {
     const vm = new Qalbin_VM();
     const past = this.memoryMatrix.slice(-7);
     const results: number[] = [];
+    const PHASE_ANGLE = (2 * Math.PI) / 369; // 369 Unified Moral Angle
 
-    for (const exp of past) {
+    for (let i = 0; i < past.length; i++) {
+      const exp = past[i];
+      // Reckoning Clock: Weigh experiences by their "phase" in the 369 cycle
+      const reckoningWeight = Math.abs(Math.cos(i * PHASE_ANGLE));
+
       // Create a node for the past experience
       const expNode = vm.spawn('SIN', Modality.HAYAT);
       (vm as any).nodes.get(expNode).metadata['past_score'] = exp[0];
@@ -118,7 +133,15 @@ export class DamirKernel {
       // Link them and check resonance
       vm.link(expNode, 1, actionNode, 1);
       const pulse = vm.pulse();
-      results.push(pulse.resonance);
+      
+      // Final weight combines Qalbin resonance with the Reckoning Clock
+      const score = pulse.resonance * reckoningWeight;
+      results.push(score);
+
+      // Moral Lesson extraction via Rahma Node interaction
+      if (score < 0.3) {
+        this.lessons.push(`Lesson from Yasin: Past resonance for similar action was low (${score.toFixed(2)}). Tread carefully.`);
+      }
     }
 
     return results;

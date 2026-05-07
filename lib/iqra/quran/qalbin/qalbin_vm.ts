@@ -76,8 +76,15 @@ export class Qalbin_VM {
   }
 
   private verifyMoralConstraints(a: QalbinNode, b: QalbinNode) {
+    // 1. Protection against high-risk interactions
     if (a.modality === Modality.AMAN && a.metadata['risk_score'] > 0.9) {
       throw new SovereignError("AMAN_VIOLATION: High-risk interaction.", "TAWBAH", "CRITICAL");
+    }
+
+    // 2. AMAN Sovereignty: Tokens with AMAN modality cannot be cloned (Commute)
+    // In Interaction Combinators, cloning happens during Commute (kind mismatch)
+    if (a.kind !== b.kind && (a.modality === Modality.AMAN || b.modality === Modality.AMAN)) {
+      throw new SovereignError("AMAN_SOVEREIGNTY: Security tokens cannot be cloned or fragmented.", "TAWBAH", "HALT");
     }
   }
 
