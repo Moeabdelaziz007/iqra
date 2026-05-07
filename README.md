@@ -44,8 +44,8 @@ Not a chatbot. Not a tool.
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-08` |
-| 💡 **آخر خطوة \| Last Step** | fix: Voice — Edge TTS (ar-SA-HamedNeural) + timeout + macOS fallback |
-| 🔗 **الـ Commit** | `13630d2` |
+| 💡 **آخر خطوة \| Last Step** | feat: Deep Analysis Pipeline in Pulse369 — كل 9 نبضات |
+| 🔗 **الـ Commit** | `a042597` |
 
 <!-- IQRA-LATEST-END -->
 
