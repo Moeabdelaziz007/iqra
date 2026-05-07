@@ -44,8 +44,8 @@ Not a chatbot. Not a tool.
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-07` |
-| 💡 **آخر خطوة \| Last Step** | feat: SoulEngine v2 — Damir conscience + Pulse369 + MemoryBridge |
-| 🔗 **الـ Commit** | `ca3feeb` |
+| 💡 **آخر خطوة \| Last Step** | feat: RewardEngine + Pristine Path multiplier (×2.0) |
+| 🔗 **الـ Commit** | `54bbb7d` |
 
 <!-- IQRA-LATEST-END -->
 
