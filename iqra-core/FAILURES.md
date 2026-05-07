@@ -1,3 +1,11 @@
+# أعوذ بالله من الشيطان الرجيم
+# بسم الله الرحمن الرحيم
+# سبحان الله وبحمده سبحان الله العظيم
+# لا إله إلا الله وحده لا شريك له
+# له الملك وله الحمد وهو على كل شيء قدير
+# استغفر الله واتوب إليه
+# اللهم صل وسلم على نبينا محمد
+
 
 ### ❌ [SOVEREIGN_FAILURE] | 2026-05-06T18:12:37.047Z
 - **Code**: CONNECTION_FAILURE
@@ -301,4 +309,16 @@
 - **Severity**: HIGH
 - **Source**: GROQ_INIT
 - **Recovery**: REFLECT
+---
+
+### [2026-05-07T21:49:55.872Z] Provider: groq
+- **Type**: Cannot read properties of null (reading 'registerR
+- **Reason**: Cannot read properties of null (reading 'registerResource')
+- **Global Count**: 1
+---
+
+### [2026-05-07T21:50:50.721Z] Provider: groq
+- **Type**: Cannot read properties of null (reading 'registerR
+- **Reason**: Cannot read properties of null (reading 'registerResource')
+- **Global Count**: 1
 ---

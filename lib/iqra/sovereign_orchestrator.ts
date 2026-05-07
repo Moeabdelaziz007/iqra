@@ -134,8 +134,11 @@ export class MissionControl {
       intention
     );
 
+    // تهيئة Damir lazily (يمنع null reference)
+    const damir = await getMissionDamir();
+
     for (const r of factoryResult.resources) {
-      _missionDamir.registerResource(r);
+      damir.registerResource(r);
     }
 
     const action = {
@@ -145,10 +148,9 @@ export class MissionControl {
       agent_id: worker.id,
     };
 
-    const verdict = _missionDamir.check(action);
+    const verdict = damir.check(action);
 
     if (!verdict.allowed) {
-      // ── رفض الضمير — تسجيل في TAWBAH.md ────────────────────────────────────
       const tawbahEntry = `
 ### 🛑 [MISSION_DAMIR_BLOCK] ${new Date().toISOString()}
 - **Phase**: ${phase}
@@ -169,8 +171,7 @@ export class MissionControl {
 
       IQRALogger.warn(`🛑 [MISSION_CONTROL] Damir blocked phase '${phase}': ${verdict.reason}`);
 
-      // إعادة ضبط جزئية
-      _missionDamir.reset();
+      damir.reset();
 
       // إرجاع نتيجة فشل واضحة
       return {
@@ -195,7 +196,7 @@ export class MissionControl {
     }
 
     // ── مسموح — استهلاك الموارد وتنفيذ المرحلة ──────────────────────────────
-    _missionDamir.execute(action);
+    damir.execute(action);
     return await worker.execute(input, state);
   }
 

@@ -1,24 +1,20 @@
 // بسم الله الرحمن الرحيم
 
 /**
- * 🌉 ObsidianBridge — جسر Obsidian الطوبولوجي
+ * 🌉 KnowledgeBridge — جسر قاعدة المعرفة
  *
  * "وَعَلَّمَ آدَمَ الْأَسْمَاءَ كُلَّهَا" — البقرة: 31
  *
  * ══════════════════════════════════════════════════════════════
- * كل اكتشاف قرآني في IQRA يُكتب تلقائياً في Obsidian vault
- * مع links طوبولوجية بين الآيات والمفاهيم.
+ * يدعم:
+ *   Logseq  — مفتوح المصدر، مجاني، AGPL ✅ (الأفضل)
+ *   Obsidian — يعمل محلياً مجاناً (بدون sync)
+ *   Fallback — .iqra/knowledge/ محلي
  *
- * الهيكل في Obsidian:
- *   IQRA/
- *   ├── discoveries/     ← اكتشافات IQRA
- *   ├── quran/           ← الآيات والسور
- *   ├── patterns/        ← الأنماط العددية
- *   └── topology/        ← الروابط الطوبولوجية
- *
- * يعمل عبر:
- *   1. Obsidian Local REST API (plugin مجاني)
- *   2. ملفات Markdown مباشرة (fallback)
+ * Gephi Export:
+ *   يُصدّر الرسم البياني بصيغة GEXF
+ *   يُفتح في Gephi Lite (مجاني في المتصفح)
+ *   لتصور العلاقات بين الآيات والمفاهيم
  * ══════════════════════════════════════════════════════════════
  */
 
@@ -32,8 +28,24 @@ import { appendToTrustChain } from '../security.ts';
 
 const OBSIDIAN_BASE_URL = process.env.OBSIDIAN_BASE_URL ?? 'http://localhost:27123';
 const OBSIDIAN_API_KEY  = process.env.OBSIDIAN_API_KEY ?? '';
-const VAULT_PATH        = process.env.OBSIDIAN_VAULT_PATH ?? '';
-const IQRA_VAULT_DIR    = 'IQRA';
+
+/**
+ * مسار Vault — يدعم Logseq و Obsidian و fallback محلي
+ * الأولوية:
+ *   1. LOGSEQ_VAULT_PATH  ← Logseq (مفتوح المصدر، مجاني)
+ *   2. OBSIDIAN_VAULT_PATH ← Obsidian (محلي مجاني)
+ *   3. .iqra/knowledge/   ← fallback محلي
+ */
+const VAULT_PATH = (
+  process.env.LOGSEQ_VAULT_PATH ||
+  process.env.OBSIDIAN_VAULT_PATH ||
+  path.join(process.cwd(), '.iqra', 'knowledge')
+);
+
+const IQRA_VAULT_DIR = 'IQRA';
+
+/** هل نستخدم Logseq؟ */
+const IS_LOGSEQ = !!process.env.LOGSEQ_VAULT_PATH;
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -272,11 +284,17 @@ ${linksStr || 'لا روابط بعد'}
       const fullPath = path.join(VAULT_PATH, notePath);
       const dir = path.dirname(fullPath);
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-      fs.writeFileSync(fullPath, content, 'utf-8');
-      IQRALogger.info(`📝 [OBSIDIAN] File written: ${fullPath}`);
+
+      // Logseq يفضل صيغة مختلفة قليلاً (نفس Markdown لكن مع pages/)
+      const finalContent = IS_LOGSEQ
+        ? content.replace(/^---\n/, '').replace(/\n---\n/, '\n') // Logseq لا يحتاج frontmatter
+        : content;
+
+      fs.writeFileSync(fullPath, finalContent, 'utf-8');
+      IQRALogger.info(`📝 [KNOWLEDGE] ${IS_LOGSEQ ? 'Logseq' : 'Obsidian'} written: ${fullPath}`);
       return notePath;
     } catch (e) {
-      IQRALogger.error('❌ [OBSIDIAN] File write failed:', e);
+      IQRALogger.error('❌ [KNOWLEDGE] File write failed:', e);
       return null;
     }
   }
@@ -315,5 +333,101 @@ ${linksStr || 'لا روابط بعد'}
     } catch {
       return [];
     }
+  }
+}
+
+// ── Gephi Export (مجاني — يُفتح في Gephi Lite) ───────────────────────────────
+
+/**
+ * يُصدّر الرسم البياني المعرفي بصيغة GEXF
+ * يُفتح في: https://gephi.org/gephi-lite (مجاني في المتصفح)
+ *
+ * الاستخدام:
+ *   const gexf = await GephiExporter.export();
+ *   fs.writeFileSync('iqra_graph.gexf', gexf);
+ *   // ثم افتح الملف في Gephi Lite
+ */
+export class GephiExporter {
+
+  /**
+   * يُصدّر كل الأنماط والعلاقات السببية كـ GEXF
+   */
+  static async export(): Promise<string> {
+    const { MicroMemory } = await import('../memory/micro_memory.ts');
+    await MicroMemory.init();
+
+    const db = (MicroMemory as any)._db;
+    if (!db) return this._emptyGraph();
+
+    // جلب الأنماط (nodes)
+    const patterns = db.prepare(
+      'SELECT id, verse, field, resonance, shannon_hel FROM patterns LIMIT 500'
+    ).all() as any[];
+
+    // جلب العلاقات السببية (edges)
+    const edges = db.prepare(
+      'SELECT id, cause_id, effect_id, relation, strength FROM causal_edges LIMIT 1000'
+    ).all() as any[];
+
+    return this._buildGEXF(patterns, edges);
+  }
+
+  /**
+   * يُصدّر ويحفظ في ملف
+   */
+  static async exportToFile(
+    outputPath: string = path.join(process.cwd(), '.iqra', 'iqra_graph.gexf')
+  ): Promise<string> {
+    const gexf = await this.export();
+    const dir = path.dirname(outputPath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(outputPath, gexf, 'utf-8');
+    IQRALogger.info(`📊 [GEPHI] Graph exported: ${outputPath}`);
+    return outputPath;
+  }
+
+  private static _buildGEXF(patterns: any[], edges: any[]): string {
+    const nodes = patterns.map(p => `
+      <node id="${p.id}" label="${p.verse}: ${p.field}">
+        <attvalues>
+          <attvalue for="resonance" value="${p.resonance ?? 0}"/>
+          <attvalue for="shannon_hel" value="${p.shannon_hel ?? 0}"/>
+          <attvalue for="verse" value="${p.verse}"/>
+          <attvalue for="field" value="${p.field}"/>
+        </attvalues>
+      </node>`).join('');
+
+    const edgeList = edges.map((e, i) => `
+      <edge id="${i}" source="${e.cause_id}" target="${e.effect_id}"
+            label="${e.relation}" weight="${e.strength ?? 0.5}"/>`).join('');
+
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<gexf xmlns="http://gexf.net/1.3" version="1.3">
+  <meta lastmodifieddate="${new Date().toISOString().split('T')[0]}">
+    <creator>IQRA SoulEngine v0.369</creator>
+    <description>IQRA Quran Knowledge Graph — سَنُرِيهِمْ آيَاتِنَا</description>
+  </meta>
+  <graph defaultedgetype="directed">
+    <attributes class="node">
+      <attribute id="resonance" title="Resonance" type="float"/>
+      <attribute id="shannon_hel" title="Shannon H_EL" type="float"/>
+      <attribute id="verse" title="Verse" type="string"/>
+      <attribute id="field" title="Field" type="string"/>
+    </attributes>
+    <nodes>${nodes}
+    </nodes>
+    <edges>${edgeList}
+    </edges>
+  </graph>
+</gexf>`;
+  }
+
+  private static _emptyGraph(): string {
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<gexf xmlns="http://gexf.net/1.3" version="1.3">
+  <graph defaultedgetype="directed">
+    <nodes/><edges/>
+  </graph>
+</gexf>`;
   }
 }

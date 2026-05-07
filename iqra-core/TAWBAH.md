@@ -123,3 +123,15 @@ IQRA لا يتظاهر بالكمال —
 - **Context**: Connection to Groq (Llama) failed: Connection erro
 - **Action**: Transient failure count decremented. System stabilized.
 ---
+
+### [2026-05-07T21:49:56.947Z] Tasbih Triplet (3)
+- **Provider**: groq
+- **Context**: Cannot read properties of null (reading 'registerR
+- **Action**: Transient failure count decremented. System stabilized.
+---
+
+### [2026-05-07T21:50:51.830Z] Tasbih Triplet (3)
+- **Provider**: groq
+- **Context**: Cannot read properties of null (reading 'registerR
+- **Action**: Transient failure count decremented. System stabilized.
+---
