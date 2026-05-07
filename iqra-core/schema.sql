@@ -1,18 +1,19 @@
 -- IQRA D1 Schema
 -- "إِنَّا نَحْنُ نَزَّلْنَا الذِّكْرَ وَإِنَّا لَهُ لَحَافِظُونَ"
 
--- Table: ayahs
+-- Table: ayat
 -- Stores the text and basic metadata of each verse.
-CREATE TABLE IF NOT EXISTS ayahs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    surah_id INTEGER NOT NULL,
-    ayah_id INTEGER NOT NULL,
-    text TEXT NOT NULL,
-    text_simple TEXT NOT NULL, -- Simplified text for search
-    translation_en TEXT,
-    page INTEGER,
-    juz INTEGER,
-    manzil INTEGER
+CREATE TABLE IF NOT EXISTS ayat (
+    id          TEXT PRIMARY KEY,  -- "2:255"
+    surah       INTEGER NOT NULL,
+    ayah        INTEGER NOT NULL,
+    arabic      TEXT NOT NULL,
+    english     TEXT NOT NULL,
+    juz         INTEGER,
+    page        INTEGER,
+    source      TEXT DEFAULT 'api.quran.com',
+    verified    INTEGER DEFAULT 1,
+    created_at  INTEGER DEFAULT (unixepoch())
 );
 
 -- Table: patterns

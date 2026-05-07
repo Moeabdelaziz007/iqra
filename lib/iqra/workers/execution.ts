@@ -1,13 +1,14 @@
-import { SovereignWorker, WorkerResult } from './protocol.ts';
-import { ConnectorFactory, Provider } from '../../src/connectors/index.ts';
-import { FULL_SYSTEM_PROMPT } from '../brain.ts'; // We might need to export this
+import { SovereignWorker } from './protocol.ts';
+import type { WorkerResult, MissionState } from './protocol.ts';
+import { ConnectorFactory, Provider } from '../../../src/connectors/index.ts';
+import { FULL_SYSTEM_PROMPT } from '../prompts.ts';
 import { IQRAMemory } from '../memory.ts';
 
 export class ExecutionWorker extends SovereignWorker {
   id = 'ExecutionWorker';
 
   async execute(input: string, state: MissionState): Promise<WorkerResult> {
-    this.report.workerId = this.id;
+    this.report.worker_id = this.id;
     this.report.timestamp = Date.now();
 
     try {
@@ -33,7 +34,7 @@ export class ExecutionWorker extends SovereignWorker {
       
       this.markImplemented('Final response generation with enriched serial context');
       this.markImplemented(`Model specialized: ${this.provider} (Execution Optimization)`);
-      this.report.proceduresFollowed = true;
+      this.report.procedures_followed = true;
 
       const updatedState: MissionState = {
         ...state,
@@ -44,7 +45,7 @@ export class ExecutionWorker extends SovereignWorker {
         success: true,
         data: result.content,
         report: this.report,
-        updatedState
+        updated_state: updatedState
       };
     } catch (error: any) {
       this.logIssue(`ExecutionWorker Error: ${error.message}`);

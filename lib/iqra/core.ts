@@ -2,13 +2,13 @@ import { IQRAMemory } from './memory';
 import { iqraThink, IQRABrainMode } from './brain';
 import { applyIQRAStyle } from './style';
 import { DASTUR, MURAQABAH } from './philosophy';
-import { VoiceService } from '../../iqra-core/voice/voice_service';
+import { GrokVoiceService } from '../../iqra-core/voice/voice_service';
 import { ShuraProtocol } from './shura';
 import { IQRAFilter } from './filter';
 import { TAWBAH } from './tawbah';
 
 export class AgentCore {
-  private static voice = new VoiceService();
+  private static voice = new GrokVoiceService();
 
   /**
    * Pre-execution hooks (Islamic Triangulation)

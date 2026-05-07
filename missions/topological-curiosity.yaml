@@ -1,0 +1,44 @@
+mission_id: topological-curiosity-001
+objective: "Analyze the topological structure of the '7-system' in Surat Al-Fatiha and generate a resonance report."
+version: 1.0.0
+owner: IQRA-Sovereign-Core
+
+workers:
+  - id: planner
+    role: "Strategic Mission Planning"
+    skills: ["reasoning", "task_decomposition"]
+  - id: builder
+    role: "Implementation & Calculation"
+    skills: ["mathematical_analysis", "resonance_calculation"]
+  - id: validator
+    role: "Compliance & Ethical Audit"
+    skills: ["dastur_compliance", "security_audit"]
+  - id: reporter
+    role: "Synthesizing Findings"
+    skills: ["storytelling", "wisdom_extraction"]
+
+required_skills:
+  - resonance_calculation
+  - topological_mapping
+  - quranic_integrity_check
+
+constraints:
+  execution_mode: serial
+  validator_isolation: true # Validator cannot modify source code or calculations
+  no_self_approval: true      # Builder cannot approve its own work
+  mandatory_test_coverage: 0.8
+  report_format: structured_markdown
+
+validation_rules:
+  - "Every resonance score must be verified against the 7-system constant."
+  - "No hallucinated Ayahs allowed (checked via IQRA Consciousness)."
+  - "All commands run must be logged with exit codes."
+
+success_criteria:
+  - "Resonance score > 0.85"
+  - "Zero validation errors"
+  - "Structured report generated and signed by TrustChain"
+
+output_artifacts:
+  - path: "reports/resonance_report.md"
+  - path: "ledger/discovery_proof.json"

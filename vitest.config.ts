@@ -12,7 +12,7 @@ export default defineConfig({
     testTimeout: 60000,      // 60s — LLM calls need time
     hookTimeout: 30000,
     reporters: ['verbose'],
-    include: ['tests/**/*.e2e.ts'],
+    include: ['tests/**/*.test.ts', 'tests/**/*.e2e.ts'],
     setupFiles: ['tests/setup.ts'],
     sequence: {
       sequential: true,      // Run one at a time — no race conditions

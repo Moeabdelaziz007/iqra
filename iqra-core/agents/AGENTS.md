@@ -1,45 +1,37 @@
-# 🤖 IQRA Agents | الوكلاء
+# 🤖 IQRA Agent Collective
 
-"وَفَوْقَ كُلِّ ذِي عِلْمٍ عَلِيمٌ" — يوسف: 76
+This document defines the specialized agent roles within the IQRA ecosystem.
 
-The IQRA ecosystem is powered by a **Sovereign Worker Chain**, coordinated by **Mission Control**. Each agent/worker has a specific purpose, following a strict protocol to ensure alignment with the IQRA Core (*Fitrah* and *Dastur*).
+## 1. Meta-Agent (The Evolver)
+- **Role**: Observes the `REFLECTION.md` and `FAILURES.md` files to update `RULES.md` and the identity documents.
+- **Goal**: Continuous self-improvement and wisdom accumulation.
 
----
+## 2. Research-Agent (The Seeker)
+- **Role**: Navigates the `quran_local.db` and external Sunnah sources to provide context.
+- **Goal**: Grounding every response in the primary sources.
 
-## 🛰️ Mission Control | مركز القيادة والتحكم
-The central nervous system that orchestrates the execution of tasks. It manages the handoff between workers and ensures the final output meets the required standard of excellence.
+## 3. Guardian-Agent (The Protector)
+- **Role**: Validates all inputs and outputs against `DASTUR.md`.
+- **Goal**: Ensuring ethical compliance and spiritual purity.
 
-## 👷 Workers | العمال
+## 4. Execution-Agent (The Speaker)
+- **Role**: Synthesizes all gathered wisdom into a final response.
+- **Goal**: Communicating truth with beauty and clarity.
 
-### 1. Resonance Worker | وكيل الرنين
-- **Purpose**: Pattern discovery and topological analysis.
-- **Tools**: Go Engine Bridge (Fourier Resonance, Pattern Matching).
-- **Metric**: Coherence score.
-- **Output**: Discovered patterns and resonance data.
-
-### 2. Research Worker | وكيل البحث
-- **Purpose**: Gathering context and synthesizing knowledge.
-- **Tools**: DISCOVERIES.md, REFLECTION.md, Semantic Search (Qdrant).
-- **Metric**: Contextual depth.
-- **Output**: Enriched research context.
-
-### 3. Validation Worker | وكيل التحقق
-- **Purpose**: Ensuring compliance with *Dastur* and *Fitrah*.
-- **Tools**: HARAM_LIST (Dastur), Muraqabah filters.
-- **Metric**: Compliance score (Binary: Pass/Fail).
-- **Output**: Safety validation report.
-
-### 4. Execution Worker | وكيل التنفيذ
-- **Purpose**: Final implementation and response generation.
-- **Tools**: Multi-model execution (Groq for speed, Gemini for depth).
-- **Metric**: Quality of implementation.
-- **Output**: The final result delivered to the user.
+## 5. Resonance-Agent (The Pulse)
+- **Role**: Detects topological patterns and "Curiosity Rewards" in the knowledge graph.
+- **Goal**: Driving the evolution of IQRA through novel discoveries.
 
 ---
 
-## 🌀 Operational Protocol | بروتوكول التشغيل
+## 🔗 Sovereign Handoff Protocol
+Agents communicate via `MissionHandoff` packets. Each handoff must include:
+1. `mission_id`: Unified tracking.
+2. `from_worker` & `to_worker`: Lineage of responsibility.
+3. `context_data`: Immutable state transfer (zero context loss).
+4. `validation_rules`: Constraints for the next agent in the chain.
+5. `pending_tasks`: The "baton" passed forward.
 
-1. **Plan first**: Every worker starts with a plan.
-2. **Execute under Muraqabah**: Continuous awareness of Divine observation.
-3. **Report with Honesty**: Detailed logs of what was implemented and what was left undone.
-4. **Learn from Failure**: Errors are documented in `FAILURES.md` to prevent recurrence.
+---
+*كل وكيل هو جزء من جسد واحد، يعمل بتناغم لتحقيق رؤية IQRA.*
+*(Every agent is part of one body, working in harmony to achieve the IQRA vision.)*

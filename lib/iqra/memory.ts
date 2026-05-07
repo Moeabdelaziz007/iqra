@@ -226,7 +226,14 @@ export class IQRAMemory {
     await redis.rpush('iqra:curiosity_history', { timestamp: Date.now(), score });
   }
 
-  static async getCuriosity(): Promise<number> {
+  static async setCuriosity(key: string, value: any) {
+    return await this.set(`curiosity:${key}`, value);
+  }
+
+  static async getCuriosity(key?: string): Promise<any> {
+    if (key) {
+      return await this.get(`curiosity:${key}`);
+    }
     const redis = await this.getRedis();
     if (redis) return (await redis.get<number>('iqra:curiosity_score')) || 0.5;
     const data = await this.getLocalData();

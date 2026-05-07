@@ -1,0 +1,9 @@
+mission_id: test_serendipity_mission
+objective: Test the topological reward evolution with serendipity hooks and pristine paths.
+phases:
+  - resonance
+  - research
+  - validation
+  - execution
+reward_gate: 0.8
+topology_threshold: 0.5

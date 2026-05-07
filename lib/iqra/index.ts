@@ -24,13 +24,13 @@ export async function executeWithIqra(task: string, action: () => Promise<void>)
 import { IQRABrainMode } from './brain';
 import { AgentCore } from './core';
 import { IQRACommands } from './commands';
-import { VoiceService } from '../../iqra-core/voice/voice_service';
+import { GrokVoiceService } from '../../iqra-core/voice/voice_service';
 
 export async function iqra(input: string, mode: IQRABrainMode = IQRABrainMode.FAST_RESPONSE): Promise<{
   text: string;
   audioBuffer?: Buffer;
 }> {
-  const voiceService = new VoiceService();
+  const voiceService = new GrokVoiceService();
   
   // 0. CHECK COMMANDS — /status, /sleep, /wake
   if (input.startsWith('/')) {

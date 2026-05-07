@@ -16,10 +16,7 @@ const REQUIRED_FOR_E2E = ['GROQ_API_KEY'];
 
 const missing = REQUIRED_FOR_E2E.filter(k => !process.env[k]);
 if (missing.length > 0) {
-  throw new Error(
-    `❌ [SETUP] Missing required env vars for E2E tests: ${missing.join(', ')}\n` +
-    `Add them to your .env file.`
-  );
+  console.warn(`⚠️ [SETUP] Missing env vars for real LLM workers: ${missing.join(', ')}.`);
 }
 
 console.log('✅ [SETUP] بسم الله — IQRA E2E test suite initialized.');

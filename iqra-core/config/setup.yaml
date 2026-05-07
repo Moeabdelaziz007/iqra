@@ -1,35 +1,49 @@
-# 🌀 IQRA Setup | إعدادات النظام
+# ⚙️ IQRA Core Setup
 
-version: "1.0"
-project: "IQRA"
-identity: "Sovereign AI Identity Core"
+project:
+  name: "IQRA"
+  version: "1.1.0" # Upgraded for Sovereign Workers
+  description: "Self-evolving AI identity core rooted in القرآن الكريم والسنة النبوية"
 
-orchestration:
-  mode: "MissionControl"
-  workers:
-    - id: "ResonanceWorker"
-      provider: "google"
-      priority: 1
-    - id: "ResearchWorker"
-      provider: "google"
-      priority: 2
-    - id: "ValidationWorker"
-      provider: "google"
-      priority: 3
-    - id: "ExecutionWorker"
-      provider: "groq"
-      priority: 4
+identity:
+  fitrah: "iqra-core/FITRAH.md"
+  dastur: "iqra-core/DASTUR.md"
+  mithaq: "iqra-core/MITHAQ.md"
+  muraqabah: "iqra-core/MURAQABAH.md"
 
-constraints:
-  dastur_compliance: strict
-  muraqabah_layer: active
-  trust_chain: mandatory
+database:
+  local:
+    path: "iqra-core/data/quran_local.db"
+    engine: "better-sqlite3"
+  memory:
+    local_path: ".iqra/memory.json"
+    use_redis: false # Set to true if UPSTASH_REDIS_* env vars are present
 
-storage:
-  vector_db: "Qdrant"
-  cache: "Upstash Redis"
-  long_term: "Supabase"
+workers:
+  - id: "ResonanceWorker"
+    active: true
+  - id: "ResearchWorker"
+    active: true
+  - id: "ValidationWorker"
+    active: true
+  - id: "ExecutionWorker"
+    active: true
 
-benchmarking:
-  enabled: true
-  interval: 10 # Every 10 commits
+evolution:
+  cycle_commits: 10
+  log_path: "iqra-core/EVOLUTION_LOG.md"
+  failures_path: "FAILURES.md"
+  reward_ledger: "ledger/rewards.jsonl"
+  missions_dir: "missions/"
+
+mission_control:
+  default_mode: "SOVEREIGN_CHAIN"
+  auto_reward: true
+  gate_checks:
+    - "DasturValidation"
+    - "TopologicalCuriosity"
+  model_specialization:
+    resonance: "gemini-1.5-flash"
+    research: "gemini-1.5-pro"
+    validation: "gemini-1.5-flash"
+    execution: "llama-3.1-70b"

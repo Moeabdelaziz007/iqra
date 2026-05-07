@@ -1,4 +1,3 @@
-import axios from 'axios';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -34,11 +33,11 @@ const VOICE_CONFIG = {
 };
 
 /**
- * VoiceService | خدمة الصوت
+ * GrokVoiceService | خدمة الصوت
  * "لسان ينطق بالحق، وصوت يحمل الهداية"
  * A tongue that speaks truth, a voice that carries guidance.
  */
-export class VoiceService {
+export class GrokVoiceService {
   private readonly apiKey: string;
   private readonly baseUrl: string = 'https://api.x.ai/v1';
 
@@ -90,26 +89,26 @@ export class VoiceService {
     console.log(`🎙️ IQRA speaking in mode: ${config.description}`);
 
     try {
-      const response = await axios.post(
-        `${this.baseUrl}/text-to-speech`,
-        {
+      const response = await fetch(`${this.baseUrl}/tts`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           text,
           voice: config.voice,
           output_format: 'mp3',
           sample_rate: 48000,
-          // Note: Pitch and stability might be supported via inline tags or specific API fields
-          // For now, we use the voice character selection.
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json',
-          },
-          responseType: 'arraybuffer',
-        }
-      );
+        }),
+      });
 
-      return Buffer.from(response.data);
+      if (!response.ok) {
+        throw new Error(`TTS API error: ${response.statusText}`);
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      return Buffer.from(arrayBuffer);
     } catch (error) {
       console.error('Error in TTS generation | خطأ في توليد الصوت:', error);
       throw error;
@@ -121,9 +120,13 @@ export class VoiceService {
    */
   async generateMessage(prompt: string): Promise<string> {
     try {
-      const response = await axios.post(
-        `${this.baseUrl}/chat/completions`,
-        {
+      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           model: 'grok-beta',
           messages: [
             {
@@ -132,16 +135,15 @@ export class VoiceService {
             },
             { role: 'user', content: prompt },
           ],
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+        }),
+      });
 
-      return response.data.choices[0].message.content;
+      if (!response.ok) {
+        throw new Error(`Chat API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return (data as any).choices[0].message.content;
     } catch (error) {
       console.error('Error in message generation | خطأ في توليد الرسالة:', error);
       throw error;
