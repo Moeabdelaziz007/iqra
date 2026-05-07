@@ -312,7 +312,8 @@ export class IQRAVoice {
   // ── Private ───────────────────────────────────────────────────────────────
 
   /**
-   * يُشغّل الصوت على macOS باستخدام afplay
+   * يُشغّل الصوت على macOS
+   * يستخدم afplay للـ MP3 أو say كـ fallback
    */
   private static async _playAudio(buffer: Buffer): Promise<void> {
     const tmpPath = path.join(process.cwd(), '.iqra', 'tmp_voice.mp3');
@@ -323,8 +324,60 @@ export class IQRAVoice {
     const { exec } = await import('child_process');
     await new Promise<void>((resolve) => {
       exec(`afplay "${tmpPath}"`, () => {
-        fs.unlinkSync(tmpPath);
+        try { fs.unlinkSync(tmpPath); } catch { /* ignore */ }
         resolve();
+      });
+    });
+  }
+
+  /**
+   * Fallback: Edge TTS (Microsoft) — مجاني تماماً، عربي ممتاز
+   * ar-SA-HamedNeural — صوت سعودي ذكوري، الأنسب للقرآن
+   * ar-EG-ShakirNeural — صوت مصري بديل
+   */
+  static async speakLocal(text: string, autoplay = true): Promise<void> {
+    // إزالة expression tags
+    const clean = text
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/﴿|﴾/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const { exec } = await import('child_process');
+    const tmpPath = path.join(process.cwd(), '.iqra', 'tmp_edge.mp3');
+    const dir = path.dirname(tmpPath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+    // محاولة Edge TTS أولاً (أفضل جودة)
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const proc = exec(
+          `edge-tts --voice ar-SA-HamedNeural --text "${clean.replace(/"/g, "'")}" --write-media "${tmpPath}"`,
+          (err) => err ? reject(err) : resolve()
+        );
+        // timeout 10 ثوانٍ
+        setTimeout(() => { proc.kill(); reject(new Error('timeout')); }, 10000);
+      });
+
+      if (autoplay && fs.existsSync(tmpPath)) {
+        await new Promise<void>((resolve) => {
+          exec(`afplay "${tmpPath}"`, () => {
+            try { fs.unlinkSync(tmpPath); } catch { /* ignore */ }
+            resolve();
+          });
+        });
+      }
+      return;
+    } catch {
+      // Fallback: macOS say -v Majed
+      IQRALogger.warn('⚠️ [VOICE] Edge TTS failed — using macOS Majed');
+    }
+
+    // macOS built-in fallback
+    await new Promise<void>((resolve, reject) => {
+      exec(`say -v "Majed" "${clean.replace(/"/g, "'")}"`, (err) => {
+        if (err) reject(err);
+        else resolve();
       });
     });
   }
