@@ -342,45 +342,6 @@ async function _callLLMForBridge(
 ): Promise<BridgeResult | null> {
   const prompt = CONGZI_BRIDGE_PROMPT(verse, field, topAyah);
 
-  // ── Provider 1: Grok (xAI) [fetched] ─────────────────────────────────────
-  if (process.env.XAI_API_KEY) {
-    try {
-      const response = await withTimeout(
-        fetch('https://api.x.ai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.XAI_API_KEY}`,
-          },
-          body: JSON.stringify({
-            model: 'grok-3-mini',
-            messages: [{ role: 'user', content: prompt }],
-            response_format: { type: 'json_object' },
-            temperature: 0.3,
-          }),
-        }),
-        IQRA_TIMEOUTS.LLM,
-        'Grok API'
-      );
-
-      if (!response.ok) throw new Error(`Grok HTTP ${response.status}`);
-      const data = await response.json() as any;
-      const text = data.choices?.[0]?.message?.content ?? '{}';
-      const parsed = JSON.parse(text);
-
-      if (!parsed.has_resonance) return null;
-
-      return {
-        bridge:        parsed.bridge        ?? '',
-        fractal_depth: parsed.fractal_depth ?? 0.5,
-        confidence:    parsed.confidence    ?? 0.5,
-        provider:      'Grok (xAI)',
-      };
-    } catch (err: any) {
-      IQRALogger.warn(`⚠️ [TOPOLOGY_ENGINE] Grok failed: ${err.message}`);
-    }
-  }
-
   // ── Provider 2: Gemini fallback [fetched] ─────────────────────────────────
   if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
     try {

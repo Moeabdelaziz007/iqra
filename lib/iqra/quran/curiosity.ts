@@ -21,6 +21,15 @@ import { IQRAMemory } from '../memory.ts';
 
 export type { CuriosityDiscovery, TopologicalResonance, ResonanceType };
 
+// ── IQRAMemory Adapter ────────────────────────────────────────────────────────
+// IQRAMemory هي static class — TopologicalCuriosity تحتاج instance.
+// هذا الـ adapter يُحوّل الـ static methods إلى instance interface.
+class IQRAMemoryAdapter {
+  async storeQuantum(entry: Parameters<typeof IQRAMemory.storeQuantum>[0]) {
+    return IQRAMemory.storeQuantum(entry);
+  }
+}
+
 export class CuriosityEngine {
   // ── للاستخدام في Mission Pipeline (Node.js) ───────────────────────────────
   /**
@@ -39,6 +48,7 @@ export class CuriosityEngine {
   // ── للاستخدام في Cloudflare Workers ──────────────────────────────────────
   /**
    * يستكشف الرنين مع VectorEngine (يحتاج Cloudflare env).
+   * IQRAMemory static → IQRAMemoryAdapter instance للتوافق مع TopologicalCuriosity.
    */
   static async explore(
     input: string,
@@ -48,8 +58,8 @@ export class CuriosityEngine {
     IQRALogger.info(`🌀 [CURIOSITY] Session [${sessionId}] exploring: ${input.substring(0, 50)}...`);
     try {
       const vectorEngine = new VectorEngine(env);
-      const memory = new IQRAMemory();
-      const engine = new TopologicalCuriosity(vectorEngine, memory);
+      const memoryAdapter = new IQRAMemoryAdapter();
+      const engine = new TopologicalCuriosity(vectorEngine, memoryAdapter as any);
       return await engine.explore(input);
     } catch (err: any) {
       IQRALogger.warn(`⚠️ [CURIOSITY] Exploration failed: ${err.message}`);

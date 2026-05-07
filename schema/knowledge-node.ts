@@ -112,6 +112,7 @@ node_id: "${node.node_id}"
 verse: "${node.verse}"
 field_of_inquiry: "${node.field_of_inquiry}"
 resonance_score: ${node.resonance_score.toFixed(4)}
+resonance_candidate: ${node.resonance_score.toFixed(4)}
 total_reward: ${node.total_reward.toFixed(4)}
 discovery_level: "${node.discovery_level}"
 source_type: "${node.source_type}"
