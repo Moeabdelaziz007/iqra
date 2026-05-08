@@ -114,6 +114,43 @@ export class IQRATopology {
   }
 
   /**
+   * Calculates "Ethical Curvature" — deviations from the MĪTHĀQ/Fitrah.
+   * High ethical curvature indicates actions that may lead to corruption (Fasād).
+   */
+  calculateEthicalCurvature(): number {
+    // In a real scenario, this would scan recent logs for security/ethical flags.
+    // For now, we correlate it with the failure count and anomalous states.
+    const base = this.failureCount * 0.15;
+    const statePenalty = this.currentState === TopologicalState.RECEPTION ? 0.05 : 0;
+    return Math.min(1.0, base + statePenalty);
+  }
+
+  /**
+   * Measures "Topological Integrity" — how well the system maintains its shape 
+   * under stress. High integrity means the system is "Sālim" (Sound).
+   */
+  calculateTopologicalIntegrity(): number {
+    const homology = this.calculatePersistentHomology();
+    const ethicalStability = 1.0 - this.calculateEthicalCurvature();
+    
+    // Integrity is the harmonic mean of structural and ethical stability
+    return (2 * homology * ethicalStability) / (homology + ethicalStability || 1);
+  }
+
+  /**
+   * Gets the overall Resonance Score for a decision or state.
+   * Based on the 3-6-9 frequency logic.
+   */
+  getResonanceScore(): number {
+    const integrity = this.calculateTopologicalIntegrity();
+    const curvature = this.calculateCurvature();
+    
+    // Resonance is high when integrity is high and curvature is manageable (low-medium)
+    // Formula: Integrity * (1 - (Curvature / 2))
+    return Math.round(integrity * (1 - (curvature / 2)) * 100) / 100;
+  }
+
+  /**
    * Identifies the current existential state based on the filesystem and logs.
    */
   async syncStateWithReality() {

@@ -4,6 +4,7 @@ import { BybitClient } from '../trading/bybit_client.ts';
 import { MarketData } from '../trading/market_data.ts';
 import { TopologicalResonanceHunter } from '../../../scripts/topological_resonance_hunter.ts';
 import { IQRALogger } from '../logger.ts';
+import { HeartbeatSystem } from '../heartbeat.ts';
 
 interface TradingActionParams {
   action?: string;
@@ -42,6 +43,7 @@ export class TradingAgent extends SovereignWorker {
    * تنفيذ مهمة تداول بناءً على الـ JSON الممرر من مهارة التداول.
    */
   async execute(input: TradingActionParams, state: MissionState): Promise<WorkerResult> {
+    HeartbeatSystem.pulse(`Agent ${this.id} executing action: ${input.action}`);
     IQRALogger.info(`💰 [TRADING_AGENT] Executing trading action: ${input.action || 'default'}`);
     
     this.report.mission_id = state.metadata.mission_id;
@@ -86,14 +88,16 @@ export class TradingAgent extends SovereignWorker {
           }
         }
       };
-    } catch (error: any) {
-      IQRALogger.error(`❌ [TRADING_AGENT] Execution failed: ${error.message}`);
-      this.logIssue(error.message);
+      };
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      IQRALogger.error(`❌ [TRADING_AGENT] Execution failed: ${message}`);
+      this.logIssue(message);
       this.report.status = 'FAIL';
       
       return {
         success: false,
-        error: error.message,
+        error: message,
         report: this.report
       };
     }
@@ -108,7 +112,7 @@ export class TradingAgent extends SovereignWorker {
     const balance = await this.bybit.getBalance();
     // تصفية الرصيد لعرض العملات التي نملكها فقط
     const balances = Object.entries(balance.total)
-      .filter(([_, val]) => (val as number) > 0)
+      .filter(([_, val]) => Number(val) > 0)
       .reduce((acc, [key, val]) => ({ ...acc, [key]: val }), {});
     return { balances };
   }
@@ -121,6 +125,7 @@ export class TradingAgent extends SovereignWorker {
 
     // "النية" هي شرط أساسي في IQRA
     IQRALogger.info(`🕊️ [NIYYAH] Trading Intention: ${niyyah}`);
+    HeartbeatSystem.pulse(`🚀 PROACTIVE: Trading intended for ${symbol}. Niyyah: ${niyyah}`);
     
     // تنفيذ الصفقة عبر Bybit
     const order = await this.bybit.placeOrder(side, symbol, amount);

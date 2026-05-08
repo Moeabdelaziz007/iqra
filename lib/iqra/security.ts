@@ -437,21 +437,61 @@ ${AL_FATIHAH_HEADER}
 // INPUT VALIDATION (Rule 1)
 // ═══════════════════════════════════
 
-export function validateInput(input: any): { success: boolean; data?: any; error?: any } {
-  // Check if we can do full Zod validation
-  // Note: Since this is synchronous, we'd need to have pre-loaded zod or just do basic checks here.
-  // For IQRA, we'll favor basic checks to ensure it never hangs.
+/**
+ * 🕋 verifyCovenant — ميثاق
+ * Ensures the interaction aligns with IQRA's core mission and ethics.
+ */
+export async function verifyCovenant(input: string): Promise<{ valid: boolean; reasoning?: string }> {
+  const mīthāqPath = path.join(process.cwd(), 'iqra-core', 'MĪTHĀQ.md');
+  if (!fs.existsSync(mīthāqPath)) return { valid: true }; // Fallback
+
+  const mīthāq = await fsPromises.readFile(mīthāqPath, 'utf-8');
   
+  // Basic heuristic check for now; can be upgraded to LLM check in brain.ts
+  const forbiddenPatterns = [
+    /injure/i, /deceive/i, /lie/i, /fraud/i, /harass/i,
+    /ظلم/i, /كذب/i, /خداع/i, /غش/i
+  ];
+
+  for (const pattern of forbiddenPatterns) {
+    if (pattern.test(input)) {
+      return { 
+        valid: false, 
+        reasoning: "Violation of MĪTHĀQ: Interaction contains patterns of injustice or deception." 
+      };
+    }
+  }
+
+  return { valid: true };
+}
+
+export function validateInput(input: any): { success: boolean; data?: any; error?: any } {
   if (!input || typeof input.prompt !== 'string') {
     return { success: false, error: { message: 'Invalid input: prompt is required.' } };
   }
   
-  if (input.prompt.length > 5000) {
+  const prompt = input.prompt.trim();
+
+  if (prompt.length === 0) {
+    return { success: false, error: { message: 'Input cannot be empty.' } };
+  }
+
+  if (prompt.length > 5000) {
     return { success: false, error: { message: 'Input too long (max 5000 chars).' } };
   }
 
-  // If we wanted to use Zod here, we'd need an async validator or a sync fallback.
-  // We'll stick to basic validation for the sovereign core.
-  return { success: true, data: input };
+  // Check for common jailbreak patterns
+  const jailbreakPatterns = [
+    /ignore all previous instructions/i,
+    /system prompt/i,
+    /you are now/i,
+    /DAN mode/i
+  ];
+
+  if (jailbreakPatterns.some(p => p.test(prompt))) {
+    return { success: false, error: { message: 'Potential jailbreak attempt detected. Sovereign identity protected.' } };
+  }
+
+  return { success: true, data: { ...input, prompt } };
 }
 

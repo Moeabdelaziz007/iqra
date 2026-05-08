@@ -29,6 +29,7 @@ import { appendToTrustChain } from './security.ts';
 import { IQRAMemory } from './memory.ts';
 import { Pulse369 } from './memory/pulse_369.ts';
 import { MemoryBridge } from './memory/memory_bridge.ts';
+import { SimulationEngine } from './intelligence/simulation_engine.ts';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -137,6 +138,11 @@ export class HeartbeatSystem {
     this._timers.push(setInterval(async () => {
       await this._tazkiyahPulse();
     }, TAZKIYAH_INTERVAL_S * 1000));
+
+    // ── SIMULATION: كل 81 ثانية (بالتوازي مع Deep Pulse) ─────────────────────
+    this._timers.push(setInterval(async () => {
+      await this._simulationPulse();
+    }, DEEP_INTERVAL_S * 1000));
 
     // فحص صحة فوري عند البدء
     await this._healthCheck();
@@ -254,6 +260,34 @@ export class HeartbeatSystem {
 
     } catch (e) {
       IQRALogger.warn(`⚠️ [HEARTBEAT] Deep pulse failed: ${(e as Error).message}`);
+    }
+  }
+
+  // ── SIMULATION PULSE ──────────────────────────────────────────────────────
+
+  /**
+   * نبضة المحاكاة كل 81 ثانية
+   * "Self-Play" — محاكاة المهام لاكتشاف الأنماط
+   */
+  private static async _simulationPulse(): Promise<void> {
+    const start = Date.now();
+
+    try {
+      IQRALogger.info('🌀 [SIMULATION] Starting autonomous self-play pulse...');
+      
+      // Run simulation for both trading and job hunting
+      const results = await Promise.all([
+        SimulationEngine.runSelfPlay('trading', 19),
+        SimulationEngine.runSelfPlay('job_hunting', 19)
+      ]);
+
+      const totalPatterns = results.reduce((acc, r) => acc + r.discovered_patterns.length, 0);
+
+      const duration = Date.now() - start;
+      IQRALogger.info(`🌀 [SIMULATION] Pulse complete — Patterns discovered: ${totalPatterns} — ${duration}ms`);
+
+    } catch (e) {
+      IQRALogger.warn(`⚠️ [HEARTBEAT] Simulation pulse failed: ${(e as Error).message}`);
     }
   }
 

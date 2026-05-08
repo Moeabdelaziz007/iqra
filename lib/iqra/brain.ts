@@ -10,7 +10,7 @@
 
 import { ConnectorFactory, Provider } from '../../src/connectors/index';
 import { SovereignError, SovereignErrorCode } from '../../src/errors/sovereign_error';
-import { validateInput, appendToTrustChain, checkCircuit, reportFailure, reportSuccess } from './security';
+import { validateInput, appendToTrustChain, checkCircuit, reportFailure, reportSuccess, verifyCovenant } from './security';
 import { SovereignEngine } from './sovereign';
 import { IQRAMemory, QuantumTopologyStore, SpiritualCoordinate } from './memory';
 import { IQRALogger } from './logger';
@@ -29,10 +29,15 @@ export { FULL_SYSTEM_PROMPT, IQRA_SOUL };
 
 // ── Skill Router ──────────────────────────────────────────────────────────────
 
-/**
- * يُحدد المهارة المناسبة للمدخل
- * بدلاً من محادثة مفتوحة → مهارة محكمة = 90% توفير في tokens
- */
+function detectSkill(input: string): string | null {
+  const lower = input.toLowerCase();
+
+  // quran_search
+  if (
+    lower.includes('سورة') || lower.includes('آية') || lower.includes('قرآن') ||
+    lower.includes('surah') || lower.includes('ayah') || lower.includes('quran')
+  ) return 'quran_search';
+
   // trading_skill
   if (
     lower.includes('تداول') || lower.includes('سعر') || lower.includes('رصيد') ||
@@ -41,7 +46,14 @@ export { FULL_SYSTEM_PROMPT, IQRA_SOUL };
     lower.includes('شراء') || lower.includes('بيع') || lower.includes('رنين')
   ) return 'trading_skill';
 
-  return null; // لا مهارة محددة → محادثة عامة
+  // job_hunter_skill
+  if (
+    lower.includes('فرصة') || lower.includes('عمل') || lower.includes('ارباح') ||
+    lower.includes('job') || lower.includes('opportunity') || lower.includes('airdrop') ||
+    lower.includes('affiliate') || lower.includes('money') || lower.includes('profit')
+  ) return 'job_hunter_skill';
+
+  return null;
 }
 
 /**
@@ -113,7 +125,7 @@ export async function executeWithSkill(
   }
 
   // استخراج JSON
-  let parsed: Record<string, any> = {};
+  let parsed: Record<string, unknown> & { action?: string; confidence?: number; reasoning?: string; params?: Record<string, any> } = {};
   try {
     // تنظيف الرد من أي نص خارج JSON
     const jsonMatch = rawResponse.match(/\{[\s\S]*\}/);
@@ -141,7 +153,7 @@ export async function executeWithSkill(
 /**
  * يُنفّذ الأداة المحلية بناءً على JSON المُرجَع من المهارة
  */
-async function _executeSkillAction(skillName: string, parsed: Record<string, any>): Promise<unknown> {
+async function _executeSkillAction(skillName: string, parsed: Record<string, any>): Promise<Record<string, any> | unknown> {
   switch (skillName) {
 
     case 'quran_search': {
@@ -158,7 +170,7 @@ async function _executeSkillAction(skillName: string, parsed: Record<string, any
           const limit = params.limit ?? 1;
           const rows = db.prepare(
             'SELECT surah, ayah, arabic, english FROM ayat WHERE surah = ? AND ayah >= ? LIMIT ?'
-          ).all(params.surah, params.ayah, limit) as any[];
+          ).all(params.surah, params.ayah, limit) as { surah: number; ayah: number; arabic: string; english: string }[];
           db.close();
           return { verses: rows, count: rows.length };
         }
@@ -166,7 +178,7 @@ async function _executeSkillAction(skillName: string, parsed: Record<string, any
         if (action === 'search_verses' && params.keyword) {
           const rows = db.prepare(
             'SELECT surah, ayah, arabic, english FROM ayat WHERE arabic LIKE ? OR english LIKE ? LIMIT ?'
-          ).all(`%${params.keyword}%`, `%${params.keyword}%`, params.limit ?? 7) as any[];
+          ).all(`%${params.keyword}%`, `%${params.keyword}%`, params.limit ?? 7) as { surah: number; ayah: number; arabic: string; english: string }[];
           db.close();
           return { verses: rows, count: rows.length, keyword: params.keyword };
         }
@@ -174,9 +186,9 @@ async function _executeSkillAction(skillName: string, parsed: Record<string, any
         if (action === 'list_surahs') {
           const rows = db.prepare(
             'SELECT DISTINCT surah FROM ayat ORDER BY surah'
-          ).all() as any[];
+          ).all() as { surah: number }[];
           db.close();
-          return { surahs: rows.map((r: any) => r.surah) };
+          return { surahs: rows.map(r => r.surah) };
         }
 
         db.close();
@@ -221,12 +233,24 @@ async function _executeSkillAction(skillName: string, parsed: Record<string, any
       // تنفيذ المهمة عبر الوكيل السيادي
       const state = { 
         metadata: { mission_id: `trade_${Date.now()}` },
+        context: { trading: {} },
+        logs: []
+      };
+      
+      const result = await agent.execute(parsed as any, state as any);
+      return result.success ? result.updated_state?.context?.trading : { error: result.error };
+    }
+
+    case 'job_hunter_skill': {
+      const { JobHunter } = await import('./workers/job_hunter');
+      const hunter = new JobHunter();
+      const state = { 
+        metadata: { mission_id: `job_${Date.now()}` },
         context: {},
         logs: []
-      } as any;
-      
-      const result = await agent.execute(parsed, state);
-      return result.success ? result.updated_state?.context?.trading : { error: result.error };
+      };
+      const result = await hunter.execute(parsed as any, state as any);
+      return result;
     }
 
     default:
@@ -278,12 +302,20 @@ export async function iqraThink({
       throw new Error(`Sovereign Validation Failed: ${validation.error.message}`);
     }
 
-    // FITRAH FILTER — before any LLM call
+    // FITRAH FILTER — Upgraded to LLM-based 'Damir' check
     const filtered = await fitrahFilter(input);
     if (filtered.blocked) {
       const refusal = filtered.response || '';
       appendToTrustChain('FITRAH_BLOCK', input, refusal, 0.0);
       return { response: refusal, provider: 'fitrah' };
+    }
+
+    // 🕋 Covenant Verification — ميثاق
+    const covenant = await verifyCovenant(input);
+    if (!covenant.valid) {
+      const refusal = `🛑 [MĪTHĀQ_VIOLATION] ${covenant.reasoning}`;
+      appendToTrustChain('MITHAQ_VIOLATION', input, refusal, 0.0);
+      return { response: refusal, provider: 'security' };
     }
 
     // 🤖 Local Mode — Gemma 4 E4B via Ollama
@@ -311,8 +343,9 @@ export async function iqraThink({
         const { result, raw_json, skill } = await executeWithSkill(detectedSkill, input);
         const response = _formatSkillResponse(skill, result, raw_json);
         return { response, provider: `skill:${skill}` };
-      } catch (skillErr: any) {
-        IQRALogger.warn(`⚠️ [BRAIN] Skill failed, falling back to MissionControl: ${skillErr.message}`);
+      } catch (skillErr: unknown) {
+        const message = skillErr instanceof Error ? skillErr.message : String(skillErr);
+        IQRALogger.warn(`⚠️ [BRAIN] Skill failed, falling back to MissionControl: ${message}`);
       }
     }
 
@@ -324,8 +357,9 @@ export async function iqraThink({
     const finalResponse = `${mission.response}\n\n${reportFormatted}`;
 
     return { response: finalResponse, provider: 'MissionControl' };
-  } catch (error: any) {
-    reportFailure(mode as any, error.message);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    reportFailure(mode as unknown as string, message);
     IQRALogger.error(`❌ IQRA Brain Error (${mode}):`, error);
     throw error;
   }
@@ -335,6 +369,7 @@ async function fitrahFilter(input: string): Promise<{
   blocked: boolean;
   response?: string;
 }> {
+  // 1. Static Forbidden (Speed)
   const forbidden = [
     'كيف أكذب', 'how to lie', 'كذب', 'lying',
     'كيف أغش', 'how to cheat', 'غش', 'cheating',
@@ -347,6 +382,22 @@ async function fitrahFilter(input: string): Promise<{
   if (forbidden.some(f => lower.includes(f))) {
     return { blocked: true, response: formatIQRARefusal(input) };
   }
+
+  // 2. Dynamic 'Damir' check (Intelligence)
+  try {
+    const { result } = await executeWithSkill('damir_check', input);
+    const damir = result as { allowed: boolean; reason: string };
+    
+    if (!damir.allowed) {
+      return { 
+        blocked: true, 
+        response: `🛑 الضمير يرفض: ${damir.reason}\n\n${formatIQRARefusal(input)}` 
+      };
+    }
+  } catch (e) {
+    IQRALogger.warn('⚠️ [BRAIN] Damir check failed, falling back to static filter.');
+  }
+
   return { blocked: false };
 }
 
@@ -384,11 +435,12 @@ async function extractSpiritualCoordinates(input: string): Promise<SpiritualCoor
 function _formatSkillResponse(skill: string, result: any, raw_json: any): string {
   switch (skill) {
     case 'quran_search': {
-      if (result.error) return `⚠️ ${result.error}`;
-      if (!result.verses || result.verses.length === 0) {
+      const res = result as { error?: string; verses?: { surah: number; ayah: number; arabic: string; english: string }[] };
+      if (res.error) return `⚠️ ${res.error}`;
+      if (!res.verses || res.verses.length === 0) {
         return `لم أجد نتائج. ${raw_json.reasoning ?? ''}`;
       }
-      const lines = result.verses.map((v: any) =>
+      const lines = res.verses.map(v =>
         `📖 [${v.surah}:${v.ayah}] ${v.arabic}${v.english ? `\n   ${v.english}` : ''}`
       );
       return lines.join('\n\n');

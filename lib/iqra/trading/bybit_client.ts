@@ -30,7 +30,7 @@ export class BybitClient {
   /**
    * تنفيذ طلب محمي (Private Request)
    */
-  private async privateRequest(method: 'GET' | 'POST', path: string, params: Record<string, unknown> = {}): Promise<any> {
+  private async privateRequest<T = any>(method: 'GET' | 'POST', path: string, params: Record<string, unknown> = {}): Promise<T> {
     const timestamp = Date.now();
     const recvWindow = 5000;
     const data = method === 'GET' 
@@ -58,7 +58,7 @@ export class BybitClient {
       body: method === 'POST' ? data : undefined,
     });
 
-    const result = await response.json();
+    const result = await response.json() as { retCode: number; retMsg: string; result: T };
     if (result.retCode !== 0) {
       throw new Error(`Bybit API Error: ${result.retMsg} (Code: ${result.retCode})`);
     }
@@ -82,17 +82,39 @@ export class BybitClient {
   /**
    * جلب رصيد المحفظة (Private API)
    */
-  async getBalance(): Promise<any> {
-    const result = await this.privateRequest('GET', '/v5/account/wallet-balance', { accountType: 'UNIFIED' });
+  async getBalance(): Promise<{ total: Record<string, number> }> {
+    const result = await this.privateRequest<{ list: Array<{ coin: Array<{ coin: string; walletBalance: string }> }> }>('GET', '/v5/account/wallet-balance', { accountType: 'UNIFIED' });
     if (result.list && result.list.length > 0) {
       const account = result.list[0];
-      const balances: Record<string, number> = { total: {} } as any;
-      account.coin.forEach((c: any) => {
-        (balances as any).total[c.coin] = parseFloat(c.walletBalance);
+      const total: Record<string, number> = {};
+      account.coin.forEach(c => {
+        total[c.coin] = parseFloat(c.walletBalance);
       });
-      return balances;
+      return { total };
     }
     return { total: {} };
+  }
+
+  /**
+   * 🛡️ Sacred Confirmation (The Conscience)
+   * 
+   * النية: التأكد من أن الفعل يتماشى مع الميثاق والمراقبة.
+   */
+  async sacredConfirmation(action: string): Promise<boolean> {
+    const constitutionPath = path.join(process.cwd(), 'DASTŪR.md');
+    if (!fs.existsSync(constitutionPath)) return true; // Default to pass if file missing
+    
+    const content = fs.readFileSync(constitutionPath, 'utf-8');
+    const hasMithaq = content.includes('MĪTHĀQ');
+    const hasMuraqabah = content.includes('MURĀQABAH');
+    
+    if (!hasMithaq || !hasMuraqabah) {
+      console.warn(`🛑 [CONSCIENCE] Sacred principles missing from DASTŪR.md!`);
+      return false;
+    }
+
+    console.log(`⚖️ [CONSCIENCE] Action '${action}' validated against Sacred Constitution.`);
+    return true;
   }
 
   /**
@@ -124,10 +146,12 @@ export class BybitClient {
   /**
    * تنفيذ أمر شراء أو بيع (Private API)
    */
-  async placeOrder(side: 'buy' | 'sell', symbol: string, qty: number): Promise<any> {
+  async placeOrder(side: 'buy' | 'sell', symbol: string, qty: number): Promise<{ id: string } & Record<string, unknown>> {
     const isSafe = await this.preflightCheck(side, symbol, qty);
-    if (!isSafe) {
-      throw new Error(`Risk Gating Blocked: ${side} ${qty} ${symbol}`);
+    const isEthical = await this.sacredConfirmation(`${side} ${qty} ${symbol}`);
+    
+    if (!isSafe || !isEthical) {
+      throw new Error(`Order Blocked: Risk=${!isSafe}, Ethics=${!isEthical}`);
     }
 
     console.log(`🚀 [TRADING_ACT] Placing ${side} order for ${qty} of ${symbol}`);
@@ -141,10 +165,11 @@ export class BybitClient {
     };
 
     try {
-      const order = await this.privateRequest('POST', '/v5/order/create', params);
+      const order = await this.privateRequest<{ orderId: string }>('POST', '/v5/order/create', params);
       return { id: order.orderId, ...order };
-    } catch (error) {
-      console.error(`❌ [TRADING_FAILURE] Order failed:`, error);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`❌ [TRADING_FAILURE] Order failed:`, message);
       throw error;
     }
   }

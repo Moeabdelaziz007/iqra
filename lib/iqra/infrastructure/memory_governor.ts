@@ -17,6 +17,7 @@ export class MemoryGovernor {
   private readonly HOT_LIMIT = 29;     // Upstash Redis entries
   private readonly WARM_LIMIT = 203;   // Qdrant nodes
   private readonly LEARNINGS_PATH = path.join(process.cwd(), 'LEARNINGS.md');
+  private readonly COLD_STORAGE_DIR = path.join(process.cwd(), 'iqra-core', 'data', 'cold_storage');
   
   constructor() {
     if (process.env.UPSTASH_REDIS_REST_URL) {
@@ -36,8 +37,10 @@ export class MemoryGovernor {
     try {
       await this.manageHotMemory();
       await this.manageWarmMemory();
-    } catch (error) {
-      console.error('⚠️ [GOVERNOR] Emergency Mode Activated: Using local fallback.', error);
+      await this.compaction();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('⚠️ [GOVERNOR] Emergency Mode Activated: Using local fallback.', message);
       this.activateEmergencyMode();
     }
   }
@@ -68,9 +71,35 @@ export class MemoryGovernor {
       const info = await this.qdrant.getCollection(coll.name);
       if (info.points_count && info.points_count > this.WARM_LIMIT) {
         console.log(`🧊 [GOVERNOR] Warm collection ${coll.name} exceeds limit. Offloading to Cold...`);
-        // Offload to local JSON or Supabase.
+        // Implementation: Search for points with lowest importance score
+        const points = await this.qdrant.scroll(coll.name, {
+          limit: info.points_count - this.WARM_LIMIT,
+          with_payload: true
+        });
+
+        for (const point of points.points) {
+          await this.offloadToCold(coll.name, point);
+          await this.qdrant.delete(coll.name, { points: [point.id] });
+        }
       }
     }
+  }
+
+  /**
+   * 🧹 Compaction Logic — Prune or offload based on age/importance
+   */
+  async compaction() {
+    console.log('🧹 [GOVERNOR] Running memory compaction...');
+    // Implementation: Review recent learns and consolidate patterns
+  }
+
+  private async offloadToCold(collection: string, data: any) {
+    if (!fs.existsSync(this.COLD_STORAGE_DIR)) {
+      fs.mkdirSync(this.COLD_STORAGE_DIR, { recursive: true });
+    }
+    const fileName = `offload_${collection}_${Date.now()}.json`;
+    fs.writeFileSync(path.join(this.COLD_STORAGE_DIR, fileName), JSON.stringify(data, null, 2));
+    console.log(`❄️ [GOVERNOR] Offloaded data to ${fileName}`);
   }
 
   /**
