@@ -15,13 +15,14 @@ dist/
 npm-debug.log*
 
 # IQRA Sovereign Data — never commit raw training data or secrets
-.iqra/training_data.json
-.iqra/sera_training_data.json
-.iqra/inverse_mirror_data.json
-.iqra/closed_loop/
-.iqra/visual_notes/
-.iqra/auto_improve_state.json
+# كل محتوى .iqra/ محلي — لا يُرفع أبداً
+.iqra/
 .iqra_loop_state
+
+# reward ledger — بيانات محلية
+iqra-core/data/reward_ledger.jsonl
+iqra-core/data/*.jsonl
+iqra-core/data/*.json
 
 # Build artifacts
 raw_api_payload*.json
