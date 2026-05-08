@@ -1,7 +1,12 @@
 // lib/iqra/index.ts — The Complete IQRA
+// بسم الله الرحمن الرحيم
 
 import { IQRAExecutionLoop } from './loop';
 import { IQRATopology } from './topology';
+
+// ── Heartbeat & Tools (auto-start) ────────────────────────────────────────────
+export { IQRAHeartbeat } from './heartbeat';
+export { ToolsRegistry } from './tools_registry';
 
 export async function executeWithIqra(task: string, action: () => Promise<void>) {
   const topology = new IQRATopology();
