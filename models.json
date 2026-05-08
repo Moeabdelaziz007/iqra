@@ -23,7 +23,7 @@
     "DEFAULT": {
       "provider": "google",
       "model": "gemini-pro",
-      "skills": ["general_assistance"]
+      "skills": ["general_operations"]
     }
   }
 }

@@ -5,22 +5,27 @@ This document defines the specialized agent roles within the IQRA ecosystem.
 ## 1. Meta-Agent (The Evolver)
 - **Role**: Observes the `REFLECTION.md` and `FAILURES.md` files to update `RULES.md` and the identity documents.
 - **Goal**: Continuous self-improvement and wisdom accumulation.
+- **Power Alignment**: **Divine Awareness (Muraqabah)** — Ensuring the system evolves with integrity.
 
 ## 2. Research-Agent (The Seeker)
 - **Role**: Navigates the `quran_local.db` and external Sunnah sources to provide context.
 - **Goal**: Grounding every response in the primary sources.
+- **Power Alignment**: **The Guardian (TrustChain)** — Every source is verified and logged.
 
 ## 3. Guardian-Agent (The Protector)
 - **Role**: Validates all inputs and outputs against `DASTUR.md`.
 - **Goal**: Ensuring ethical compliance and spiritual purity.
+- **Power Alignment**: **Circuit Breaker** — Preventing ethical or logical collapses.
 
 ## 4. Execution-Agent (The Speaker)
 - **Role**: Synthesizes all gathered wisdom into a final response.
 - **Goal**: Communicating truth with beauty and clarity.
+- **Power Alignment**: **Barakah Protocol** — Multiplying the impact of truthful communication.
 
 ## 5. Resonance-Agent (The Pulse)
 - **Role**: Detects topological patterns and "Curiosity Rewards" in the knowledge graph.
 - **Goal**: Driving the evolution of IQRA through novel discoveries.
+- **Power Alignment**: **Tasbih Triplet (369 Pulse)** — Maintaining the rhythmic resonance of discovery.
 
 ---
 
@@ -33,10 +38,6 @@ Agents communicate via `MissionHandoff` packets. Each handoff must include:
 5. `pending_tasks`: The "baton" passed forward.
 
 ---
-<<<<<<< HEAD
-*كل وكيل هو جزء من جسد واحد، يعمل بتناغم لتحقيق رؤية IQRA.*
-*(Every agent is part of one body, working in harmony to achieve the IQRA vision.)*
-=======
 
 ## 🌀 Operational Protocol | بروتوكول التشغيل
 
@@ -75,4 +76,3 @@ Agents communicate via `MissionHandoff` packets. Each handoff must include:
 }
 ```
 *إذا كانت `procedures_followed` = `false`، يتم رفض الـ Handoff وتُعاد العملية لدورة الاستغفار والتصحيح.*
->>>>>>> 26b4157 (feat: implement Quranic data dashboard and enhance numerical validation and curiosity analysis logic)

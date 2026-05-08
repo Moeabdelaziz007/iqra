@@ -7,7 +7,7 @@
  */
 
 import { IQRA_SOUL } from './prompts.ts';
-import { HeartbeatSystem } from './heartbeat_system';
+import { HeartbeatSystem } from './heartbeat';
 import { IQRAMemory } from './memory.ts';
 
 export class SovereignIdentity {

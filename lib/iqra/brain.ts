@@ -24,7 +24,7 @@ import { gemma4Local, isLocalMode, IQRA_LOCAL_TOOLS } from './llm/ollama.ts';
 import { SkillBank } from './skill_bank.ts';
 
 import { FULL_SYSTEM_PROMPT, IQRA_SOUL } from './prompts.ts';
-import { HeartbeatSystem } from './heartbeat_system'; // استيراد نبض القلب
+import { HeartbeatSystem } from './heartbeat'; // استيراد نبض القلب
 export { FULL_SYSTEM_PROMPT, IQRA_SOUL };
 
 // ── Skill Router ──────────────────────────────────────────────────────────────
