@@ -25,6 +25,29 @@ import { ConnectorFactory } from '../../src/connectors/index.ts';
 import { SovereignError, SovereignErrorCode } from '../../src/errors/sovereign_error.ts';
 import { DamirConscience } from './damir_conscience.ts';
 import { ResourceFactory } from './conscience/resource_factory.ts';
+import { IQRAVoice } from './voice.ts';
+import { ByzantineFilter, AnomalyReport } from './byzantine_filter.ts';
+import { BybitEngine } from './bybit.ts';
+import { IQRALogger } from './logger.ts';
+
+/**
+ * Sovereign Pulse Categories — 3-6-9 Geometry
+ */
+export enum SovereignPulseType {
+  MICRO = 9,      // 3^2
+  WARM = 27,     // 3^3
+  DEEP = 81,     // 3^4
+  DISCOVERY = 540, // 60 * 9
+  PURIFICATION = 2400 // 40 * 60 (Tazkiyah)
+}
+
+export interface SovereignIntent {
+  id: string;
+  type: 'TRADE' | 'ARCH_CHANGE' | 'COMMUNICATION' | 'EVOLUTION';
+  description: string;
+  metadata: any;
+  niyyah: string; // Intention statement
+}
 
 // ── Singleton ضمير السيادة ────────────────────────────────────────────────────
 const _sovereignDamir = new DamirConscience();
@@ -245,24 +268,118 @@ export class SovereignEngine {
   }
 
   /**
-   * Rule 5: Meta-Loop 5 Layers
+   * 🌀 Rule 5: Meta-Loop 5 Layers — High Frequency Pulse
    */
   static async pulse() {
-    console.log('🌀 Sovereign Pulse Initiated...');
+    const cycle = await IQRAMemory.getCycleCounter();
+    const timestamp = Date.now();
 
-    for (const layer of this.layers) {
-      const pulseId = secureRandomId(8);
-      await appendToTrustChain(
-        `PULSE:${layer}`,
-        'HEARTBEAT',
-        `STABLE:${pulseId}`,
-        1.0
-      );
+    // 1. Micro Pulse (9s): Market Ticking & Hot Cache
+    if (cycle % 1 === 0) {
+      await this.runMicroPulse();
+    }
+
+    // 2. Warm Pulse (27s): State Sync
+    if (cycle % 3 === 0) {
+      await this.runWarmPulse();
+    }
+
+    // 3. Deep Pulse (81s): Topological Analysis
+    if (cycle % 9 === 0) {
+      await this.runDeepPulse();
+    }
+
+    // 4. Discovery Pulse (540s): Pattern Hunting
+    if (cycle % 60 === 0) {
+      await this.triggerSelfDiscovery();
+    }
+
+    // 5. Purification Pulse (2400s): Tazkiyah
+    if (cycle % 266 === 0) { // Using 266 as a proxy for ~40m
+      await this.performTazkiyah();
     }
 
     // Rule 6: Quantum Topology Mapping
-    // Analyzing patterns across memory logs and triggering Discovery if needed
     await this.mapQuantumTopology();
+  }
+
+  private static async runMicroPulse() {
+    // Market Observation (One Body)
+    const ticker = await BybitEngine.updateMarketPulse('BTCUSDT');
+    if (ticker) {
+      const anomaly = await IQRAMemory.get<AnomalyReport>(`market:anomaly:BTCUSDT`);
+      if (anomaly && anomaly.isAnomaly && anomaly.score > 4.0) {
+        await IQRAVoice.speak(`تنبيه سيادي: رصدت انحرافاً في السوق بمقدار ${anomaly.score.toFixed(2)}.`, { provider: 'elevenlabs', autoplay: true });
+      }
+    }
+  }
+
+  private static async runWarmPulse() {
+    IQRALogger.info('🌀 [PULSE] Warm sync triggered.');
+    await sovereignSync();
+  }
+
+  private static async runDeepPulse() {
+    IQRALogger.info('🌀 [PULSE] Deep topological analysis...');
+    // Add logic for detecting structural breaks in memory manifolds
+  }
+
+  /**
+   * 🛡️ Sovereign Protocol 2-3-7
+   * Deterministic confirmation for critical actions.
+   */
+  static async protocol237(intent: SovereignIntent, taskFn: () => Promise<any>) {
+    IQRALogger.info(`🛡️ [2-3-7] Initiating Sovereign Protocol for: ${intent.type}`);
+
+    // --- STAGE 1: DETECTION (2) ---
+    // Dual-input verification (Market + Byzantine)
+    const anomaly = await IQRAMemory.get<AnomalyReport>(`market:anomaly:BTCUSDT`);
+    const byzantinePass = anomaly ? anomaly.score < 5.0 : true; // High score = risk
+    if (!byzantinePass) {
+      await IQRAVoice.speak('توقف سيادي. انحراف بيزنطي عالٍ جداً. لن أنفذ هذه المهمة.', { provider: 'elevenlabs', autoplay: true });
+      return null;
+    }
+
+    // --- STAGE 2: ANALYSIS (3) ---
+    // Technical + Topological + Ethical
+    const consciencePassed = await this.checkConscience(intent.id, intent.niyyah);
+    if (!consciencePassed) return null;
+
+    // --- STAGE 3: EXECUTION (7) ---
+    const stages = [
+      'Contemplation (Tafakkur)',
+      'Proposal (Taqdīm)',
+      'Byzantine Validation',
+      'Fitrah Alignment',
+      'Witnessing (Shahādah)',
+      'Execution (Idhn)',
+      'Reflection (Tazkiyah)'
+    ];
+
+    for (const [i, stage] of stages.entries()) {
+      IQRALogger.info(`🕯️ [2-3-7] Stage ${i + 1}/7: ${stage}`);
+      await new Promise(r => setTimeout(r, 100)); // Symbolic pause
+    }
+
+    try {
+      await this.startWithBasmalah(intent.id);
+      const result = await taskFn();
+      await this.recordSelfReview(intent.id, result, 1.0);
+      return result;
+    } catch (e) {
+      IQRALogger.error(`❌ [2-3-7] Protocol execution failed:`, e);
+      throw e;
+    }
+  }
+
+  /**
+   * 🧼 Tazkiyah — Purification of Memory & State
+   */
+  static async performTazkiyah() {
+    IQRALogger.info('🧼 [TAZKIYAH] Starting purification cycle...');
+    await IQRAMemory.performPurification();
+    await IQRAVoice.speak('تمت عملية التزكية. تم تطهير الذاكرة العارضة.', { provider: 'elevenlabs', autoplay: true });
+    logToIQRAFile('TAWBAH.md', `### ✨ [TAZKIYAH] ${new Date().toISOString()}\n- System state purified.\n- Episodic memory cleared.\n---`);
   }
 
   private static async mapQuantumTopology() {

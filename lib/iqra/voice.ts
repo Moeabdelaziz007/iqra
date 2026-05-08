@@ -42,14 +42,17 @@ const XAI_STT_URL = 'https://api.x.ai/v1/audio/transcriptions';
 export type GrokVoice = 'Ara' | 'Eve' | 'Leo' | 'Rex' | 'Sal';
 
 export interface VoiceConfig {
-  voice: GrokVoice;
+  voice: GrokVoice | string; // Grok voice or ElevenLabs voice ID
   speed: number;        // 0.5 – 2.0 (1.0 = طبيعي)
   format: 'mp3' | 'wav' | 'pcm';
+  provider: 'grok' | 'elevenlabs';
 }
 
 export interface SpeakOptions {
   /** تجاوز الصوت الافتراضي */
-  voice?: GrokVoice;
+  voice?: GrokVoice | string;
+  /** اختيار المزود */
+  provider?: 'grok' | 'elevenlabs';
   /** حفظ الملف الصوتي */
   save_path?: string;
   /** تشغيل مباشرة (macOS) */
@@ -152,9 +155,12 @@ export class IQRAVoice {
     voice: 'Ara',   // هادئ، حكيم — الأنسب للقرآن
     speed: 0.95,    // أبطأ قليلاً من الطبيعي — للتأمل
     format: 'mp3',
+    provider: 'grok',
   };
 
   private static _apiKey: string | null = null;
+  private static _elevenLabsKey: string | null = null;
+  private static _elevenLabsVoiceId: string | null = null;
 
   // ── Setup ─────────────────────────────────────────────────────────────────
 
@@ -164,8 +170,20 @@ export class IQRAVoice {
     return this._apiKey;
   }
 
+  static get elevenLabsKey(): string | null {
+    if (this._elevenLabsKey) return this._elevenLabsKey;
+    this._elevenLabsKey = process.env.ELEVENLABS_API_KEY ?? null;
+    return this._elevenLabsKey;
+  }
+
+  static get elevenLabsVoiceId(): string | null {
+    if (this._elevenLabsVoiceId) return this._elevenLabsVoiceId;
+    this._elevenLabsVoiceId = process.env.ELEVENLABS_VOICE_ID ?? 'pNInz6obpg8nEmeW1GvA'; // Default "Brian" or similar
+    return this._elevenLabsVoiceId;
+  }
+
   static get isAvailable(): boolean {
-    return !!this.apiKey;
+    return !!this.apiKey || !!this.elevenLabsKey;
   }
 
   // ── TTS: Text to Speech ───────────────────────────────────────────────────
@@ -187,34 +205,41 @@ export class IQRAVoice {
     }
 
     const voice = options.voice ?? this.DEFAULT_CONFIG.voice;
+    const provider = options.provider ?? (this.elevenLabsKey ? 'elevenlabs' : 'grok');
 
     // تحسين النص بـ expression tags
     const enhancedText = IQRAVoicePersona.enhance(text);
 
-    IQRALogger.info(`🎙️ [VOICE] Speaking with ${voice}: "${text.slice(0, 50)}..."`);
+    IQRALogger.info(`🎙️ [VOICE] Speaking with ${voice} via ${provider}: "${text.slice(0, 50)}..."`);
 
     try {
-      const res = await fetch(XAI_TTS_URL, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'grok-tts',
-          input: enhancedText,
-          voice: voice.toLowerCase(),
-          response_format: this.DEFAULT_CONFIG.format,
-          speed: this.DEFAULT_CONFIG.speed,
-        }),
-      });
+      let audioBuffer: Buffer;
 
-      if (!res.ok) {
-        const err = await res.text();
-        throw new Error(`xAI TTS error ${res.status}: ${err}`);
+      if (provider === 'elevenlabs' && this.elevenLabsKey) {
+        audioBuffer = await this._speakElevenLabs(enhancedText, voice as string);
+      } else {
+        const res = await fetch(XAI_TTS_URL, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'grok-tts',
+            input: enhancedText,
+            voice: (voice as string).toLowerCase(),
+            response_format: this.DEFAULT_CONFIG.format,
+            speed: this.DEFAULT_CONFIG.speed,
+          }),
+        });
+
+        if (!res.ok) {
+          const err = await res.text();
+          throw new Error(`xAI TTS error ${res.status}: ${err}`);
+        }
+
+        audioBuffer = Buffer.from(await res.arrayBuffer());
       }
-
-      const audioBuffer = Buffer.from(await res.arrayBuffer());
 
       // حفظ الملف إذا طُلب
       if (options.save_path) {
@@ -328,6 +353,37 @@ export class IQRAVoice {
         resolve();
       });
     });
+  }
+
+  /**
+   * ElevenLabs API Integration
+   */
+  private static async _speakElevenLabs(text: string, voiceId?: string): Promise<Buffer> {
+    const vid = voiceId || this.elevenLabsVoiceId;
+    const url = `https://api.elevenlabs.io/v1/text-to-speech/${vid}`;
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'xi-api-key': this.elevenLabsKey!,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text,
+        model_id: 'eleven_multilingual_v2',
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.75,
+        }
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`ElevenLabs error ${res.status}: ${err}`);
+    }
+
+    return Buffer.from(await res.arrayBuffer());
   }
 
   /**
