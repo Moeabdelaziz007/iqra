@@ -104,6 +104,12 @@ export function validateHandoff(handoff: MissionHandoff): HandoffValidationResul
     );
   }
 
+  // ── ٩. سجل التفكير (Reasoning Log) ──────────────────────────────────────
+  // من الدستور المحدث: PLANNER يجب أن يقدم سجل تفكير.
+  if (handoff.from_worker === 'PLANNER' && !handoff.reasoning_log?.trim()) {
+    errors.push('DASTŪR VIOLATION: PLANNER must provide reasoning_log (سجل التفكير)');
+  }
+
   return { valid: errors.length === 0, errors, warnings };
 }
 

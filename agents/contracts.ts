@@ -17,11 +17,15 @@
 // ── Worker Roles ──────────────────────────────────────────────────────────────
 // التسلسل الصارم: PLANNER → RESEARCHER → BUILDER → VALIDATOR → REPORTER
 export type WorkerRole =
-  | 'PLANNER'
-  | 'RESEARCHER'
-  | 'BUILDER'
-  | 'VALIDATOR'
-  | 'REPORTER';
+  | 'PLANNER'        // Conceptual: Thinker
+  | 'RESEARCHER'     // Conceptual: Searcher
+  | 'PATTERN_HUNTER' // Conceptual: Pattern Discovery
+  | 'BUILDER'        // Execution: Developer
+  | 'VALIDATOR'      // Execution: Tester
+  | 'SAFETY_AGENT'   // Execution: Security & Ethics
+  | 'REPORTER'       // Integrity: Documentation
+  | 'ECONOMIST'      // Integrity: Resource Management
+  | 'RESONANCE_AGENT'; // Integrity: Harmony & Soul check
 
 // ── Source Attestation ────────────────────────────────────────────────────────
 // كل مصدر معلومة في WorkerReport يجب أن يحمل وسم مصدر.
@@ -114,6 +118,9 @@ export interface MissionHandoff {
 
   // ── بيانات السياق الإضافية ───────────────────────────────────────────────
   context_data: Record<string, any>;
+
+  // 🧠 سجل التفكير والاستنتاج (Thinker Log)
+  reasoning_log?: string;
 }
 
 /**
@@ -130,6 +137,7 @@ export const WORKER_CONSTRAINTS = {
   BUILDER_CAN_SELF_APPROVE: false,
   RESEARCHER_CAN_DECIDE_REWARD: false,
   PLANNER_CAN_IMPLEMENT: false,
+  PLANNER_MUST_REASON: true, // ✅ يجب إعمال العقل قبل التخطيط
 } as const;
 
 // ── Global Constraints — القيود العالمية ──────────────────────────────────────

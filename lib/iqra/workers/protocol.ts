@@ -93,6 +93,12 @@ export abstract class SovereignWorker {
     }
   }
 
+  protected sovereignPrompt: string = '';
+
+  setSovereignPrompt(prompt: string) {
+    this.sovereignPrompt = prompt;
+  }
+
   setTemperature(temperature: number) {
     if (!this.report.model_metadata) {
       this.report.model_metadata = { provider: this.provider, model: 'unknown', temperature };

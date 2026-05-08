@@ -24,6 +24,7 @@ import { gemma4Local, isLocalMode, IQRA_LOCAL_TOOLS } from './llm/ollama.ts';
 import { SkillBank } from './skill_bank.ts';
 
 import { FULL_SYSTEM_PROMPT, IQRA_SOUL } from './prompts.ts';
+import { HeartbeatSystem } from './heartbeat_system'; // استيراد نبض القلب
 export { FULL_SYSTEM_PROMPT, IQRA_SOUL };
 
 // ── Skill Router ──────────────────────────────────────────────────────────────
@@ -101,12 +102,22 @@ export async function executeWithSkill(
 
     rawResponse = completion.choices[0]?.message?.content ?? '{}';
   } catch {
-    // Fallback: Gemini
+    // Fallback: Gemini with Sovereign Identity (systemInstruction)
     const { GoogleGenerativeAI } = await import('@google/generative-ai');
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    
+    // ربط النبض والذاكرة بالسياق
+    const pulseCount = HeartbeatSystem.getPulseCount();
+    const memoryStats = await IQRAMemory.getCycleCounter();
+    const contextSoul = `${IQRA_SOUL}\n\n[CURRENT_RESONANCE]\n- Pulse Count: ${pulseCount}\n- Memory Cycle: ${memoryStats}\n- Mode: Sovereign Skill Analysis`;
+
+    const model = genAI.getGenerativeModel({ 
+      model: 'gemini-2.0-flash-exp', // استخدام أحدث موديل يدعم الفهم العميق
+      systemInstruction: contextSoul 
+    });
+
     const result = await model.generateContent(
-      `${skillContent}\n\nالمستخدم: ${userInput}\n\nأخرج JSON فقط:`
+      `[INPUT]\n${userInput}\n\n[OBJECTIVE]\nAnalyze using ${skillName} and output JSON only matching ${skillContent}`
     );
     rawResponse = result.response.text();
   }

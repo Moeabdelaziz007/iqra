@@ -10,6 +10,7 @@ import path from 'path';
 import { logToIQRAFile, appendToTrustChain } from './security.ts';
 import { ResourceFactory } from './conscience/resource_factory.ts';
 import { RewardEngine } from './rewards/engine.ts';
+import { SovereignIdentity } from './sovereign_identity.ts';
 
 // ── Damir يُحمَّل lazily لتجنب circular imports ──────────────────────────────
 let _missionDamir: import('./damir_conscience.ts').DamirConscience | null = null;
@@ -197,6 +198,11 @@ export class MissionControl {
 
     // ── مسموح — استهلاك الموارد وتنفيذ المرحلة ──────────────────────────────
     damir.execute(action);
+
+    // حقن الهوية والنبض والذاكرة قبل التنفيذ
+    const integratedSoul = await SovereignIdentity.getIntegratedSoul(worker.id, intention);
+    worker.setSovereignPrompt(integratedSoul);
+
     return await worker.execute(input, state);
   }
 
