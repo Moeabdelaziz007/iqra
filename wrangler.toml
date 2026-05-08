@@ -1,6 +1,11 @@
 name = "iqra-smart-edge"
 main = "src/worker.ts"
 compatibility_date = "2024-04-01"
+workers_dev = false
+routes = [
+	{ pattern = "axiomid.app", custom_domain = true },
+	{ pattern = "axiomid.app/*", custom_domain = true }
+]
 
 [build]
 # Ensures the working tree is clean before every deployment
@@ -19,6 +24,8 @@ crons = ["0 3 * * *"]
 # GROQ_API_KEY = "provided_via_wrangler_secret"
 # GOOGLE_GENERATIVE_AI_API_KEY = "provided_via_wrangler_secret"
 # ANTHROPIC_API_KEY = "provided_via_wrangler_secret"
+IQRA_VERSION = "1.1-Sovereign"
+IQRA_ENVIRONMENT = "production"
 
 # Cloudflare Infrastructure
 [[d1_databases]]

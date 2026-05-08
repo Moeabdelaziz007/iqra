@@ -44,9 +44,39 @@ export default {
       return handleTelegramWebhook(env, request);
     }
 
+    // Pi Network Domain Verification
+    if (url.pathname === "/validation-key.txt" || url.pathname === "/.well-known/pi-network/validation-key.txt") {
+      return new Response("dc8ab8f8a5fcd8bf8604adf23577a9f0594e48", {
+        headers: { "Content-Type": "text/plain" }
+      });
+    }
+
+    // Sovereign Identity (DID) - did:web:axiomid.app
+    if (url.pathname === "/.well-known/did.json") {
+      const { SovereignDID } = await import('../lib/iqra/did');
+      const doc = await SovereignDID.generateDocument("core", "axiomid.app");
+      return new Response(JSON.stringify(doc), {
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+
+    // Agent-specific DIDs
+    if (url.pathname.startsWith("/did/")) {
+      const agentId = url.pathname.split("/")[2];
+      const { SovereignDID } = await import('../lib/iqra/did');
+      const doc = await SovereignDID.generateDocument(agentId, "axiomid.app");
+      return new Response(JSON.stringify(doc), {
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+
     // Health check endpoint
     if (url.pathname === "/health") {
-      return new Response(JSON.stringify({ status: "IQRA is alive", timestamp: new Date().toISOString() }), {
+      return new Response(JSON.stringify({ 
+        status: "IQRA is alive", 
+        identity: "AxiomID Sovereign Agent",
+        timestamp: new Date().toISOString() 
+      }), {
         headers: { "Content-Type": "application/json" }
       });
     }

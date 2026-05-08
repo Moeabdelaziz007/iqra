@@ -35,6 +35,7 @@ import { PatternMemory } from '../memory/pattern_memory.ts';
 import { IQRAMemory } from '../memory.ts';
 import { appendToTrustChain } from '../security.ts';
 import { IQRALogger } from '../logger.ts';
+import { CodebaseTopologyMapper } from '../topology/codebase_mapper.ts';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -100,6 +101,38 @@ const EMBEDDING_DIM = 768;
 // ── TopologicalCuriosityEngine ────────────────────────────────────────────────
 
 export class TopologicalCuriosityEngine {
+  /**
+   * دورة اكتشاف طوبولوجيا الكود
+   * "سَنُرِيهِمْ آيَاتِنَا فِي الْآفَاقِ" — فصلت: 53
+   *
+   * تبحث عن "الثقوب الطوبولوجية" في الكود البرمجي (Codebase)
+   * وتحسب مدى الترابط والتعقيد.
+   */
+  static async runCodebaseDiscoveryCycle(): Promise<any> {
+    IQRALogger.info('🔍 [TOPO_DISCOVERY] Starting Codebase Topology Discovery...');
+    
+    try {
+      const topology = await CodebaseTopologyMapper.scan();
+      
+      // Record in TrustChain if resonance is low or high
+      if (topology.resonance < 0.6) {
+        IQRALogger.warn(`⚠️ [TOPO_DISCOVERY] Low codebase resonance detected: ${topology.resonance.toFixed(3)}. Potential structural holes found.`);
+      }
+
+      await appendToTrustChain(
+        'TOPO:CODEBASE_SCAN',
+        `h0=${topology.h0} h1=${topology.h1}`,
+        `Codebase resonance measured at ${topology.resonance.toFixed(4)}`,
+        1.0
+      );
+
+      return topology;
+    } catch (err) {
+      IQRALogger.error('❌ [TOPO_DISCOVERY] Codebase discovery failed:', err);
+      return null;
+    }
+  }
+
   /**
    * الدالة الرئيسية: اكتشاف الرنين الطوبولوجي لآية
    *

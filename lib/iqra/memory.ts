@@ -22,6 +22,7 @@ const REDIS_TTL_SECONDS = 7 * 24 * 60 * 60; // 604800
 import { IQRALogger } from './logger';
 import { IQRAFilter } from './filter';
 import { IQRAConsciousness } from './consciousness';
+import { LanceDBPlugin } from './memory/lancedb_plugin';
 import path from 'path';
 import crypto from 'crypto';
 import fs from 'fs';
@@ -382,6 +383,9 @@ export class IQRAMemory {
 
     const { error } = await withTimeout(supabase.from(table).insert([data]), IQRA_TIMEOUTS.NETWORK, `Supabase INSERT ${table}`);
     if (error) IQRALogger.error(`❌ Long-term memory error (${table}):`, error);
+
+    // 🏺 [LANCEDB] Also archive in deep storage
+    await LanceDBPlugin.archive(content, { table, ...data });
   }
 
   static async saveSemantic(text: string, metadata: any) {
@@ -526,6 +530,13 @@ export class IQRAMemory {
     IQRALogger.info(
       `🧠 [MEMORY] getContextForMission: ${scored.length} relevant memories found [read]`
     );
+
+    // 🏺 [LANCEDB] Augment with deep memories
+    const deepContext = await LanceDBPlugin.autoRecall(missionId);
+    if (deepContext) {
+      IQRALogger.info('🏺 [LANCEDB] Deep memories augmented context.');
+    }
+
     return scored;
   }
 
