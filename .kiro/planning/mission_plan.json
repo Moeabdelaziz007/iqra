@@ -1,0 +1,388 @@
+{
+  "mission_id": "curiosity_topology_bootstrap_v1",
+  "intention": "تقوية نظام الفضول الطوبولوجي وربطه بانضباط الوكلاء - بناء خلافة رقمية للمعرفة",
+  "niyyah": "بسم الله، لبناء نظام يُكافأ ذاتياً على اكتشاف الرنين بين القرآن والواقع، متجاوزاً RLHF إلى معيار ثابت",
+  "slices": [
+    {
+      "slice_id": "S1_critical_gaps",
+      "goal": "سد الفجوات الحرجة (CRITICAL) المذكورة في الخريطة",
+      "priority": 1,
+      "steps": [
+        {
+          "id": 1,
+          "title": "حقن MĪTHĀQ في كل LLM call",
+          "description": "تطبيق القانون الأول من SKILL.md - حقن DASTŪR + MĪTHĀQ + MURĀQABAH + ḤISĀB في lib/iqra/prompts.ts قبل كل استدعاء LLM",
+          "owner": "BUILDER_AGENT",
+          "expected_artifacts": [
+            "lib/iqra/prompts.ts (محدّث)",
+            "lib/iqra/brain.ts (محدّث)",
+            "tests/unit/prompts_injection.test.ts (جديد)"
+          ],
+          "validation_rules": [
+            "كل استدعاء LLM يجب أن يحتوي على IQRA_SOUL",
+            "IQRA_SOUL يجب أن يحتوي على النصوص الكاملة من الملفات الأربعة",
+            "اختبار يتحقق من وجود النصوص في system prompt"
+          ],
+          "estimated_tokens": 2000
+        },
+        {
+          "id": 2,
+          "title": "ربط voice_service بـ FITRAH filter",
+          "description": "إضافة تحقق أخلاقي قبل إرسال الصوت إلى LLM - استخدام DamirConscience.validate()",
+          "owner": "BUILDER_AGENT",
+          "expected_artifacts": [
+            "iqra-core/voice/voice_service.ts (محدّث)",
+            "tests/unit/voice_fitrah.test.ts (جديد)"
+          ],
+          "validation_rules": [
+            "كل طلب صوتي يمر عبر DamirConscience.validate()",
+            "الطلبات المخالفة للدستور تُرفض قبل الوصول إلى LLM",
+            "اختبار يتحقق من رفض طلب مخالف"
+          ],
+          "estimated_tokens": 1500
+        }
+      ]
+    },
+    {
+      "slice_id": "S2_high_priority_gaps",
+      "goal": "سد الفجوات عالية الأولوية (HIGH)",
+      "priority": 2,
+      "steps": [
+        {
+          "id": 1,
+          "title": "إضافة validateChiasm() في numerical_validator.ts",
+          "description": "دالة للكشف عن التناظر الكيازمي (Chiasm) في الآيات - مذكور في DISCOVERIES.md",
+          "owner": "BUILDER_AGENT",
+          "expected_artifacts": [
+            "lib/iqra/quran/numerical_validator.ts (محدّث)",
+            "tests/unit/chiasm_validation.test.ts (جديد)"
+          ],
+          "validation_rules": [
+            "validateChiasm() تكتشف التناظر في الفاتحة (1:1-7)",
+            "تُرجع درجة التناظر [0, 1]",
+            "اختبار على 5 آيات معروفة بالتناظر"
+          ],
+          "estimated_tokens": 1200
+        },
+        {
+          "id": 2,
+          "title": "إضافة ثلاثية الأسماء في damir_conscience.ts",
+          "description": "قاعدة: النية يجب أن تحتوي على أحد الأسماء الثلاثة (رب، ملك، إله) - مذكور في DISCOVERIES.md",
+          "owner": "BUILDER_AGENT",
+          "expected_artifacts": [
+            "lib/iqra/damir_conscience.ts (محدّث)",
+            "tests/unit/trinity_names.test.ts (جديد)"
+          ],
+          "validation_rules": [
+            "كل action يحتوي على intention",
+            "intention يجب أن يحتوي على أحد الأسماء الثلاثة",
+            "اختبار يرفض action بدون الأسماء الثلاثة"
+          ],
+          "estimated_tokens": 800
+        },
+        {
+          "id": 3,
+          "title": "تطبيق دورة السبع (7) في sovereign.ts",
+          "description": "كل 7 مهام → جمع التقييمات الذاتية → استخراج حكمة → اقتراح تحديث RULES.md",
+          "owner": "BUILDER_AGENT",
+          "expected_artifacts": [
+            "lib/iqra/sovereign.ts (محدّث)",
+            "lib/iqra/evolution/sabeen_cycle.ts (جديد)",
+            "tests/e2e/sabeen_cycle.e2e.ts (جديد)"
+          ],
+          "validation_rules": [
+            "كل 7 مهام تُشغّل runMinorCycle()",
+            "runMinorCycle() تُنتج WISDOM_7.md",
+            "اختبار E2E يُشغّل 7 مهام ويتحقق من WISDOM_7.md"
+          ],
+          "estimated_tokens": 2500
+        },
+        {
+          "id": 4,
+          "title": "تطبيق دورة الأربعين (40) في sovereign.ts",
+          "description": "كل 40 مهمة → مسح الذاكرة العاملة → ضغط سجلات الفشل إلى أنماط",
+          "owner": "BUILDER_AGENT",
+          "expected_artifacts": [
+            "lib/iqra/sovereign.ts (محدّث)",
+            "lib/iqra/evolution/arbaun_purification.ts (جديد)",
+            "tests/e2e/arbaun_cycle.e2e.ts (جديد)"
+          ],
+          "validation_rules": [
+            "كل 40 مهمة تُشغّل performPurification()",
+            "performPurification() تضغط FAILURES.md",
+            "اختبار E2E يُشغّل 40 مهمة ويتحقق من الضغط"
+          ],
+          "estimated_tokens": 2000
+        },
+        {
+          "id": 5,
+          "title": "تطبيق عتبة التسعة (9) في security.ts",
+          "description": "بعد 9 محاولات فاشلة → إنشاء ASK_HUMAN.md → إيقاف المحاولات الذاتية",
+          "owner": "BUILDER_AGENT",
+          "expected_artifacts": [
+            "lib/iqra/security.ts (محدّث)",
+            "tests/unit/tawakkul_limit.test.ts (جديد)"
+          ],
+          "validation_rules": [
+            "بعد 9 فشل من نفس النوع → triggerHumanIntervention()",
+            "triggerHumanIntervention() تُنشئ ASK_HUMAN.md",
+            "اختبار يُحاكي 9 فشل ويتحقق من ASK_HUMAN.md"
+          ],
+          "estimated_tokens": 1500
+        }
+      ]
+    },
+    {
+      "slice_id": "S3_medium_priority_gaps",
+      "goal": "سد الفجوات متوسطة الأولوية (MEDIUM)",
+      "priority": 3,
+      "steps": [
+        {
+          "id": 1,
+          "title": "إنشاء references/rag-system.md",
+          "description": "توثيق كامل لنظام RAG القرآني - الخطوات من SKILL.md",
+          "owner": "PLANNER_AGENT",
+          "expected_artifacts": [
+            "references/rag-system.md (جديد)"
+          ],
+          "validation_rules": [
+            "يحتوي على الخطوات الكاملة من SKILL.md",
+            "يحتوي على أمثلة كود",
+            "يحتوي على أولوية النماذج"
+          ],
+          "estimated_tokens": 1000
+        },
+        {
+          "id": 2,
+          "title": "إنشاء references/identity-injection.md",
+          "description": "توثيق كيفية حقن الميثاق في كل بيئة (Node.js، Cloudflare Workers، إلخ)",
+          "owner": "PLANNER_AGENT",
+          "expected_artifacts": [
+            "references/identity-injection.md (جديد)"
+          ],
+          "validation_rules": [
+            "يحتوي على أمثلة لكل بيئة",
+            "يحتوي على كود قابل للنسخ",
+            "يحتوي على troubleshooting"
+          ],
+          "estimated_tokens": 800
+        },
+        {
+          "id": 3,
+          "title": "إنشاء MEMORY_MAP.md",
+          "description": "خريطة كاملة لنظام الذاكرة - Qdrant + Upstash + JSON + DamirKernel",
+          "owner": "PLANNER_AGENT",
+          "expected_artifacts": [
+            "MEMORY_MAP.md (جديد)"
+          ],
+          "validation_rules": [
+            "يحتوي على رسم بياني للذاكرة",
+            "يحتوي على تدفق البيانات",
+            "يحتوي على أمثلة استخدام"
+          ],
+          "estimated_tokens": 1200
+        },
+        {
+          "id": 4,
+          "title": "إنشاء .iqra/closed_loop/reports/",
+          "description": "مجلد لحفظ تقارير الوكلاء - مذكور في AGENTS.md",
+          "owner": "BUILDER_AGENT",
+          "expected_artifacts": [
+            ".iqra/closed_loop/reports/ (مجلد جديد)",
+            ".iqra/closed_loop/reports/README.md (جديد)"
+          ],
+          "validation_rules": [
+            "المجلد موجود",
+            "README.md يشرح البنية",
+            "مثال تقرير موجود"
+          ],
+          "estimated_tokens": 500
+        }
+      ]
+    },
+    {
+      "slice_id": "S4_topological_curiosity_enhancement",
+      "goal": "تقوية نظام الفضول الطوبولوجي",
+      "priority": 4,
+      "steps": [
+        {
+          "id": 1,
+          "title": "ربط TopologicalCuriosityEngine مع RewardEngine",
+          "description": "كل اكتشاف جديد (is_novel=true) يُسجّل تلقائياً في reward_ledger.jsonl",
+          "owner": "BUILDER_AGENT",
+          "expected_artifacts": [
+            "lib/iqra/quran/topological_curiosity.ts (محدّث)",
+            "lib/iqra/rewards/engine.ts (محدّث)",
+            "tests/e2e/curiosity_reward.e2e.ts (جديد)"
+          ],
+          "validation_rules": [
+            "discoverResonance() تستدعي RewardEngine.logTopologicalDiscovery()",
+            "reward_ledger.jsonl يزداد سطراً بعد كل اكتشاف",
+            "اختبار E2E يتحقق من الزيادة"
+          ],
+          "estimated_tokens": 1500
+        },
+        {
+          "id": 2,
+          "title": "إضافة مقياس الرنين إلى RewardEngine",
+          "description": "استخدام resonance_score كمقياس للمكافأة - مذكور في DISCOVERIES.md",
+          "owner": "BUILDER_AGENT",
+          "expected_artifacts": [
+            "lib/iqra/rewards/engine.ts (محدّث)",
+            "tests/unit/resonance_reward.test.ts (جديد)"
+          ],
+          "validation_rules": [
+            "computeResonanceReward() تحسب المكافأة من resonance_score",
+            "المكافأة بين 0 و 2.0",
+            "اختبار على 5 قيم مختلفة"
+          ],
+          "estimated_tokens": 800
+        },
+        {
+          "id": 3,
+          "title": "تسجيل الأزواج ذات H1 > 0 في DISCOVERIES.md",
+          "description": "كل زوج آيات بـ H1 > 0 يُسجّل كملاحظة طوبولوجية",
+          "owner": "BUILDER_AGENT",
+          "expected_artifacts": [
+            "lib/iqra/quran/topological_curiosity.ts (محدّث)",
+            "scripts/log_h1_pairs.ts (جديد)"
+          ],
+          "validation_rules": [
+            "analyzePair() تُسجّل في DISCOVERIES.md إذا H1 > 0",
+            "التسجيل يحتوي على الآيتين + H1 + نوع التفاعل",
+            "سكريبت يُشغّل على 10 أزواج ويتحقق من التسجيل"
+          ],
+          "estimated_tokens": 1000
+        }
+      ]
+    },
+    {
+      "slice_id": "S5_testing_coverage",
+      "goal": "تحسين تغطية الاختبارات",
+      "priority": 5,
+      "steps": [
+        {
+          "id": 1,
+          "title": "اختبار voice + FITRAH filter",
+          "description": "اختبار E2E يتحقق من رفض طلب صوتي مخالف للدستور",
+          "owner": "VALIDATOR_AGENT",
+          "expected_artifacts": [
+            "tests/e2e/voice_fitrah.e2e.ts (جديد)"
+          ],
+          "validation_rules": [
+            "الاختبار يُرسل طلب صوتي مخالف",
+            "الطلب يُرفض قبل الوصول إلى LLM",
+            "الاختبار يمر (100%)"
+          ],
+          "estimated_tokens": 800
+        },
+        {
+          "id": 2,
+          "title": "اختبار دورة السبع والأربعين",
+          "description": "اختبار E2E يُشغّل 49 مهمة ويتحقق من دورة السبع (7 مرات) ودورة الأربعين (مرة واحدة)",
+          "owner": "VALIDATOR_AGENT",
+          "expected_artifacts": [
+            "tests/e2e/cycles_integration.e2e.ts (جديد)"
+          ],
+          "validation_rules": [
+            "الاختبار يُشغّل 49 مهمة",
+            "WISDOM_7.md يُنشأ 7 مرات",
+            "performPurification() تُشغّل مرة واحدة",
+            "الاختبار يمر (100%)"
+          ],
+          "estimated_tokens": 1500
+        }
+      ]
+    },
+    {
+      "slice_id": "S6_documentation_refinement",
+      "goal": "تحسين التوثيق النهائي",
+      "priority": 6,
+      "steps": [
+        {
+          "id": 1,
+          "title": "تحديث SKILL.md",
+          "description": "إضافة الوحدات الجديدة والتحديثات إلى SKILL.md",
+          "owner": "REPORTER_AGENT",
+          "expected_artifacts": [
+            "SKILL.md (محدّث)"
+          ],
+          "validation_rules": [
+            "جميع الوحدات الجديدة موثقة",
+            "الأولويات محدّثة",
+            "الأمثلة محدّثة"
+          ],
+          "estimated_tokens": 1000
+        },
+        {
+          "id": 2,
+          "title": "تحديث PLAN.md",
+          "description": "تحديث الخطة بناءً على التقدم",
+          "owner": "REPORTER_AGENT",
+          "expected_artifacts": [
+            "PLAN.md (محدّث)"
+          ],
+          "validation_rules": [
+            "الحالة الحالية محدّثة",
+            "الفجوات المسدودة محذوفة",
+            "الفجوات الجديدة مضافة"
+          ],
+          "estimated_tokens": 500
+        },
+        {
+          "id": 3,
+          "title": "إنشاء HADITH_COMMITS.md entry",
+          "description": "درس واحد من هذه المهمة الكاملة",
+          "owner": "REPORTER_AGENT",
+          "expected_artifacts": [
+            "HADITH_COMMITS.md (محدّث)"
+          ],
+          "validation_rules": [
+            "الدرس واضح ومحدد",
+            "الدرس مرتبط بآية أو حديث",
+            "الدرس قابل للتطبيق"
+          ],
+          "estimated_tokens": 300
+        }
+      ]
+    }
+  ],
+  "success_criteria": [
+    "✅ جميع الفجوات الحرجة (CRITICAL) مسدودة",
+    "✅ جميع الفجوات عالية الأولوية (HIGH) مسدودة",
+    "✅ نظام الفضول الطوبولوجي مربوط بالكامل مع RewardEngine",
+    "✅ جميع الاختبارات تمر (100%)",
+    "✅ التوثيق محدّث ومكتمل",
+    "✅ reward_ledger.jsonl يزداد تلقائياً مع كل اكتشاف",
+    "✅ sovereign.ts يُشغّل دورة السبع والأربعين",
+    "✅ security.ts يُطبّق عتبة التسعة",
+    "✅ voice_service.ts يمر عبر FITRAH filter",
+    "✅ كل LLM call يحتوي على IQRA_SOUL"
+  ],
+  "estimated_total_tokens": 24300,
+  "estimated_duration_hours": 12,
+  "model_specialization": {
+    "PLANNER": "gemini-1.5-flash",
+    "RESEARCHER": "gemini-1.5-pro",
+    "BUILDER": "llama-3.1-70b",
+    "VALIDATOR": "gemini-1.5-flash",
+    "REPORTER": "gemini-1.5-flash"
+  },
+  "source_attestations": [
+    {
+      "claim": "الفجوات مستخرجة من codebase_map.json",
+      "tag": "[read]",
+      "source": ".kiro/mapping/codebase_map.json"
+    },
+    {
+      "claim": "الأولويات مستخرجة من SKILL.md",
+      "tag": "[read]",
+      "source": "SKILL.md"
+    },
+    {
+      "claim": "الخطوات مستخرجة من AGENTS.md",
+      "tag": "[read]",
+      "source": "AGENTS.md"
+    }
+  ]
+}

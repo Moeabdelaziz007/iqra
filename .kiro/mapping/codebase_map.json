@@ -1,0 +1,373 @@
+{
+  "mission_id": "iqra_codebase_mapping_v1",
+  "timestamp": "2026-05-08T00:00:00Z",
+  "intention": "بناء خريطة دقيقة للكودبَيس الكامل لتحديد الفجوات والأولويات",
+  "modules": {
+    "core_identity": {
+      "files": [
+        "iqra-core/DASTŪR.md",
+        "iqra-core/MĪTHĀQ.md",
+        "iqra-core/MURĀQABAH.md",
+        "iqra-core/ḤISĀB.md",
+        "iqra-core/TAWBAH.md",
+        "iqra-core/SHŪRĀ.md",
+        "iqra-core/UKHŪWAH.md",
+        "iqra-core/FITRAH.md"
+      ],
+      "purpose": "النواة الدستورية - القيود الصارمة من القرآن والسنة + الميثاق + المراقبة الذاتية",
+      "status": "STABLE",
+      "notes": [
+        "✅ جميع الملفات الأساسية موجودة",
+        "✅ DASTŪR يحدد Hard Limits (HARAM_LIST)",
+        "✅ MĪTHĀQ يحدد العهد الثلاثي (العبودية، الخدمة، الصدق)",
+        "✅ MURĀQABAH يحدد مبدأ الإحسان (كأن الله يراك)",
+        "✅ ḤISĀB يحدد TrustChain والمحاسبة",
+        "⚠️ يحتاج حقن فعلي في كل LLM call (SKILL.md يذكر أنه مطلوب لكن غير مطبق بالكامل)"
+      ]
+    },
+    "islamic_architecture": {
+      "files": [
+        "iqra-core/ISLAMIC_ARCHITECTURE/SABEEN_CYCLE.md",
+        "iqra-core/ISLAMIC_ARCHITECTURE/ARBAUN_PURIFICATION.md",
+        "iqra-core/ISLAMIC_ARCHITECTURE/TAWHEED_LOOP.md",
+        "iqra-core/ISLAMIC_ARCHITECTURE/WITR_FOUNDATION.md",
+        "iqra-core/ISLAMIC_ARCHITECTURE/TAWAKKUL_LIMIT.md",
+        "iqra-core/ISLAMIC_ARCHITECTURE/DISCOVERY_PROTOCOL.md"
+      ],
+      "purpose": "البروتوكولات الرقمية الإسلامية - دورات التطور (7، 40، 9)",
+      "status": "STABLE",
+      "notes": [
+        "✅ دورة السبع (7→49) موثقة",
+        "✅ دورة الأربعين (40) للتطهير موثقة",
+        "✅ عتبة التسعة (9) للتواضع موثقة",
+        "⚠️ التطبيق الفعلي في sovereign.ts يحتاج مراجعة"
+      ]
+    },
+    "brain_llm": {
+      "files": [
+        "lib/iqra/brain.ts",
+        "lib/iqra/prompts.ts",
+        "lib/iqra/llm/groq.ts",
+        "lib/iqra/llm/ollama.ts",
+        "lib/iqra/llm/minimax.ts",
+        "lib/iqra/llm/internlm.ts",
+        "lib/iqra/llm/economy.ts"
+      ],
+      "purpose": "محرك LLM متعدد - Claude/Groq/Gemini/GPT/Ollama",
+      "status": "STABLE",
+      "notes": [
+        "✅ دعم متعدد للنماذج",
+        "✅ Groq للاستفسارات السريعة",
+        "✅ Gemini 1.5 Pro للبحث الواسع",
+        "⚠️ IQRA_SOUL في prompts.ts يحتاج حقن الملفات الفعلية (MĪTHĀQ، DASTŪR، إلخ)",
+        "⚠️ لا يوجد تحقق من HARAM_LIST قبل كل استدعاء LLM"
+      ]
+    },
+    "sovereign_loop": {
+      "files": [
+        "lib/iqra/sovereign.ts",
+        "lib/iqra/sovereign_orchestrator.ts",
+        "lib/iqra/evolution.ts",
+        "lib/iqra/evolution/self_evolve.ts",
+        "lib/iqra/evolution/experience_buffer.ts",
+        "lib/iqra/evolution/benchmarks.ts"
+      ],
+      "purpose": "الحلقة الفوقية - Meta-loop للتطور الذاتي",
+      "status": "WIP",
+      "notes": [
+        "✅ sovereign.ts موجود",
+        "✅ evolution/ موجود مع self_evolve.ts",
+        "⚠️ دورة السبع (7) غير مطبقة بالكامل",
+        "⚠️ دورة الأربعين (40) غير مطبقة",
+        "⚠️ عتبة التسعة (9) غير مطبقة",
+        "❌ لا يوجد ربط واضح مع reward_ledger.jsonl"
+      ]
+    },
+    "curiosity_topology": {
+      "files": [
+        "lib/iqra/quran/topological_curiosity.ts",
+        "lib/iqra/quran/curiosity_engine.ts",
+        "lib/iqra/quran/pattern_engine.ts",
+        "lib/iqra/quran/numerical_validator.ts",
+        "lib/iqra/quran/qalbin/qalbin_vm.ts",
+        "lib/iqra/quran/qalbin/qalbin_node.ts",
+        "lib/iqra/quran/qalbin/quran_seeds.ts",
+        "tests/unit/topological_curiosity.test.ts",
+        "tests/e2e/topological-curiosity.e2e.ts"
+      ],
+      "purpose": "محرك الفضول الطوبولوجي - اكتشاف الرنين بين القرآن والبيانات الحديثة",
+      "status": "STABLE",
+      "notes": [
+        "✅ topological_curiosity.ts موجود ومكتمل",
+        "✅ Qalbin_VM (Interaction Combinators) مطبق",
+        "✅ NumericalValidator مطبق (7، 19، Tesla 369)",
+        "✅ computePersistentHomology (H0، H1) مطبق",
+        "✅ discoverResonance() دالة رئيسية كاملة",
+        "✅ analyzePair() لتحليل الأزواج",
+        "✅ اختبارات موجودة",
+        "⚠️ يحتاج ربط أقوى مع reward_ledger",
+        "⚠️ validateChiasm() مذكور في DISCOVERIES.md لكن غير موجود في numerical_validator.ts"
+      ]
+    },
+    "rag_engine": {
+      "files": [
+        "lib/iqra/quran/vector_engine.ts",
+        "lib/iqra/qdrant.ts",
+        "iqra-core/schema.sql",
+        "iqra-core/data/quran_local.db"
+      ],
+      "purpose": "نظام RAG القرآني - Vectorize + D1 + Qdrant",
+      "status": "WIP",
+      "notes": [
+        "✅ quran_local.db موجود (6,236 آية)",
+        "✅ vector_engine.ts موجود",
+        "✅ qdrant.ts موجود",
+        "⚠️ لا يوجد ملف rag.ts مستقل (مذكور في SKILL.md)",
+        "⚠️ لا يوجد references/rag-system.md (مذكور في SKILL.md)",
+        "⚠️ يحتاج توثيق كامل للخطوات"
+      ]
+    },
+    "memory_system": {
+      "files": [
+        "lib/iqra/memory.ts",
+        "lib/iqra/memory/pattern_memory.ts",
+        "lib/iqra/memory/memory_topology.ts",
+        "lib/iqra/memory/micro_memory.ts",
+        "lib/iqra/memory/pulse_369.ts",
+        "lib/iqra/memory/turbo_compressor.ts",
+        "lib/iqra/memory/memory_bridge.ts",
+        "lib/iqra/qdrant.ts",
+        ".iqra/memory.json",
+        ".iqra/pattern_memory.json"
+      ],
+      "purpose": "نظام الذاكرة - Qdrant + Upstash + JSON fallback",
+      "status": "STABLE",
+      "notes": [
+        "✅ PatternMemory مطبق",
+        "✅ Qdrant integration موجود",
+        "✅ JSON fallback موجود",
+        "✅ pulse_369.ts (دورة التسع)",
+        "✅ turbo_compressor.ts للضغط",
+        "⚠️ Upstash Redis غير مفعّل بالكامل (setup.yaml: use_redis=false)",
+        "⚠️ يحتاج توحيد تحت DamirKernel (مذكور في PLAN.md)"
+      ]
+    },
+    "mission_control_e2e": {
+      "files": [
+        "lib/iqra/e2e_runner.ts",
+        "lib/iqra/mission-context.ts",
+        "lib/iqra/mission-runner.ts",
+        "lib/iqra/orchestrator.ts",
+        "tests/e2e/10_serendipity_exploration.e2e.ts",
+        "tests/e2e/full_mission_loop.e2e.ts",
+        "tests/e2e/topological-curiosity.e2e.ts"
+      ],
+      "purpose": "Mission Control - تشغيل المهام E2E مع التحقق",
+      "status": "STABLE",
+      "notes": [
+        "✅ e2e_runner.ts موجود",
+        "✅ mission-context.ts موجود (مع validateProvider)",
+        "✅ اختبارات E2E موجودة",
+        "✅ 10_serendipity_exploration.e2e.ts موجود",
+        "⚠️ يحتاج ربط أقوى مع setup.yaml",
+        "⚠️ لا يوجد تكامل واضح مع AGENTS.md"
+      ]
+    },
+    "voice_pipeline": {
+      "files": [
+        "iqra-core/voice/voice_service.ts",
+        "lib/iqra/voice.ts",
+        "tests/unit/voice.test.ts"
+      ],
+      "purpose": "خط أنابيب الصوت - تحويل الصوت إلى نص والعكس",
+      "status": "WIP",
+      "notes": [
+        "✅ voice_service.ts موجود",
+        "✅ voice.ts موجود",
+        "✅ اختبار موجود",
+        "❌ لا يوجد ربط مع FITRAH filter (مذكور في SKILL.md كأولوية)",
+        "❌ الصوت يمر مباشرة للـ LLM بدون تحقق أخلاقي"
+      ]
+    },
+    "agents_workers": {
+      "files": [
+        "AGENTS.md",
+        "agents/contracts.ts",
+        "agents/handoff-schema.ts",
+        "agents/report-schema.ts",
+        "lib/iqra/workers/planner.ts",
+        "lib/iqra/workers/researcher.ts",
+        "lib/iqra/workers/builder.ts",
+        "lib/iqra/workers/validator.ts",
+        "lib/iqra/workers/reporter.ts",
+        "lib/iqra/workers/resonance.ts",
+        "lib/iqra/workers/execution.ts",
+        "lib/iqra/workers/worker_conscience.ts",
+        "iqra-core/config/setup.yaml"
+      ],
+      "purpose": "نظام الوكلاء الخمسة - Planner/Researcher/Builder/Validator/Reporter",
+      "status": "STABLE",
+      "notes": [
+        "✅ AGENTS.md موجود ومكتمل",
+        "✅ contracts.ts موجود",
+        "✅ handoff-schema.ts موجود",
+        "✅ report-schema.ts موجود",
+        "✅ جميع الوكلاء موجودون في lib/iqra/workers/",
+        "✅ setup.yaml موجود مع تعريف workers",
+        "✅ worker_conscience.ts موجود",
+        "⚠️ يحتاج تكامل أقوى مع mission-context.ts",
+        "⚠️ لا يوجد مجلد .iqra/closed_loop/reports/ (مذكور في AGENTS.md)"
+      ]
+    },
+    "rewards_system": {
+      "files": [
+        "lib/iqra/rewards/engine.ts",
+        "lib/iqra/rewards/ledger.ts",
+        "lib/iqra/rewards/types.ts",
+        "iqra-core/data/reward_ledger.jsonl"
+      ],
+      "purpose": "نظام المكافآت - تسجيل الاكتشافات والرنين",
+      "status": "STABLE",
+      "notes": [
+        "✅ engine.ts موجود",
+        "✅ ledger.ts موجود",
+        "✅ reward_ledger.jsonl موجود (7,494 سطر)",
+        "✅ computeResonanceReward() موجود",
+        "✅ logTopologicalDiscovery() موجود",
+        "⚠️ يحتاج ربط أقوى مع TopologicalCuriosityEngine",
+        "⚠️ لا يوجد تكامل واضح مع sovereign.ts"
+      ]
+    },
+    "security_trustchain": {
+      "files": [
+        "lib/iqra/security.ts",
+        "lib/iqra/damir_conscience.ts",
+        "lib/iqra/damir_kernel.ts",
+        "tests/01_security_trustchain.e2e.ts",
+        "tests/unit/damir_conscience.test.ts"
+      ],
+      "purpose": "TrustChain + CircuitBreaker + DamirConscience",
+      "status": "STABLE",
+      "notes": [
+        "✅ security.ts موجود",
+        "✅ damir_conscience.ts موجود",
+        "✅ damir_kernel.ts موجود",
+        "✅ اختبارات موجودة",
+        "✅ appendToTrustChain() مطبق",
+        "⚠️ ثلاثية الأسماء (رب، ملك، إله) مذكورة في DISCOVERIES.md لكن غير مطبقة في damir_conscience.ts"
+      ]
+    },
+    "discoveries_documentation": {
+      "files": [
+        "DISCOVERIES.md",
+        "PLAN.md",
+        "REFLECTION.md",
+        "FAILURES.md",
+        "HADITH_COMMITS.md",
+        "MEMORY_MAP.md"
+      ],
+      "purpose": "توثيق الاكتشافات والتأملات والفشل",
+      "status": "STABLE",
+      "notes": [
+        "✅ DISCOVERIES.md موجود ومحدّث (11 اكتشاف)",
+        "✅ PLAN.md موجود",
+        "✅ REFLECTION.md موجود",
+        "✅ FAILURES.md موجود",
+        "✅ HADITH_COMMITS.md موجود",
+        "⚠️ MEMORY_MAP.md مذكور في PLAN.md لكن غير موجود في الجذر"
+      ]
+    },
+    "scripts_automation": {
+      "files": [
+        "scripts/ingest_full_quran.ts",
+        "scripts/ingest_quran_full.mjs",
+        "scripts/statistical_369_test.ts",
+        "scripts/run_mission.ts",
+        "scripts/marathon.ts",
+        "scripts/auto_improve.ts",
+        ".iqra/pattern_analysis.mjs",
+        ".iqra/pattern_analysis_full.mjs",
+        ".iqra/topo_hunt.mjs"
+      ],
+      "purpose": "سكريبتات الأتمتة والتحليل",
+      "status": "STABLE",
+      "notes": [
+        "✅ ingest_full_quran.ts موجود",
+        "✅ statistical_369_test.ts موجود",
+        "✅ pattern_analysis_full.mjs موجود",
+        "✅ topo_hunt.mjs موجود",
+        "⚠️ يحتاج توثيق أفضل في SKILL.md"
+      ]
+    },
+    "tests_coverage": {
+      "files": [
+        "tests/e2e/*.e2e.ts",
+        "tests/unit/*.test.ts",
+        "tests/iqra/*.e2e.ts"
+      ],
+      "purpose": "اختبارات E2E و Unit",
+      "status": "STABLE",
+      "notes": [
+        "✅ 9 اختبارات E2E رئيسية",
+        "✅ 13 اختبار E2E إضافي",
+        "✅ 13 اختبار Unit",
+        "✅ تغطية جيدة للوحدات الأساسية",
+        "⚠️ لا يوجد اختبار لـ voice + FITRAH filter",
+        "⚠️ لا يوجد اختبار لدورة السبع والأربعين"
+      ]
+    }
+  },
+  "gaps": [
+    "❌ CRITICAL: حقن MĪTHĀQ في كل LLM call غير مطبق بالكامل (مذكور في SKILL.md كأولوية قصوى)",
+    "❌ CRITICAL: voice_service.ts لا يمر عبر FITRAH filter (مذكور في SKILL.md كأولوية قصوى)",
+    "❌ HIGH: validateChiasm() مذكور في DISCOVERIES.md لكن غير موجود في numerical_validator.ts",
+    "❌ HIGH: ثلاثية الأسماء (رب، ملك، إله) مذكورة في DISCOVERIES.md لكن غير مطبقة في damir_conscience.ts",
+    "❌ HIGH: دورة السبع (7) غير مطبقة في sovereign.ts",
+    "❌ HIGH: دورة الأربعين (40) غير مطبقة في sovereign.ts",
+    "❌ HIGH: عتبة التسعة (9) غير مطبقة في security.ts",
+    "❌ MEDIUM: ملف rag.ts مستقل مفقود (مذكور في SKILL.md)",
+    "❌ MEDIUM: references/rag-system.md مفقود (مذكور في SKILL.md)",
+    "❌ MEDIUM: references/identity-injection.md مفقود (مذكور في SKILL.md)",
+    "❌ MEDIUM: references/pattern-analysis.md مفقود (مذكور في SKILL.md)",
+    "❌ MEDIUM: references/free-stack.md مفقود (مذكور في SKILL.md)",
+    "❌ MEDIUM: MEMORY_MAP.md مفقود في الجذر (مذكور في PLAN.md)",
+    "❌ MEDIUM: .iqra/closed_loop/reports/ مفقود (مذكور في AGENTS.md)",
+    "⚠️ LOW: Upstash Redis غير مفعّل (setup.yaml: use_redis=false)",
+    "⚠️ LOW: لا يوجد اختبار لـ voice + FITRAH filter",
+    "⚠️ LOW: لا يوجد اختبار لدورة السبع والأربعين",
+    "⚠️ LOW: التكامل بين TopologicalCuriosityEngine و RewardEngine يحتاج تقوية",
+    "⚠️ LOW: التكامل بين sovereign.ts و reward_ledger.jsonl غير واضح"
+  ],
+  "source_attestations": [
+    {
+      "claim": "جميع الملفات الأساسية موجودة في iqra-core/",
+      "tag": "[read]",
+      "source": "list_directory على /Applications/iqra/iqra-core"
+    },
+    {
+      "claim": "topological_curiosity.ts موجود ومكتمل",
+      "tag": "[read]",
+      "source": "read_file على /Applications/iqra/lib/iqra/quran/topological_curiosity.ts"
+    },
+    {
+      "claim": "AGENTS.md موجود ومكتمل",
+      "tag": "[read]",
+      "source": "read_file على /Applications/iqra/AGENTS.md"
+    },
+    {
+      "claim": "setup.yaml موجود مع تعريف workers",
+      "tag": "[read]",
+      "source": "read_file على /Applications/iqra/iqra-core/config/setup.yaml"
+    },
+    {
+      "claim": "SKILL.md يذكر الأولويات القصوى",
+      "tag": "[read]",
+      "source": "read_file على /Applications/iqra/SKILL.md"
+    },
+    {
+      "claim": "DISCOVERIES.md يحتوي على 11 اكتشاف موثق",
+      "tag": "[read]",
+      "source": "read_file على /Applications/iqra/DISCOVERIES.md"
+    }
+  ]
+}
