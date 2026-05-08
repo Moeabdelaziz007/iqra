@@ -44,8 +44,8 @@ Not a chatbot. Not a tool.
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-08` |
-| 💡 **آخر خطوة \| Last Step** | 🛡️ fix(gitignore): طرد الضيوف غير المدعوين من الريبو |
-| 🔗 **الـ Commit** | `7105d0d` |
+| 💡 **آخر خطوة \| Last Step** | Edit Readme File |
+| 🔗 **الـ Commit** | `d5f9882` |
 
 <!-- IQRA-LATEST-END -->
 
