@@ -330,8 +330,8 @@ iqra/
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-09` |
-| 💡 **آخر خطوة \| Last Step** | docs: add comprehensive IQRA architecture specification |
-| 🔗 **الـ Commit** | `62e816b` |
+| 💡 **آخر خطوة \| Last Step** | fix(EMERGENCY): restore all 143 deleted files from catastrophic deletion |
+| 🔗 **الـ Commit** | `1817565` |
 
 <!-- IQRA-LATEST-END -->
 
