@@ -8,6 +8,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { spawnSync } from 'child_process';
 import { IQRALogger } from '../12-infrastructure/logger';
 
 export interface MCPServer {
@@ -17,7 +18,7 @@ export interface MCPServer {
 }
 
 export class MCPValidator {
-  private static readonly CONFIG_PATH = path.join(process.cwd(), '.ag/mcp.json');
+  private static readonly CONFIG_PATH = path.join(process.cwd(), 'mcp.json');
 
   /**
    * 🔍 Audit all configured MCP servers
@@ -31,16 +32,18 @@ export class MCPValidator {
     }
 
     try {
-      const config = JSON.parse(fs.readFileSync(this.CONFIG_PATH, 'utf8'));
+      const config = JSON.parse(fs.readFileSync(this.CONFIG_PATH, 'utf8')) as {
+        mcpServers?: Record<string, { command?: string }>;
+      };
       const servers = config.mcpServers || {};
       const inventory: MCPServer[] = [];
 
-      for (const [name, server] of Object.entries<any>(servers)) {
+      for (const [name, server] of Object.entries(servers)) {
         const isAvailable = await this.checkCommand(server.command);
         inventory.push({
           name,
           command: server.command,
-          status: isAvailable ? 'active' : 'configured'
+          status: isAvailable ? 'active' : 'configured',
         });
       }
 
@@ -58,11 +61,8 @@ export class MCPValidator {
     if (!command) return false;
     try {
       const cmd = command.split(' ')[0];
-      // In a real environment, we'd use execSync(`which ${cmd}`)
-      // For now, we assume npx is always available as per runbook findings
-      if (cmd === 'npx') return true;
-      if (cmd === 'uvx') return false; // Runbook says uvx is missing
-      return true;
+      const result = spawnSync('which', [cmd], { stdio: 'ignore' });
+      return result.status === 0;
     } catch {
       return false;
     }

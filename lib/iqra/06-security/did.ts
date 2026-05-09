@@ -19,6 +19,7 @@ export interface DIDDocument {
     controller: string;
     publicKeyMultibase?: string;
     blockchainAccountId?: string;
+    serviceEndpoint?: string;
   }[];
   service?: {
     id: string;
