@@ -202,3 +202,233 @@ export function makeHandoff(
     ...overrides,
   };
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// VALIDATION FUNCTIONS — دوال التحقق الثلاث (المهمة 4)
+// ══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * validateWorkerAction — فرض القيود الهيكلية
+ * 
+ * يتحقق من أن الوكيل لا يتجاوز قيوده المحددة في WORKER_CONSTRAINTS.
+ * 
+ * القاعدة الدستورية:
+ * - Validator لا يمكنه تعديل implementation logic
+ * - Reporter لا يمكنه كتابة أو تعديل source code
+ * - Builder لا يمكنه self-approve أو bypass validation
+ * - Researcher لا يمكنه decide final reward وحده
+ * - Planner لا يمكنه كتابة implementation code
+ * 
+ * @param worker - دور الوكيل
+ * @param action - الإجراء المطلوب (مثل: 'modify_code', 'approve', 'write_code')
+ * @returns { valid: boolean; reason?: string }
+ * 
+ * @example
+ * const result = validateWorkerAction('VALIDATOR', 'modify_implementation');
+ * if (!result.valid) {
+ *   console.error(`❌ ${result.reason}`);
+ *   // Output: ❌ VALIDATOR cannot modify implementation logic (CONSTRAINT_VIOLATION)
+ * }
+ */
+export function validateWorkerAction(
+  worker: WorkerRole | string,
+  action: string
+): { valid: boolean; reason?: string } {
+  // ── Validator constraints ──────────────────────────────────────────────────
+  if (worker === 'VALIDATOR') {
+    if (action === 'modify_implementation' || action === 'modify_code') {
+      return {
+        valid: false,
+        reason: 'VALIDATOR cannot modify implementation logic (CONSTRAINT_VIOLATION)',
+      };
+    }
+  }
+
+  // ── Reporter constraints ───────────────────────────────────────────────────
+  if (worker === 'REPORTER') {
+    if (action === 'write_code' || action === 'modify_code' || action === 'implement') {
+      return {
+        valid: false,
+        reason: 'REPORTER cannot write or modify source code (CONSTRAINT_VIOLATION)',
+      };
+    }
+  }
+
+  // ── Builder constraints ────────────────────────────────────────────────────
+  if (worker === 'BUILDER') {
+    if (action === 'self_approve' || action === 'bypass_validation') {
+      return {
+        valid: false,
+        reason: 'BUILDER cannot self-approve or bypass validation (CONSTRAINT_VIOLATION)',
+      };
+    }
+  }
+
+  // ── Researcher constraints ─────────────────────────────────────────────────
+  if (worker === 'RESEARCHER') {
+    if (action === 'decide_final_reward' || action === 'approve_reward') {
+      return {
+        valid: false,
+        reason: 'RESEARCHER cannot decide final reward alone (CONSTRAINT_VIOLATION)',
+      };
+    }
+  }
+
+  // ── Planner constraints ────────────────────────────────────────────────────
+  if (worker === 'PLANNER') {
+    if (action === 'write_code' || action === 'implement' || action === 'modify_code') {
+      return {
+        valid: false,
+        reason: 'PLANNER cannot write implementation code (CONSTRAINT_VIOLATION)',
+      };
+    }
+  }
+
+  // ── All other actions are valid ────────────────────────────────────────────
+  return { valid: true };
+}
+
+/**
+ * validateSourceAttestations — شهادة المصدر
+ * 
+ * يتحقق من أن كل ادعاء في التقرير له مصدر موثق.
+ * 
+ * القاعدة الدستورية #3:
+ * "كل مصدر معلومة يُوسَم: [read] | [fetched] | [prior-training]"
+ * 
+ * @param report - تقرير العامل
+ * @returns { valid: boolean; missing: string[] }
+ * 
+ * @example
+ * const result = validateSourceAttestations(report);
+ * if (!result.valid) {
+ *   console.error(`❌ Missing sources for: ${result.missing.join(', ')}`);
+ *   // Output: ❌ Missing sources for: implemented[0], issues_discovered[1]
+ * }
+ */
+export function validateSourceAttestations(
+  report: WorkerReport
+): { valid: boolean; missing: string[] } {
+  const missing: string[] = [];
+
+  // ── Check implemented items ────────────────────────────────────────────────
+  if (Array.isArray(report.implemented)) {
+    for (let i = 0; i < report.implemented.length; i++) {
+      const item = report.implemented[i];
+      const hasSource = report.source_attestations?.some(
+        (att) => att.claim?.includes(item) || att.source?.includes(item)
+      );
+      if (!hasSource && item.trim()) {
+        missing.push(`implemented[${i}]: "${item}"`);
+      }
+    }
+  }
+
+  // ── Check issues discovered ────────────────────────────────────────────────
+  if (Array.isArray(report.issues_discovered)) {
+    for (let i = 0; i < report.issues_discovered.length; i++) {
+      const issue = report.issues_discovered[i];
+      const hasSource = report.source_attestations?.some(
+        (att) => att.claim?.includes(issue) || att.source?.includes(issue)
+      );
+      if (!hasSource && issue.trim()) {
+        missing.push(`issues_discovered[${i}]: "${issue}"`);
+      }
+    }
+  }
+
+  // ── Check skills used ──────────────────────────────────────────────────────
+  if (Array.isArray(report.skills_used)) {
+    for (let i = 0; i < report.skills_used.length; i++) {
+      const skill = report.skills_used[i];
+      const hasSource = report.source_attestations?.some(
+        (att) => att.claim?.includes(skill) || att.source?.includes(skill)
+      );
+      if (!hasSource && skill.trim()) {
+        missing.push(`skills_used[${i}]: "${skill}"`);
+      }
+    }
+  }
+
+  // ── Validate source attestations themselves ────────────────────────────────
+  if (Array.isArray(report.source_attestations)) {
+    for (let i = 0; i < report.source_attestations.length; i++) {
+      const att = report.source_attestations[i];
+      if (!att.tag || !['[read]', '[fetched]', '[prior-training]'].includes(att.tag)) {
+        missing.push(`source_attestations[${i}]: invalid tag "${att.tag}"`);
+      }
+      if (!att.claim?.trim()) {
+        missing.push(`source_attestations[${i}]: empty claim`);
+      }
+    }
+  }
+
+  return {
+    valid: missing.length === 0,
+    missing,
+  };
+}
+
+/**
+ * validateNoMock — فرض عدم وجود Mock
+ * 
+ * يتحقق من أن لا mock ولا simulated provider في بيئة الإنتاج.
+ * 
+ * القاعدة الدستورية #2:
+ * "لا mock ولا simulated provider في بيئة الإنتاج"
+ * 
+ * @param report - تقرير العامل
+ * @param env - بيئة التشغيل ('production' | 'development')
+ * @returns { valid: boolean; reason?: string }
+ * 
+ * @example
+ * const result = validateNoMock(report, 'production');
+ * if (!result.valid) {
+ *   console.error(`❌ ${result.reason}`);
+ *   // Output: ❌ Mock detected in production: provider=simulated (MOCK_VIOLATION)
+ * }
+ */
+export function validateNoMock(
+  report: WorkerReport,
+  env: 'production' | 'development' = 'production'
+): { valid: boolean; reason?: string } {
+  // ── In production, no_mock_verified must be true ────────────────────────────
+  if (env === 'production') {
+    if (!report.no_mock_verified) {
+      return {
+        valid: false,
+        reason: 'Mock detected in production: no_mock_verified=false (MOCK_VIOLATION)',
+      };
+    }
+
+    // ── Check model metadata for simulated providers ────────────────────────
+    if (report.model_metadata?.provider === 'simulated') {
+      return {
+        valid: false,
+        reason: `Mock detected in production: provider=simulated (MOCK_VIOLATION)`,
+      };
+    }
+
+    // ── Check for common mock indicators in model name ──────────────────────
+    const mockPatterns = ['mock', 'fake', 'stub', 'test', 'dummy', 'simulated'];
+    const modelName = report.model_metadata?.model?.toLowerCase() || '';
+    for (const pattern of mockPatterns) {
+      if (modelName.includes(pattern)) {
+        return {
+          valid: false,
+          reason: `Mock detected in production: model="${report.model_metadata?.model}" (MOCK_VIOLATION)`,
+        };
+      }
+    }
+  }
+
+  // ── In development, we allow mocks but still track them ────────────────────
+  if (env === 'development') {
+    if (report.model_metadata?.provider === 'simulated') {
+      // Valid in dev, but we might want to log a warning
+      return { valid: true };
+    }
+  }
+
+  return { valid: true };
+}

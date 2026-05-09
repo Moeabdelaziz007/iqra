@@ -332,7 +332,7 @@ function generatePlanSteps(scope: MissionScope): PlanStep[] {
 
 ---
 
-### Example 2: Researcher — Discovering Patterns
+### Example 5: Researcher — Discovering Patterns
 
 **Scenario**: Finding numerical patterns in Surah Al-Fatiha
 
@@ -368,7 +368,7 @@ const patterns = await searchQuran({
 
 ---
 
-### Example 3: Builder — Implementing Discovery Code
+### Example 6: Builder — Implementing Discovery Code
 
 **Scenario**: Creating code to analyze discovered patterns
 
@@ -408,47 +408,163 @@ export async function analyzePattern(verse: string) {
 
 ---
 
-### Example 4: Validator — Verifying Implementation
+### Example 7: Validator — Multi-Layer Verification with Memory Integration
 
-**Scenario**: Checking if Builder's code meets requirements
+**Scenario**: Validating a Builder's output for "Ayat al-Kursi pattern analysis"
 
-**Validator's Work**:
+**Validator's TypeScript Usage**:
 ```typescript
-// Validation checklist
-const validationResults = {
-  // ✅ Check 1: No mock data
-  hasMockData: false,
-  
-  // ✅ Check 2: All inputs validated
-  hasZodValidation: true,
-  
-  // ✅ Check 3: TrustChain logging
-  hasTrustChainLogging: true,
-  
-  // ✅ Check 4: Source attestations
-  sourceAttestations: [
-    { source: "quran_local.db", verified: true },
-    { source: "RESEARCHER_AGENT", verified: true }
-  ],
-  
-  // ✅ Check 5: Structural constraints
-  respectsConstraints: true,
-  
-  // Result
-  status: "APPROVED"
+import { executeValidator } from './lib/iqra/workers/validator';
+import { ValidationContext } from './lib/iqra/01-core/validation-context';
+
+const context: ValidationContext = {
+  mission_id: "discover-ayah-2-255-patterns",
+  artifacts: ["/tmp/missions/discover-ayah-2-255-patterns/knowledge/node-discover-ayah-2-255-patterns.md"],
+  source_worker: "Builder",
+  handoff_packet: handoffPacket, // Packet from Builder
+  constraints: {
+    allow_mock: false,
+    require_attestations: true,
+    min_confidence: 0.8
+  }
 };
+
+// Execute validator (reads L3 Upstash for historical risks, L6 for skill verification)
+const result = await executeValidator(context);
+
+// Result structure
+{
+  status: 'success',
+  worker: 'Validator',
+  verdict: 'APPROVED', // or 'REJECTED'
+  data: {
+    reportPath: "/tmp/missions/discover-ayah-2-255-patterns/validation_report.json",
+    checks: [
+      { id: 'RULE_0_SECURITY', status: 'PASS' },
+      { id: 'RULE_1_ZOD', status: 'PASS' },
+      { id: 'RULE_2_NO_MOCK', status: 'PASS' },
+      { id: 'RULE_3_TRUSTCHAIN', status: 'PASS' },
+      { id: 'SOURCE_ATTESTATION', status: 'PASS' }
+    ]
+  },
+  artifacts: ["/tmp/missions/discover-ayah-2-255-patterns/validation_report.json"],
+  implemented: [
+    "Verified zero mock data in production path",
+    "Validated 2 source attestations against quran_local.db",
+    "Logged approval to TrustChain with hash sha256:..."
+  ]
+}
 ```
 
-**Key Actions**:
-- ✅ Verifies no mock data in production
-- ✅ Checks all source attestations
-- ✅ Validates against DASTUR.md
-- ✅ Ensures structural constraints are met
-- ✅ Cannot modify code (only approve/reject)
+### Example 8: Validator — Compliance Enforcement (IQRA_RULES.md)
+
+**Scenario**: Validator running the core compliance functions
+
+**Core Validation Logic**:
+```typescript
+import { validateNoMock } from '../agents/no-mock';
+import { validateSourceAttestations } from '../agents/attestation';
+import { validateWorkerAction } from '../agents/constraints';
+
+export async function performFullValidation(report: WorkerReport) {
+  // 1. Check for Forbidden Mock Data (RULE 2)
+  const noMock = await validateNoMock(report.artifacts);
+  if (!noMock.valid) {
+    return rejectMission(report, `Mock data detected: ${noMock.reason}`);
+  }
+
+  // 2. Verify Source Attestations (RULE 3)
+  const attestations = await validateSourceAttestations(report.attestations);
+  if (!attestations.valid) {
+    return rejectMission(report, `Invalid attestations: ${attestations.errors.join(', ')}`);
+  }
+
+  // 3. Enforce Worker Constraints (RULE 4)
+  const actionAllowed = validateWorkerAction(report.worker, report.action);
+  if (!actionAllowed) {
+    return rejectMission(report, `Worker ${report.worker} attempted unauthorized action: ${report.action}`);
+  }
+
+  // 4. Zod Schema Validation (RULE 1)
+  const schemaValid = ReportSchema.safeParse(report);
+  if (!schemaValid.success) {
+    return rejectMission(report, `Schema mismatch: ${schemaValid.error.message}`);
+  }
+
+  return approveMission(report);
+}
+```
+
+### Example 9: Validator — Memory-Informed Decision Making
+
+**Scenario**: Validator checks historical failures to see if previously identified risks were mitigated
+
+**Memory Integration**:
+```typescript
+// Read from L3 (Upstash) to see what Planner identified as risks
+const missionPlan = await Upstash.get(`plan:${mission_id}`);
+const identifiedRisks = missionPlan.historical_context.identified_risks;
+
+// Cross-check with Builder's implementation
+const validationReport = {
+  risk_mitigation_check: identifiedRisks.map(risk => {
+    const isMitigated = checkMitigationInArtifacts(risk, report.artifacts);
+    return {
+      risk,
+      status: isMitigated ? 'MITIGATED' : 'FAILED',
+      evidence: getMitigationEvidence(risk, report.artifacts)
+    };
+  })
+};
+
+// If a high-priority risk wasn't mitigated, REJECT
+if (validationReport.risk_mitigation_check.some(r => r.status === 'FAILED')) {
+  return { 
+    verdict: 'REJECTED', 
+    reason: 'Identified risks from memory were not addressed in implementation' 
+  };
+}
+```
+
+### Example 10: Validator — Approval & TrustChain Logging
+
+**Scenario**: Finalizing a validation and logging the verdict
+
+**TrustChain Integration**:
+```typescript
+async function approveMission(report: WorkerReport) {
+  const verdict = {
+    mission_id: report.mission_id,
+    worker: 'Validator',
+    verdict: 'APPROVED',
+    timestamp: new Date().toISOString(),
+    artifacts_hash: await computeHash(report.artifacts)
+  };
+
+  // Log to TrustChain (RULE 3)
+  await appendToTrustChain(
+    'VALIDATION:APPROVED',
+    report.mission_id,
+    `Artifacts verified. Hash: ${verdict.artifacts_hash}`,
+    1.0 // Confidence score
+  );
+
+  // Update L3 (Upstash) status
+  await Upstash.set(`status:${report.mission_id}`, 'VERIFIED');
+
+  return verdict;
+}
+```
+
+**Key Characteristics**:
+- **Circuit Breaker**: Stops execution if ethical or structural rules are violated.
+- **Zero Trust**: Re-verifies every claim made by Researcher and Builder.
+- **Memory-Aware**: Uses historical failures to guide current validation.
+- **Compliance-First**: Enforces IQRA_RULES.md (Zod, No Mock, TrustChain).
 
 ---
 
-### Example 5: Reporter — Documenting Discoveries
+### Example 11: Reporter — Documenting Discoveries
 
 **Scenario**: Writing up discovered patterns for human consumption
 
