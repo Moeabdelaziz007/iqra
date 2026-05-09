@@ -6,8 +6,8 @@
  * Powered by Claude (Antigravity) — The Judge and Guardian.
  */
 
-import { iqraThink, IQRABrainMode } from './brain';
-import { IQRALogger } from '../12-infrastructure/logger';
+import { iqraThink, IQRABrainMode } from '#core/brain';
+import { IQRALogger } from '#infra/logger';
 import { IQRAFilter } from './filter';
 
 export class IQRAConsciousness {

@@ -1,10 +1,10 @@
-import { IQRAMemory } from '../03-memory/memory';
-import { iqraThink, IQRABrainMode } from './brain';
-import { applyIQRAStyle } from '../13-utils/style';
+import { IQRAMemory } from '#memory/memory';
+import { iqraThink, IQRABrainMode } from '#core/brain';
+import { applyIQRAStyle } from '#utils/style';
 import { DASTUR, MURAQABAH } from './constants';
 import { GrokVoiceService } from '../../../iqra-core/voice/voice_service';
 import { ShuraProtocol } from './shura';
-import { IQRAFilter } from '../filter';
+import { IQRAFilter } from '#core/filter/;
 import { TAWBAH } from './tawbah';
 
 export class AgentCore {

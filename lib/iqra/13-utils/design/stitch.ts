@@ -7,9 +7,9 @@
  * API Key: set STITCH_API_KEY in .env
  */
 
-import { IQRALogger } from '../12-infrastructure/logger.js';
-import { appendToTrustChain } from '../security.ts';
-import { SacredGeometry } from '../13-utils/style.js';
+import { IQRALogger } from '#infra/logger';
+import { appendToTrustChain } from '#security/security';
+import { SacredGeometry } from '#utils/style';
 import path from 'path';
 import fs from 'fs';
 

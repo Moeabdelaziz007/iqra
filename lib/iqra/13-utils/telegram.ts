@@ -13,11 +13,11 @@
  * ══════════════════════════════════════════════════════════════
  */
 
-import { iqraThink } from './brain';
-import { IQRALogger } from '../12-infrastructure/logger';
+import { iqraThink } from '#core/brain';
+import { IQRALogger } from '#infra/logger';
 import { appendToTrustChain } from '#security/security';
-import { HeartbeatSystem } from '../12-infrastructure/heartbeat';
-import { ToolsRegistry } from '../12-infrastructure/tools_registry';
+import { HeartbeatSystem } from '#infra/heartbeat';
+import { ToolsRegistry } from '#infra/tools_registry';
 
 export interface TelegramEnv {
   TELEGRAM_BOT_TOKEN: string;

@@ -1,9 +1,9 @@
 import { PatternType, QuranPattern, topologicalDiscovery } from './pattern_engine';
 import { NumericalValidator } from './numerical_validator';
 import { Qalbin_VM } from './qalbin/qalbin_vm';
-import { storeReflectionInQdrant } from '../memory/qdrant';
-import { IQRALogger } from '../12-infrastructure/logger';
-import { iqraThink } from '../brain';
+import { storeReflectionInQdrant } from '#memory/qdrant';
+import { IQRALogger } from '#infra/logger';
+import { iqraThink } from '#core/brain';
 import { goEngine } from './go_engine_client';
 import { spawn } from 'child_process';
 import * as fs from 'fs';

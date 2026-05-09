@@ -19,15 +19,15 @@
 // TTL للذاكرة العاملة في Upstash Redis: 7 أيام بالثواني
 const REDIS_TTL_SECONDS = 7 * 24 * 60 * 60; // 604800
 
-import { IQRALogger } from '../12-infrastructure/logger';
+import { IQRALogger } from '#infra/logger';
 import { IQRAFilter } from './filter';
-import { IQRAConsciousness } from '../01-core/consciousness';
-import { LanceDBPlugin } from '../memory/lancedb_plugin';
+import { IQRAConsciousness } from '#core/consciousness';
+import { LanceDBPlugin } from '#memory/lancedb_plugin';
 import path from 'path';
 import crypto from 'crypto';
 import fs from 'fs';
 import { promises as fsPromises } from 'fs';
-import { withTimeout, IQRA_TIMEOUTS } from '../utils/timeout';
+import { withTimeout, IQRA_TIMEOUTS } from '#utils/timeout';
 
 // ── Bridge (lazy import لتجنب circular deps) ──────────────────────────────────
 let _bridge: typeof import('../memory/memory_bridge').MemoryBridge | null = null;

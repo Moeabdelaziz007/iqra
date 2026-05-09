@@ -6,7 +6,7 @@
  *  and within themselves" — Fussilat 41:53
  */
 
-import { iqraThink } from '../brain';
+import { iqraThink } from '#core/brain';
 import { Qalbin_VM } from './qalbin/qalbin_vm';
 import { findSeed } from './qalbin/quran_seeds';
 import { NumericalValidator } from './numerical_validator';

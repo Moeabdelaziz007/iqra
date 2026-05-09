@@ -27,11 +27,11 @@
  */
 
 import { z } from 'zod';
-import { IQRALogger } from '#infra/logger.js';
-import { appendToTrustChain, checkCircuit, reportFailure, reportSuccess } from '#security/security.ts';
-import { IQRAMemory } from '../03-memory/memory.js';
-import { Pulse369 } from '../memory/pulse_369.js';
-import { MemoryBridge } from '../memory/memory_bridge.js';
+import { IQRALogger } from '#infra/logger';
+import { appendToTrustChain, checkCircuit, reportFailure, reportSuccess } from '#security/security';
+import { IQRAMemory } from '#memory/memory';
+import { Pulse369 } from '#memory/pulse_369';
+import { MemoryBridge } from '#memory/memory_bridge';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

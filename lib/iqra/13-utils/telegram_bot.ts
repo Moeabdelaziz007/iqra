@@ -27,12 +27,12 @@
  * ══════════════════════════════════════════════════════════════
  */
 
-import { IQRALogger } from '../12-infrastructure/logger.js';
-import { appendToTrustChain } from '#security/security.ts';
-import { IQRAMemory } from '../03-memory/memory.js';
-import { HeartbeatSystem, type SystemHealth } from '../12-infrastructure/heartbeat.js';
-import { Pulse369 } from '../memory/pulse_369.js';
-import { MemoryBridge } from '../memory/memory_bridge.js';
+import { IQRALogger } from '#infra/logger';
+import { appendToTrustChain } from '#security/security';
+import { IQRAMemory } from '#memory/memory';
+import { HeartbeatSystem, type SystemHealth } from '#infra/heartbeat';
+import { Pulse369 } from '#memory/pulse_369';
+import { MemoryBridge } from '#memory/memory_bridge';
 
 // ── grammY (lazy import — اختياري إذا لم يكن مثبتاً) ─────────────────────────
 let Bot: any = null;

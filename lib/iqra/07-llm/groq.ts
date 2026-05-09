@@ -1,5 +1,5 @@
-import { IQRALogger } from '../12-infrastructure/logger.js';
-import { withTimeout, IQRA_TIMEOUTS } from '../utils/timeout.ts';
+import { IQRALogger } from '#infra/logger';
+import { withTimeout, IQRA_TIMEOUTS } from '#utils/timeout';
 
 /**
  * 🌊 IQRA Groq Connector | موصل Groq

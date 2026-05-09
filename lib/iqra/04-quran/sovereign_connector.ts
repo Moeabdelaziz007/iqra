@@ -1,4 +1,4 @@
-import { BaseConnector, ConnectorResponse } from '../../../src/connectors/base';
+import { BaseConnector, ConnectorResponse } from '@/connectors/base';
 import * as fs from 'fs';
 import * as path from 'path';
 

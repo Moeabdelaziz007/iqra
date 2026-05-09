@@ -23,7 +23,7 @@ import { MissionControl } from '#core/sovereign_orchestrator';
 import { gemma4Local, isLocalMode, IQRA_LOCAL_TOOLS } from '#llm/ollama';
 import { SkillBank } from '#core/skill_bank';
 
-import { FULL_SYSTEM_PROMPT, IQRA_SOUL } from '#utils/prompts.ts';
+import { FULL_SYSTEM_PROMPT, IQRA_SOUL } from '#utils/prompts';
 import { HeartbeatSystem } from '#infra/heartbeat';
 export { FULL_SYSTEM_PROMPT, IQRA_SOUL };
 

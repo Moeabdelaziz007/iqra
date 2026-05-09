@@ -28,17 +28,17 @@ import {
   updateMissionStatus,
   type MissionContext,
   type MissionScope,
-} from './mission-context.js';
-import { executePlanner }          from '../workers/planner.js';
-import { executeResearcher }       from '../workers/researcher.js';
-import { executeBuilder }          from '../workers/builder.js';
-import { executeMissionValidator } from '../workers/mission_validator.js';
-import { executeResonanceWorker }  from '../workers/resonance.js';
-import { executeReporter }         from '../workers/reporter.js';
-import { appendToTrustChain }      from '#security/security.ts';
-import { IQRALogger }              from '../12-infrastructure/logger.js';
-import { SoulEngine }              from './soul_engine.js';
-import { SkillBank }               from '../08-skills/skill_bank.js';
+} from '#core/mission-context';
+import { executePlanner }          from '#workers/planner';
+import { executeResearcher }       from '#workers/researcher';
+import { executeBuilder }          from '#workers/builder';
+import { executeMissionValidator } from '#workers/mission_validator';
+import { executeResonanceWorker }  from '#workers/resonance';
+import { executeReporter }         from '#workers/reporter';
+import { appendToTrustChain }      from '#security/security';
+import { IQRALogger }              from '#infra/logger';
+import { SoulEngine }              from './soul_engine';
+import { SkillBank }               from '#skills/skill_bank';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

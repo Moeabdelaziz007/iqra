@@ -22,7 +22,7 @@
  * ══════════════════════════════════════════════════════════════
  */
 
-import { IQRALogger } from '../12-infrastructure/logger.js';
+import { IQRALogger } from '#infra/logger';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

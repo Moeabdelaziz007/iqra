@@ -21,17 +21,17 @@ import { IQRAMemory } from '#memory/memory';
 import { appendToTrustChain, secureRandomId, logToIQRAFile } from '#security/security';
 import { sovereignSync, tazkiyah } from './git-ops';
 import { SovereignEvolution } from './evolution';
-import { ConnectorFactory } from '../../src/connectors/index.ts';
-import { SovereignError, SovereignErrorCode } from '../../src/errors/sovereign_error.ts';
-import { DamirConscience } from './damir_conscience.ts';
-import { ResourceFactory } from './conscience/resource_factory.ts';
-import { IQRAVoice } from './voice.ts';
-import { ByzantineFilter, AnomalyReport } from './byzantine_filter.ts';
-import { BybitEngine } from './bybit.ts';
-import { IQRALogger } from '#infra/logger.ts';
-import { PulseEngine } from '../../orchestrator/pulse-engine.ts';
-import { TopologicalAnalyzer } from './skills/topological_analyzer.ts';
-import { TawbahLoop } from './evolution/tawbah_loop.ts';
+import { ConnectorFactory } from '@/connectors/index';
+import { SovereignError, SovereignErrorCode } from '@/errors/sovereign_error';
+import { DamirConscience } from '#security/conscience/damir_conscience';
+import { ResourceFactory } from './conscience/resource_factory';
+import { IQRAVoice } from './voice';
+import { ByzantineFilter, AnomalyReport } from './byzantine_filter';
+import { BybitEngine } from './bybit';
+import { IQRALogger } from '#infra/logger';
+import { PulseEngine } from '../../orchestrator/pulse-engine';
+import { TopologicalAnalyzer } from '#skills/topological_analyzer';
+import { TawbahLoop } from './evolution/tawbah_loop';
 
 /**
  * Sovereign Pulse Categories — 3-6-9 Geometry

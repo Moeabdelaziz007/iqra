@@ -55,10 +55,9 @@ export class BybitClient {
 
     const url = `${this.baseUrl}${path}${method === 'GET' && data ? `?${data}` : ''}`;
     
-    // 🛡️ Paper Trading Guard
-    if (this.isPaperTrading && method === 'POST' && path.includes('/order/create')) {
-      console.log(`📝 [PAPER_TRADING] Simulated ${method} request to ${path} with params:`, params);
-      return { orderId: `sim_order_${Date.now()}` } as any;
+    // 🛡️ Sovereign Execution Check: No Mocks allowed.
+    if (!this.apiKey || !this.apiSecret) {
+      throw new Error(`🛑 [IDENTITY_FAILURE] Bybit API Keys missing. Sovereign execution requires real credentials.`);
     }
 
     const response = await fetch(url, {

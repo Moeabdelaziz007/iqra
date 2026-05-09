@@ -11,7 +11,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { IQRAEvolution } from './evolution/self_evolve.ts';
+import { IQRAEvolution } from './evolution/self_evolve';
 
 export enum LoopPhase {
   NIYYAH = "NIYYAH",

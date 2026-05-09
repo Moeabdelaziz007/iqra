@@ -16,8 +16,8 @@ import crypto from 'crypto';
 import path from 'path';
 import fs from 'fs';
 import { promises as fsPromises } from 'fs';
-import { IQRALogger } from '../12-infrastructure/logger.js';
-import { withTimeout, IQRA_TIMEOUTS } from '../utils/timeout.ts';
+import { IQRALogger } from '#infra/logger';
+import { withTimeout, IQRA_TIMEOUTS } from '#utils/timeout';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

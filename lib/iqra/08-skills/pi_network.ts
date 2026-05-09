@@ -7,7 +7,7 @@
  */
 
 import crypto from 'crypto';
-import { IQRALogger } from '../12-infrastructure/logger';
+import { IQRALogger } from '#infra/logger';
 
 export class PiNetworkSkill {
   private static readonly PI_API_BASE_URL =

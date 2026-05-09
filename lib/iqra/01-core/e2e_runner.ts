@@ -1,9 +1,9 @@
 import { IQRAExecutionLoop } from './loop';
-import { IQRATopology } from '../10-topology/topology';
-import { IQRACommands } from '../13-utils/commands';
+import { IQRATopology } from '#topology/topology';
+import { IQRACommands } from '#utils/commands';
 import fs from 'fs';
 import path from 'path';
-import { sovereignSync } from '../13-utils/git-ops';
+import { sovereignSync } from '#utils/git-ops';
 import { execSync } from 'child_process';
 
 /**

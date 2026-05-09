@@ -17,7 +17,7 @@ import {
   EbbinghausEngine,
   type Experience,
   type HandoffResult,
-} from '../experience_buffer.ts';
+} from '../experience_buffer';
 
 const TEST_BUFFER_PATH = path.join(process.cwd(), '.iqra', 'experience_buffer.json');
 const BACKUP_PATH = TEST_BUFFER_PATH + '.backup';

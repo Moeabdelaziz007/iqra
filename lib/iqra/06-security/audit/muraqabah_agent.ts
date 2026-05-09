@@ -7,10 +7,10 @@
  * for Truth, Justice, and compliance with the Supreme Constitution.
  */
 
-import { LlmAgent } from '@google/adk';
-import { SovereignIdentity } from '../06-security/sovereign_identity';
-import { IQRALogger } from '../12-infrastructure/logger';
-import { IQRAMemory } from '../03-memory/memory';
+import { LlmAgent } from '@/google/adk';
+import { SovereignIdentity } from '#security/sovereign_identity';
+import { IQRALogger } from '#infra/logger';
+import { IQRAMemory } from '#memory/memory';
 
 export class MuraqabahAgent {
   private static _agent: LlmAgent | null = null;

@@ -6,8 +6,8 @@
  * Integrated into the IQRA Soul for persistent recall of all experiences.
  */
 
-import { IQRAMemory } from '../03-memory/memory';
-import { IQRALogger } from '../12-infrastructure/logger';
+import { IQRAMemory } from '#memory/memory';
+import { IQRALogger } from '#infra/logger';
 import path from 'path';
 import fs from 'fs';
 

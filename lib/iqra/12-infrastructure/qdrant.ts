@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@/google/generative-ai';
 
 /**
  * IQRA Semantic Memory — الذاكرة الدلالية

@@ -32,9 +32,9 @@
  */
 
 import { z } from 'zod';
-import { IQRALogger } from '../12-infrastructure/logger';
-import { appendToTrustChain, checkCircuit, reportFailure, reportSuccess } from '../security';
-import { globalDamir } from '../damir_conscience';
+import { IQRALogger } from '#infra/logger';
+import { appendToTrustChain, checkCircuit, reportFailure, reportSuccess } from '#security/security';
+import { globalDamir } from '#security/conscience/damir_conscience';
 import type { TaskType, ClassifiedTask } from './task_classifier';
 
 // ── Constants ─────────────────────────────────────────────────────────────────

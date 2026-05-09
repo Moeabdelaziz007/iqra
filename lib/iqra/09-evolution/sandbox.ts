@@ -8,7 +8,7 @@
  * No Mocks Allowed.
  */
 
-import { IQRALogger } from '../12-infrastructure/logger';
+import { IQRALogger } from '#infra/logger';
 import { execSync } from 'child_process';
 import path from 'path';
 import fs from 'fs';

@@ -4,7 +4,7 @@
  * "أَفَلَا يَتَدَبَّرُونَ الْقُرْآنَ" — النساء: 82
  */
 
-import { IQRAMemory } from '../03-memory/memory';
+import { IQRAMemory } from '#memory/memory';
 
 export interface QuranicPattern {
   root: string;

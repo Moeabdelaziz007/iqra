@@ -8,7 +8,7 @@
  */
 
 import { execSync } from 'child_process';
-import { IQRALogger } from '../12-infrastructure/logger';
+import { IQRALogger } from '#infra/logger';
 
 export class GitSkill {
   

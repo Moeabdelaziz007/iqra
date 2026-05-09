@@ -1,9 +1,9 @@
-import { SovereignWorker } from './protocol.ts';
-import type { WorkerResult, MissionState } from './protocol.ts';
-import { ConnectorFactory, Provider } from '../../../src/connectors/index.ts';
-import { FULL_SYSTEM_PROMPT } from '../prompts.ts';
-import { IQRAMemory } from '../03-memory/memory.js';
-import { assertConscience } from './worker_conscience.ts';
+import { SovereignWorker } from './protocol';
+import type { WorkerResult, MissionState } from './protocol';
+import { ConnectorFactory, Provider } from '@/connectors/index';
+import { FULL_SYSTEM_PROMPT } from '#utils/prompts';
+import { IQRAMemory } from '#memory/memory';
+import { assertConscience } from './worker_conscience';
 
 export class ExecutionWorker extends SovereignWorker {
   id = 'ExecutionWorker';

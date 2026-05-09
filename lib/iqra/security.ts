@@ -1,1 +1,1 @@
-export * from './06-security/security.ts';
+export * from '#security/security';

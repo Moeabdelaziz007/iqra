@@ -7,9 +7,9 @@
  * كل وكيل يُعلن نيته قبل التنفيذ — يُفحص بواسطة DamirConscience.
  */
 
-import type { WorkerReport, MissionHandoff, CommandLog } from '../../../agents/contracts.ts';
+import type { WorkerReport, MissionHandoff, CommandLog } from '#security/contracts';
 export type { WorkerReport, MissionHandoff, CommandLog };
-import type { Provider } from '../../../src/connectors/index.ts';
+import type { Provider } from '@/connectors/index';
 
 export interface MissionState {
   initial_input: string;

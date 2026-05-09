@@ -4,11 +4,11 @@
  * Orchestrates the 20-minute autonomous evolution cycle.
  */
 
-import { DamirKernel } from '../06-security/damir_kernel';
+import { DamirKernel } from '#security/damir_kernel';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { TadabburLoop } from '../quran/discovery_loop';
+import { TadabburLoop } from '#quran/discovery_loop';
 
 const damir = new DamirKernel();
 

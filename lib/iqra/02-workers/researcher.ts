@@ -20,11 +20,11 @@
 
 import fs from 'fs';
 import path from 'path';
-import { MissionContext, HandoffResult } from '../01-core/mission-context.js';
-import { appendToTrustChain } from '../security.ts';
-import { IQRALogger } from '../12-infrastructure/logger.js';
-import { IQRA_SOUL } from '../prompts.ts';
-import type { SourceAttestation } from '../../../agents/contracts.ts';
+import { MissionContext, HandoffResult } from '#core/mission-context';
+import { appendToTrustChain } from '#security/security';
+import { IQRALogger } from '#infra/logger';
+import { IQRA_SOUL } from '#utils/prompts';
+import type { SourceAttestation } from '#security/contracts';
 
 // ── Embedded Dastūr Prompt Fragment ──────────────────────────────────────────
 // القواعد الدستورية تُحقن مباشرة في كل Prompt — لا تعتمد على ملف خارجي وحده.

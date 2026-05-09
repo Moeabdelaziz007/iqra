@@ -1,5 +1,5 @@
-import { Redis } from '@upstash/redis';
-import { QdrantClient } from '@qdrant/js-client-rest';
+import { Redis } from '@/upstash/redis';
+import { QdrantClient } from '@/qdrant/js-client-rest';
 import * as fs from 'fs';
 import * as path from 'path';
 

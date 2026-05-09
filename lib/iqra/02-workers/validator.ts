@@ -1,9 +1,9 @@
-import { SovereignWorker, WorkerResult, MissionState } from './protocol.ts';
-import type { MissionHandoff } from '../../../agents/contracts.ts';
+import { SovereignWorker, WorkerResult, MissionState } from './protocol';
+import type { MissionHandoff } from '#security/contracts';
 import * as fs from 'fs';
 import * as path from 'path';
-import { goEngine } from '../quran/go_engine_client';
-import { IQRALogger } from '../12-infrastructure/logger.js';
+import { goEngine } from '#quran/go_engine_client';
+import { IQRALogger } from '#infra/logger';
 
 export class ValidationWorker extends SovereignWorker {
   id = 'ValidationWorker';

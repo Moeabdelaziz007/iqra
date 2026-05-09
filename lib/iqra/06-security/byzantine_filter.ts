@@ -7,7 +7,7 @@
  * "وَإِذَا جَاءُوكُمْ قَالُوا آمَنَّا وَقَد دَّخَلُوا بِالْكُفْرِ" — المائدة: 61
  */
 
-import { IQRALogger } from '../12-infrastructure/logger';
+import { IQRALogger } from '#infra/logger';
 
 export interface AnomalyReport {
   isAnomaly: boolean;

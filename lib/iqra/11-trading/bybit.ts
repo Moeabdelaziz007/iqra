@@ -7,9 +7,9 @@
  * "وَأَقِيمُوا الْوَزْنَ بِالْقِسْطِ وَلَا تُخْسِرُوا الْمِيزَانَ" — الرحمن: 9
  */
 
-import { IQRALogger } from '../12-infrastructure/logger';
-import { IQRAMemory } from '../03-memory/memory';
-import { ByzantineFilter } from '../06-security/byzantine_filter';
+import { IQRALogger } from '#infra/logger';
+import { IQRAMemory } from '#memory/memory';
+import { ByzantineFilter } from '#security/byzantine_filter';
 
 export interface BybitTicker {
   symbol: string;

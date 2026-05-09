@@ -25,8 +25,8 @@
  */
 
 import path from 'path';
-import { IQRALogger } from '../12-infrastructure/logger.js';
-import { appendToTrustChain } from '../security.ts';
+import { IQRALogger } from '#infra/logger';
+import { appendToTrustChain } from '#security/security';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 

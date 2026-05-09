@@ -12,11 +12,11 @@
  *   await assertConscience(this.id, this.intention, state.metadata.mission_id);
  */
 
-import { DamirConscience } from '../damir_conscience.ts';
-import { ResourceFactory } from '../conscience/resource_factory.ts';
-import { SovereignError, SovereignErrorCode } from '../../../src/errors/sovereign_error.ts';
-import { logToIQRAFile, appendToTrustChain } from '../security.ts';
-import { IQRALogger } from '../12-infrastructure/logger.js';
+import { DamirConscience } from '#security/conscience/damir_conscience';
+import { ResourceFactory } from '#security/conscience/resource_factory';
+import { SovereignError, SovereignErrorCode } from '@/errors/sovereign_error';
+import { logToIQRAFile, appendToTrustChain } from '#security/security';
+import { IQRALogger } from '#infra/logger';
 
 // ── Singleton per-worker (lazy) ───────────────────────────────────────────────
 const _workerDamirs = new Map<string, DamirConscience>();

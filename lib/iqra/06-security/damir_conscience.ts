@@ -436,6 +436,6 @@ export class DamirConscience {
 
 /**
  * الضمير العام للنظام — instance واحد لكل العمال
- * يُستخدم كـ: import { globalDamir } from './damir_conscience.ts'
+ * يُستخدم كـ: import { globalDamir } from '#security/conscience/damir_conscience'
  */
 export const globalDamir = new DamirConscience();

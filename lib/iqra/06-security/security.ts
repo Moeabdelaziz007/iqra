@@ -38,7 +38,7 @@ export class SovereignError extends Error {
 
 // import { z } from 'zod'; // Sovereign fallback handled below
 import { createHash, randomBytes } from 'crypto';
-import { IQRAMemory } from '#memory/memory.ts';
+import { IQRAMemory } from '#memory/memory';
 import fs from 'fs';
 import { promises as fsPromises } from 'fs';
 import path from 'path';
