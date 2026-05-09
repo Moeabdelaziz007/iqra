@@ -31,6 +31,7 @@ import { BybitEngine } from './bybit.ts';
 import { IQRALogger } from './logger.ts';
 import { PulseEngine } from '../../orchestrator/pulse-engine.ts';
 import { TopologicalAnalyzer } from './skills/topological_analyzer.ts';
+import { TawbahLoop } from './evolution/tawbah_loop.ts';
 
 /**
  * Sovereign Pulse Categories — 3-6-9 Geometry
@@ -299,9 +300,10 @@ export class SovereignEngine {
       await this.triggerSelfDiscovery();
     }
 
-    // 5. Purification Pulse (2400s): Tazkiyah
-    if (cycle % 266 === 0) { // Using 266 as a proxy for ~40m
+    // 5. Purification Pulse (2400s): Tazkiyah & Tawbah
+    if (cycle % 266 === 0) { 
       await this.performTazkiyah();
+      await TawbahLoop.run(); // Autonomous self-correction
     }
 
     // Rule 6: Quantum Topology Mapping
