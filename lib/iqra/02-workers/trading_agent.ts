@@ -126,15 +126,32 @@ export class TradingAgent extends SovereignWorker {
     IQRALogger.info(`🕊️ [NIYYAH] Trading Intention: ${niyyah}`);
     HeartbeatSystem.pulse(`🚀 PROACTIVE: Trading intended for ${symbol}. Niyyah: ${niyyah}`);
     
-    // تنفيذ الصفقة عبر Bybit
+    // 🛡️ SECURITY: DRY_RUN mode to prevent real trading until explicitly enabled
+    const isDryRun = process.env.TRADING_DRY_RUN !== 'false';
+    
+    if (isDryRun) {
+      IQRALogger.warn(`⚠️ [DRY_RUN] Trading is in DRY_RUN mode. Set TRADING_DRY_RUN=false to enable real trading.`);
+      return {
+        status: 'dry_run',
+        message: 'Order simulated (DRY_RUN mode active)',
+        orderId: `DRY_RUN_${Date.now()}`,
+        symbol,
+        side,
+        amount,
+        niyyah
+      };
+    }
+    
+    // تنفيذ الصفقة عبر Bybit (only if DRY_RUN is explicitly disabled)
+    IQRALogger.warn(`💰 [REAL_TRADING] Executing REAL trade on Bybit`);
     const order = await this.bybit.placeOrder(side, symbol, amount);
-    return { 
-      status: 'success', 
-      orderId: order.id, 
-      symbol, 
-      side, 
+    return {
+      status: 'success',
+      orderId: order.id,
+      symbol,
+      side,
       amount,
-      niyyah 
+      niyyah
     };
   }
 

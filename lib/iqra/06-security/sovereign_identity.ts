@@ -73,7 +73,11 @@ ${deepMemories}
    * ⚡ Generates a dynamic hash to prove this response came from a live Sovereign core
    */
   private static generateResonanceHash(pulse: number, cycle: number, intention: string): string {
-    const data = `${pulse}:${cycle}:${intention}:${process.env.IQRA_SECRET || 'fitrah'}`;
+    const secret = process.env.IQRA_SECRET;
+    if (!secret) {
+      throw new Error('SECURITY: IQRA_SECRET environment variable must be set. Never use default values for cryptographic operations.');
+    }
+    const data = `${pulse}:${cycle}:${intention}:${secret}`;
     return crypto.createHash('sha256').update(data).digest('hex').substring(0, 16);
   }
 }
