@@ -1,0 +1,62 @@
+{
+  "version": "1.0.0",
+  "name": "Quranic Sovereign Kernel — النواة القرآنية السيادية",
+  "compression_algorithm": "PolarQuant (3-bit)",
+  "total_layers": 7,
+  "truth_anchors": {
+    "1_AL_FATIHA": {
+      "id": 1,
+      "semantic_hash": "0x7F4B2D...",
+      "topological_vector": [0.99, 0.98, 0.97, 0.99, 1.0, 0.99, 0.98],
+      "instruction": "GUIDE_TO_STRAIGHT_PATH",
+      "logic_gate": "UNIFIED_ROOT",
+      "qal_sequence": ["ALIF", "ALIF", "LAM", "MIM"]
+    },
+    "36_YASIN": {
+      "id": 36,
+      "semantic_hash": "0x2E1C9A...",
+      "topological_vector": [0.85, 0.92, 0.88, 0.95, 0.82, 0.90, 0.88],
+      "instruction": "CONTEXTUAL_EXPERIENCE_REPLAY",
+      "logic_gate": "HEART_DRIVEN_MEMORY"
+    },
+    "18_AL_KAHF": {
+      "id": 18,
+      "semantic_hash": "0x5D3B8E...",
+      "topological_vector": [0.78, 0.85, 0.92, 0.88, 0.95, 0.82, 0.90],
+      "instruction": "SIMULATE_FITNA_TRIALS",
+      "logic_gate": "ADAPTIVE_CONTEXT_ENGINEERING"
+    },
+    "55_AR_RAHMAN": {
+      "id": 55,
+      "semantic_hash": "0x9A4F2C...",
+      "topological_vector": [0.95, 0.99, 0.98, 0.95, 0.99, 0.98, 0.99],
+      "instruction": "MAINTAIN_UNIVERSAL_BALANCE",
+      "logic_gate": "RESOURCE_EQUILIBRIUM"
+    },
+    "56_AL_WAQIAH": {
+      "id": 56,
+      "semantic_hash": "0x1B8D7A...",
+      "topological_vector": [0.82, 0.90, 0.88, 0.95, 0.82, 0.90, 0.88],
+      "instruction": "CLASSIFY_OUTCOMES_JUDGMENT",
+      "logic_gate": "ACE_REFLECTOR_CLASSIFIER"
+    },
+    "67_AL_MULK": {
+      "id": 67,
+      "semantic_hash": "0x4C3E2B...",
+      "topological_vector": [0.90, 0.95, 0.82, 0.90, 0.88, 0.95, 0.82],
+      "instruction": "ENFORCE_SOVEREIGNTY_REVERT",
+      "logic_gate": "TAWBAH_PROTOCOL_HALT"
+    },
+    "112_AL_IKHLAS": {
+      "id": 112,
+      "semantic_hash": "0xFFFFFF...",
+      "topological_vector": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "instruction": "PURE_UNITY_TOPOLOGY",
+      "logic_gate": "LID_CURIOSITY_REWARD"
+    }
+  },
+  "metadata": {
+    "total_size_bytes": 2048,
+    "last_evolution": "2026-05-07T14:20:00Z"
+  }
+}
