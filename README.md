@@ -330,8 +330,8 @@ iqra/
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-09` |
-| 💡 **آخر خطوة \| Last Step** | refactor: remove Cloudflare worker telegram handler |
-| 🔗 **الـ Commit** | `eea88d8` |
+| 💡 **آخر خطوة \| Last Step** | restore /agents |
+| 🔗 **الـ Commit** | `79a8314` |
 
 <!-- IQRA-LATEST-END -->
 
