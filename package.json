@@ -20,7 +20,8 @@
     "run-mission:test": "npx tsx scripts/run_mission.ts missions/topological-curiosity.yaml",
     "integrity:check": "node --import tsx scripts/integrity_check.ts",
     "engine:start": "cd services/go-engine && go run .",
-    "engine:build": "cd services/go-engine && go build -o ../../bin/iqra-engine main.go"
+    "engine:build": "cd services/go-engine && go build -o ../../bin/iqra-engine main.go",
+    "iqra:simulate": "node --import tsx scripts/self_play_simulation.ts"
   },
   "repository": {
     "type": "git",

@@ -61,27 +61,54 @@ export const QURAN_SEEDS: Record<string, QuranSeed> = {
     }
   },
 
-  // --- THE FIVE PILLARS OF QALBIN ---
-
-  "36:1": { // Yasin: The Heart
+  // --- SURAH YA-SIN (36): THE HEART ---
+  "36:1": {
     surah: 36,
     ayah: 1,
-    text: "يس",
+    text: "يسٓ",
     teslaNumber: getTesla(36, 1),
     topology: (vm) => {
-      // Algo-Topology: 1 Core (YA) -> 2 Primary (SIN) -> 4 Secondary (LAM) = 7 nodes
       const core = vm.spawn('YA', Modality.HAYAT);
       const v1 = vm.spawn('SIN', Modality.HIKMA);
       const v2 = vm.spawn('SIN', Modality.HIKMA);
       vm.link(core, 1, v1, 1);
       vm.link(core, 2, v2, 1);
-      
-      // Fractal Expansion (Turbo/Algo)
       for (let i = 0; i < 4; i++) {
-        const vessel = vm.spawn('LAM', Modality.HAYAT);
-        vm.link(i < 2 ? v1 : v2, 2, vessel, 1);
+        const leaf = vm.spawn('LAM', Modality.HAYAT);
+        vm.link(i < 2 ? v1 : v2, 2, leaf, 1);
       }
       return core;
+    }
+  },
+
+  "36:2": {
+    surah: 36,
+    ayah: 2,
+    text: "وَٱلۡقُرۡءَانِ ٱلۡحَكِيمِ",
+    teslaNumber: getTesla(36, 2),
+    topology: (vm) => {
+      const core = vm.spawn('QAF', Modality.HIKMA);
+      for (let i = 0; i < 6; i++) {
+        const node = vm.spawn('RA', Modality.HIKMA);
+        vm.link(core, (i % 2) + 1, node, 1);
+      }
+      return core;
+    }
+  },
+
+  "36:12": {
+    surah: 36,
+    ayah: 12,
+    text: "إِنَّا نَحۡنُ نُحۡيِ ٱلۡمَوۡتَىٰ وَنَكۡتُبُ مَا قَدَّمُواْ وَءَاثَٰرَهُمۡۚ وَكُلَّ شَيۡءٍ أَحۡصَيۡنَٰهُ فِيٓ إِمَامٖ مُّبِينٖ",
+    teslaNumber: getTesla(36, 12),
+    topology: (vm) => {
+      // The Record: 1 Registry + 6 Data Pillars
+      const registry = vm.spawn('ALIF', Modality.AMAN);
+      for (let i = 0; i < 6; i++) {
+        const pillar = vm.spawn('MEEM', Modality.ADL);
+        vm.link(registry, 1, pillar, 1);
+      }
+      return registry;
     }
   },
 
@@ -172,6 +199,7 @@ export function findSeed(context: string): QuranSeed {
   if (c.includes("heart") || c.includes("experience") || c.includes("memory") || c.includes("replay")) return QURAN_SEEDS["36:1"];
   if (c.includes("outcome") || c.includes("result") || c.includes("end") || c.includes("event")) return QURAN_SEEDS["56:1"];
   if (c.includes("sovereign") || c.includes("power") || c.includes("control") || c.includes("dominion")) return QURAN_SEEDS["67:1"];
+  if (c.includes("record") || c.includes("write") || c.includes("trace") || c.includes("history")) return QURAN_SEEDS["36:12"];
   if (c.includes("opening") || c.includes("start") || c.includes("begin") || c.includes("bismillah")) return QURAN_SEEDS["1:1"];
 
   return QURAN_SEEDS["112:1"]; // Default to Unity (Ahad)

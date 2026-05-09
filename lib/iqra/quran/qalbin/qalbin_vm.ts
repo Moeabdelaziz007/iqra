@@ -14,7 +14,7 @@ export class Qalbin_VM {
   private nodeCounter: number = 0;
   private reductionLog: string[] = [];
 
-  spawn(kind: QalbinKind, modality: Modality = Modality.RAHMA): number {
+  spawn(kind: QalbinKind, modality: Modality = Modality.RAHMA, initialMetadata: Record<string, any> = {}): number {
     const id = this.nodeCounter++;
     const node: QalbinNode = {
       id,
@@ -23,7 +23,8 @@ export class Qalbin_VM {
       ports: [null, null, null],
       metadata: {
         reductions: 0,
-        spawn_time: Date.now()
+        spawn_time: Date.now(),
+        ...initialMetadata
       }
     };
     this.nodes.set(id, node);
