@@ -330,8 +330,8 @@ iqra/
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-10` |
-| 💡 **آخر خطوة \| Last Step** | full restoration: recover all core files from Git history |
-| 🔗 **الـ Commit** | `3e972b6` |
+| 💡 **آخر خطوة \| Last Step** | feat: add agent_mesh.ts with Muwakkil and Shahid agents |
+| 🔗 **الـ Commit** | `c4aa53c` |
 
 <!-- IQRA-LATEST-END -->
 
