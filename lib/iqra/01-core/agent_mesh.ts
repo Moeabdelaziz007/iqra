@@ -79,6 +79,7 @@ export class AgentBus {
  * الموكّل: مسؤول عن توزيع المهام وإدارة الحمل
  */
 export class AlMuwakkil {
+  static readonly role = MeshAgentRole.MUWAKKIL;
   /**
    * تعيين مهمة لوكيل مناسب
    */
@@ -176,6 +177,7 @@ export class AlMuwakkil {
  * شاهد الأداء: مسؤول عن مراجعة وتدقيق الأدوات
  */
 export class ShahidAlAdah {
+  static readonly role = MeshAgentRole.SHAHID;
   /**
    * تدقيق جميع الأدوات المتاحة
    */
