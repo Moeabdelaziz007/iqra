@@ -330,8 +330,8 @@ iqra/
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-09` |
-| 💡 **آخر خطوة \| Last Step** | fix(EMERGENCY): restore all 143 deleted files from catastrophic deletion |
-| 🔗 **الـ Commit** | `1817565` |
+| 💡 **آخر خطوة \| Last Step** | docs(TAWBAH): document catastrophic file deletion crisis and recovery |
+| 🔗 **الـ Commit** | `5b1b0c1` |
 
 <!-- IQRA-LATEST-END -->
 
