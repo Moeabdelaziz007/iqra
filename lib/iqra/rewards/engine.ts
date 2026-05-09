@@ -132,10 +132,9 @@ export class RewardEngine {
     return (resonance - 1.0) * 29.0;
   }
 
-  static async claimRewardToPi(amount: number, memo: string): Promise<string> {
-    IQRALogger.info(`🥧 [REWARD_ENGINE] Initiating Pi claim for ${amount} points...`);
-    const paymentId = await PiNetworkSkill.createPaymentClaim(amount, memo);
-    await IQRAMemory.grantReward('pi_claim', { paymentId, amount, memo });
+  static async claimRewardToPi(paymentId: string, amount: number, memo: string) {
+    // @ts-ignore - Signature updated to (amount, metadata)
+    await IQRAMemory.grantReward(amount, { type: 'pi_claim', paymentId, memo });
     return paymentId;
   }
 

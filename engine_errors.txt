@@ -1,0 +1,309 @@
+ledger/reward-ledger.ts(17,29): error TS2307: Cannot find module '../rewards/types' or its corresponding type declarations.
+lib/iqra/agents/email_agent.ts(10,26): error TS2307: Cannot find module 'imapflow' or its corresponding type declarations.
+lib/iqra/agents/email_agent.ts(11,30): error TS2307: Cannot find module 'mailparser' or its corresponding type declarations.
+lib/iqra/agents/email_agent.ts(15,32): error TS2307: Cannot find module '../../orchestrator/mission_control' or its corresponding type declarations.
+lib/iqra/audit/fithrah_baseline.ts(22,39): error TS2339: Property 'getFithrahCentroid' does not exist on type 'typeof IQRAMemory'.
+lib/iqra/audit/fithrah_baseline.ts(29,33): error TS2339: Property 'euclideanDistance' does not exist on type 'typeof IQRAMemory'.
+lib/iqra/audit/fithrah_baseline.ts(50,22): error TS2339: Property 'updateFithrahCentroid' does not exist on type 'typeof IQRAMemory'.
+lib/iqra/brain.ts(22,10): error TS2305: Module '"./sovereign_orchestrator"' has no exported member 'MissionControl'.
+lib/iqra/brain.ts(23,60): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/brain.ts(24,27): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/brain.ts(26,47): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/brain.ts(91,28): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/brain.ts(108,42): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/brain.ts(163,31): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/brain.ts(231,38): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/brain.ts(245,35): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/damir_conscience.ts(31,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/damir_conscience.ts(32,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/did.ts(57,11): error TS2353: Object literal may only specify known properties, and 'serviceEndpoint' does not exist in type '{ id: string; type: string; controller: string; publicKeyMultibase?: string; blockchainAccountId?: string; }'.
+lib/iqra/email.ts(10,24): error TS2307: Cannot find module 'resend' or its corresponding type declarations.
+lib/iqra/evolution.ts(19,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/evolution.ts(20,51): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/evolution.ts(21,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/evolution/league_manager.ts(9,34): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/evolution/league_manager.ts(55,19): error TS2339: Property 'split' does not exist on type 'ConnectorResponse'.
+lib/iqra/evolution/league_manager.ts(77,30): error TS2339: Property 'match' does not exist on type 'ConnectorResponse'.
+lib/iqra/evolution/search_369.ts(10,34): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/evolution/search_369.ts(87,19): error TS2339: Property 'split' does not exist on type 'ConnectorResponse'.
+lib/iqra/evolution/search_369.ts(110,66): error TS2345: Argument of type 'ConnectorResponse' is not assignable to parameter of type 'string'.
+lib/iqra/evolution/tawbah_loop.ts(12,34): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/git-ops.ts(147,36): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/heartbeat.ts(27,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/heartbeat.ts(28,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/heartbeat.ts(29,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/heartbeat.ts(30,26): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/heartbeat.ts(31,30): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/heartbeat.ts(32,34): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/heartbeat.ts(390,52): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/heartbeat.ts(390,59): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/heartbeat.ts(471,26): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/heartbeat.ts(472,24): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/intelligence/simulation_engine.ts(1,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/intelligence/simulation_engine.ts(2,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/intelligence/simulation_engine.ts(3,30): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/intelligence/simulation_engine.ts(4,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/intelligence/simulation_engine.ts(5,42): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/intelligence/simulation_engine.ts(6,30): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/llm/groq.ts(1,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/llm/groq.ts(2,44): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/llm/groq.ts(19,28): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/llm/groq.ts(79,42): error TS2339: Property 'choices' does not exist on type 'unknown'.
+lib/iqra/llm/groq.ts(133,38): error TS2339: Property 'choices' does not exist on type 'unknown'.
+lib/iqra/llm/ollama.ts(28,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/llm/ollama.ts(29,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/llm/ollama.ts(178,33): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/llm/ollama.ts(205,33): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/llm/ollama.ts(235,43): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/llm/ollama.ts(235,50): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/llm/ollama.ts(257,40): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/llm/ollama.ts(257,47): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/llm/ollama.ts(271,39): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/llm/ollama.ts(271,46): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory.ts(36,23): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory.ts(36,30): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory.ts(93,33): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory.ts(113,40): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory.ts(126,40): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory.ts(139,46): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory.ts(221,39): error TS2347: Untyped function calls may not accept type arguments.
+lib/iqra/memory.ts(223,9): error TS2322: Type 'unknown' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'unknown'.
+lib/iqra/memory.ts(265,33): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+lib/iqra/memory.ts(266,80): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+lib/iqra/memory.ts(298,30): error TS2347: Untyped function calls may not accept type arguments.
+lib/iqra/memory.ts(338,19): error TS2347: Untyped function calls may not accept type arguments.
+lib/iqra/memory.ts(362,19): error TS2347: Untyped function calls may not accept type arguments.
+lib/iqra/memory.ts(384,13): error TS2339: Property 'error' does not exist on type '{}'.
+lib/iqra/memory.ts(405,32): error TS2339: Property 'embedding' does not exist on type 'unknown'.
+lib/iqra/memory.ts(469,21): error TS2339: Property 'embedding' does not exist on type 'unknown'.
+lib/iqra/memory.ts(597,39): error TS2341: Property 'getQdrant' is private and only accessible within class 'IQRAMemory'.
+lib/iqra/memory.ts(614,38): error TS2341: Property 'getRedis' is private and only accessible within class 'IQRAMemory'.
+lib/iqra/memory.ts(636,39): error TS2341: Property 'getQdrant' is private and only accessible within class 'IQRAMemory'.
+lib/iqra/memory.ts(643,28): error TS2339: Property 'cosineSimilarity' does not exist on type 'typeof QuantumTopologyStore'.
+lib/iqra/memory/lancedb_plugin.ts(32,33): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/memory_bridge.ts(30,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/memory_bridge.ts(31,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/memory_bridge.ts(237,35): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/memory_bridge.ts(237,42): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/memory_bridge.ts(270,35): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/memory_bridge.ts(270,42): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/memory_bridge.ts(291,35): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/memory_bridge.ts(291,42): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/memory_bridge.ts(389,37): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/memory_bridge.ts(389,44): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/memory_bridge.ts(409,36): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/memory_bridge.ts(409,43): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/memory_bridge.ts(419,36): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/memory_bridge.ts(419,43): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/memory_topology.ts(27,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/memory_topology.ts(28,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/memory_topology.ts(29,29): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/memory_topology.ts(30,30): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/memory_topology.ts(196,42): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/memory_topology.ts(196,49): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/memory_topology.ts(269,40): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/memory_topology.ts(269,47): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/memory_topology.ts(300,46): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/memory_topology.ts(300,53): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/micro_memory.ts(36,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/micro_memory.ts(37,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/micro_memory.ts(38,33): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/micro_memory.ts(165,29): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/micro_memory.ts(170,31): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/micro_memory.ts(945,25): error TS2677: A type predicate's type must be assignable to its parameter's type.
+  Type 'SimilarPattern' is not assignable to type '{ id: any; verse: any; field: any; resonance_score: any; similarity: number; shannon_hel: any; }'.
+    Property 'shannon_hel' is optional in type 'SimilarPattern' but required in type '{ id: any; verse: any; field: any; resonance_score: any; similarity: number; shannon_hel: any; }'.
+lib/iqra/memory/pattern_memory.ts(19,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/pattern_memory.ts(20,44): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/pattern_memory.ts(58,38): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/pattern_memory.ts(205,32): error TS2339: Property 'map' does not exist on type 'unknown'.
+lib/iqra/memory/pattern_memory.ts(291,22): error TS2339: Property 'vectors_count' does not exist on type 'unknown'.
+lib/iqra/memory/pulse_369.ts(31,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/pulse_369.ts(32,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/pulse_369.ts(33,48): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/pulse_369.ts(241,37): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/pulse_369.ts(241,44): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/pulse_369.ts(265,36): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/pulse_369.ts(265,43): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/pulse_369.ts(303,37): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/pulse_369.ts(303,44): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/pulse_369.ts(355,37): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/pulse_369.ts(355,44): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/pulse_369.ts(405,35): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/pulse_369.ts(405,42): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/pulse_369.ts(414,34): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/pulse_369.ts(437,40): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/pulse_369.ts(437,47): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/pulse_369.ts(450,42): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/pulse_369.ts(450,49): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/pulse_369.ts(466,37): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/pulse_369.ts(466,44): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/pulse_369.ts(529,36): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/pulse_369.ts(529,43): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/pulse_369.ts(547,36): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/memory/pulse_369.ts(547,43): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/turbo_compressor.ts(37,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/memory/turbo_compressor.ts(38,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/orchestrator.ts(8,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/orchestrator.ts(9,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/orchestrator.ts(18,54): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/orchestrator.ts(18,61): error TS2307: Cannot find module '@langchain/langgraph' or its corresponding type declarations.
+lib/iqra/orchestrator.ts(19,32): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/orchestrator.ts(19,39): error TS2307: Cannot find module '@langchain/groq' or its corresponding type declarations.
+lib/iqra/orchestrator.ts(20,33): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/orchestrator.ts(20,40): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/orchestrator.ts(63,48): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/orchestrator.ts(63,55): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/orchestrator.ts(67,44): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/orchestrator.ts(67,51): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/quran/qalbin/qalbin_vm.ts(56,137): error TS2345: Argument of type '"CRITICAL"' is not assignable to parameter of type '"FATAL" | "WARNING" | "INFO"'.
+lib/iqra/quran/qalbin/qalbin_vm.ts(89,110): error TS2345: Argument of type '"CRITICAL"' is not assignable to parameter of type '"FATAL" | "WARNING" | "INFO"'.
+lib/iqra/quran/qalbin/qalbin_vm.ts(96,139): error TS2345: Argument of type '"HALT"' is not assignable to parameter of type '"FATAL" | "WARNING" | "INFO"'.
+lib/iqra/quran/qalbin/quran_seeds.ts(40,31): error TS2345: Argument of type '"RA" | "MEEM"' is not assignable to parameter of type 'QalbinKind'.
+  Type '"MEEM"' is not assignable to type 'QalbinKind'.
+lib/iqra/quran/qalbin/quran_seeds.ts(108,33): error TS2345: Argument of type '"MEEM"' is not assignable to parameter of type 'QalbinKind'.
+lib/iqra/quran/qalbin/quran_seeds.ts(140,31): error TS2345: Argument of type '"MEEM"' is not assignable to parameter of type 'QalbinKind'.
+lib/iqra/quran/qalbin/quran_seeds.ts(175,29): error TS2345: Argument of type '"MEEM"' is not assignable to parameter of type 'QalbinKind'.
+lib/iqra/quran/sovereign_connector.ts(5,14): error TS2515: Non-abstract class 'SovereignConnector' does not implement inherited abstract member name from class 'BaseConnector'.
+lib/iqra/quran/sovereign_connector.ts(30,56): error TS2353: Object literal may only specify known properties, and 'total_tokens' does not exist in type '{ prompt_tokens: number; completion_tokens: number; }'.
+lib/iqra/quran/topological_curiosity.ts(30,27): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/quran/topological_curiosity.ts(31,26): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/quran/topological_curiosity.ts(32,39): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/quran/topological_curiosity.ts(33,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/quran/topological_curiosity.ts(34,31): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/quran/topological_curiosity.ts(35,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/quran/topological_curiosity.ts(36,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/quran/topological_curiosity.ts(37,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/quran/topological_curiosity.ts(38,40): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/rewards/engine.ts(117,53): error TS2554: Expected 1 arguments, but got 2.
+lib/iqra/rewards/engine.ts(141,46): error TS2554: Expected 1 arguments, but got 2.
+lib/iqra/rewards/engine.ts(149,39): error TS2339: Property 'getFithrahCentroid' does not exist on type 'typeof IQRAMemory'.
+lib/iqra/rewards/engine.ts(152,33): error TS2339: Property 'euclideanDistance' does not exist on type 'typeof IQRAMemory'.
+lib/iqra/rewards/ledger.ts(15,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/rewards/ledger.ts(16,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/security.ts(41,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/security.ts(98,18): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/security.ts(304,47): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/skill_bank.ts(6,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/skill_bank.ts(7,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/skills/inverse_design.ts(10,34): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/skills/inverse_design.ts(37,5): error TS2322: Type 'ConnectorResponse' is not assignable to type 'string'.
+lib/iqra/sovereign.ts(24,34): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign.ts(25,52): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign.ts(26,33): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign.ts(27,33): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign.ts(28,27): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign.ts(29,48): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign.ts(30,29): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign.ts(31,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign.ts(32,29): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign.ts(33,37): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign.ts(34,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign.ts(334,23): error TS2304: Cannot find name 'fs'.
+lib/iqra/sovereign.ts(334,39): error TS2304: Cannot find name 'path'.
+lib/iqra/sovereign.ts(436,19): error TS2339: Property 'includes' does not exist on type 'ConnectorResponse'.
+lib/iqra/sovereign.ts(437,38): error TS2339: Property 'split' does not exist on type 'ConnectorResponse'.
+lib/iqra/sovereign.ts(447,28): error TS2339: Property 'DISCOVERY_FAILURE' does not exist on type 'typeof SovereignErrorCode'.
+lib/iqra/sovereign.ts(448,9): error TS2345: Argument of type '`Discovery loop failed: ${any}`' is not assignable to parameter of type 'SovereignErrorCode'.
+lib/iqra/sovereign_identity.ts(9,27): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign_identity.ts(11,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign_identity.ts(24,41): error TS2339: Property 'getErrorCount' does not exist on type 'typeof IQRAMemory'.
+lib/iqra/sovereign_orchestrator.ts(1,33): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign_orchestrator.ts(2,32): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign_orchestrator.ts(3,34): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign_orchestrator.ts(4,33): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign_orchestrator.ts(6,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign_orchestrator.ts(10,51): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign_orchestrator.ts(11,33): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign_orchestrator.ts(12,30): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign_orchestrator.ts(13,35): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign_orchestrator.ts(14,37): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign_orchestrator.ts(15,27): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign_orchestrator.ts(16,31): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign_orchestrator.ts(17,33): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign_orchestrator.ts(18,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign_orchestrator.ts(25,39): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/sovereign_orchestrator.ts(25,46): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/sovereign_orchestrator.ts(311,44): error TS2339: Property 'grantFromReports' does not exist on type 'typeof RewardEngine'.
+lib/iqra/topology/codebase_mapper.ts(3,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/topology/obsidian_bridge.ts(24,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/topology/obsidian_bridge.ts(25,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/topology/obsidian_bridge.ts(356,35): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/topology/obsidian_bridge.ts(356,42): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/trading/bybit_client.ts(40,29): error TS2345: Argument of type 'Record<string, unknown>' is not assignable to parameter of type 'string | Record<string, string> | URLSearchParams | string[][]'.
+  Type 'Record<string, unknown>' is missing the following properties from type 'string[][]': length, pop, push, concat, and 35 more.
+lib/iqra/trading/self_play_loop.ts(5,10): error TS2305: Module '"../workers/reporter"' has no exported member 'MissionReporter'.
+lib/iqra/trading/self_play_loop.ts(60,9): error TS2345: Argument of type '"MARKET_EXECUTION"' is not assignable to parameter of type '"Annihilation" | "Commutation" | "Other"'.
+lib/iqra/voice.ts(26,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/voice.ts(27,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/voice.ts(349,28): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/voice.ts(402,28): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/workers/execution.ts(1,33): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/execution.ts(3,44): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/execution.ts(4,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/execution.ts(5,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/execution.ts(6,34): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/job_hunter.ts(15,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/job_hunter.ts(16,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/job_hunter.ts(17,34): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/job_hunter.ts(18,34): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/mission_validator.ts(12,47): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/mission_validator.ts(13,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/mission_validator.ts(14,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/mission_validator.ts(183,5): error TS2741: Property 'commands_run' is missing in type '{ status: "success" | "failure"; worker: string; next: string; data: { report: ValidationReport; reportPath: string; resonance_score: number; hallucination_penalty: number; }; ... 5 more ...; timestamp: number; }' but required in type 'HandoffResult'.
+lib/iqra/workers/mission_validator.ts(199,5): error TS2741: Property 'commands_run' is missing in type '{ status: "failure"; worker: string; next: null; data: { report: { verdict: string; violations: any[]; }; }; artifacts: undefined[]; implemented: string[]; undone: string[]; issues: string[]; procedures_followed: false; timestamp: number; }' but required in type 'HandoffResult'.
+lib/iqra/workers/protocol.ts(60,5): error TS2739: Type '{ mission_id: string; worker_id: string; implemented: undefined[]; undone: undefined[]; commands_run: undefined[]; issues_discovered: undefined[]; skills_used: undefined[]; procedures_followed: true; status: "PASS"; exit_code: number; timestamp: number; }' is missing the following properties from type 'WorkerReport': source_attestations, no_mock_verified
+lib/iqra/workers/reporter.ts(22,47): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/reporter.ts(23,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/reporter.ts(24,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/reporter.ts(25,30): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/reporter.ts(26,30): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/reporter.ts(27,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/reporter.ts(28,31): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/reporter.ts(29,47): error TS2307: Cannot find module '../../../rewards/types.ts' or its corresponding type declarations.
+lib/iqra/workers/reporter.ts(134,39): error TS2551: Property 'computeTotalReward' does not exist on type 'typeof RewardEngine'. Did you mean 'computeReward'?
+lib/iqra/workers/reporter.ts(167,11): error TS2554: Expected 5 arguments, but got 6.
+lib/iqra/workers/reporter.ts(167,20): error TS2339: Property 'fractal_depth' does not exist on type 'ResearchOutput'.
+lib/iqra/workers/reporter.ts(197,5): error TS2741: Property 'commands_run' is missing in type '{ status: "success"; worker: string; next: null; data: { rewardOutput: any; entry: RewardEntry; multiplier: number; novelty_score: number; embedding_dims: number; }; artifacts: string[]; implemented: string[]; undone: string[]; issues: string[]; procedures_followed: true; timestamp: number; }' but required in type 'HandoffResult'.
+lib/iqra/workers/reporter.ts(220,5): error TS2741: Property 'commands_run' is missing in type '{ status: "failure"; worker: string; next: null; data: {}; artifacts: undefined[]; implemented: string[]; undone: string[]; issues: string[]; procedures_followed: any; timestamp: number; }' but required in type 'HandoffResult'.
+lib/iqra/workers/research.ts(1,61): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/research.ts(5,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/research.ts(6,34): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/research.ts(76,13): error TS2739: Type '{ mission_id: string; from_worker: string; to_worker: string; timestamp: number; artifacts: undefined[]; pending_tasks: string[]; known_issues: string[]; validation_rules: string[]; context_data: { ...; }; }' is missing the following properties from type 'MissionHandoff': intent, context_snapshot, validation_gates
+lib/iqra/workers/researcher.ts(23,47): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/researcher.ts(24,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/researcher.ts(25,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/researcher.ts(26,27): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/researcher.ts(114,44): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/workers/researcher.ts(138,30): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+lib/iqra/workers/researcher.ts(295,5): error TS2741: Property 'commands_run' is missing in type '{ status: "success"; worker: string; next: string; data: { output: ResearchOutput; outputPath: string; }; artifacts: string[]; implemented: string[]; undone: string[]; issues: string[]; procedures_followed: true; timestamp: number; }' but required in type 'HandoffResult'.
+lib/iqra/workers/researcher.ts(311,5): error TS2741: Property 'commands_run' is missing in type '{ status: "failure"; worker: string; next: null; data: {}; artifacts: undefined[]; implemented: string[]; undone: string[]; issues: string[]; procedures_followed: false; timestamp: number; }' but required in type 'HandoffResult'.
+lib/iqra/workers/resonance.ts(19,61): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/resonance.ts(21,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/resonance.ts(22,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/resonance.ts(23,32): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/resonance.ts(84,13): error TS2739: Type '{ mission_id: string; from_worker: string; to_worker: string; timestamp: number; artifacts: undefined[]; pending_tasks: string[]; known_issues: string[]; validation_rules: string[]; context_data: { ...; }; }' is missing the following properties from type 'MissionHandoff': intent, context_snapshot, validation_gates
+lib/iqra/workers/resonance.ts(183,7): error TS2741: Property 'commands_run' is missing in type '{ status: "success"; worker: string; next: string; data: { outputPath: any; topological_score: number; pattern_matched: string; resonance_entropy: number; soul_alignment: number; }; artifacts: undefined[]; ... 4 more ...; timestamp: number; }' but required in type 'HandoffResult'.
+lib/iqra/workers/resonance.ts(217,5): error TS2741: Property 'commands_run' is missing in type '{ status: "success"; worker: string; next: string; data: { outputPath: any; topological_score: number; pattern_matched: string; resonance_entropy: number; soul_alignment: number; }; artifacts: undefined[]; ... 4 more ...; timestamp: number; }' but required in type 'HandoffResult'.
+lib/iqra/workers/resonance.ts(238,5): error TS2741: Property 'commands_run' is missing in type '{ status: "success"; worker: string; next: string; data: { topological_score: number; pattern_matched: string; resonance_entropy: number; soul_alignment: number; outputPath: any; }; artifacts: undefined[]; ... 4 more ...; timestamp: number; }' but required in type 'HandoffResult'.
+lib/iqra/workers/trading_agent.ts(1,71): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/trading_agent.ts(2,30): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/trading_agent.ts(3,29): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/trading_agent.ts(4,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/trading_agent.ts(5,44): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/trading_agent.ts(6,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/trading_agent.ts(7,33): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/trading_agent.ts(46,21): error TS2339: Property 'pulse' does not exist on type 'typeof HeartbeatSystem'.
+lib/iqra/workers/trading_agent.ts(127,21): error TS2339: Property 'pulse' does not exist on type 'typeof HeartbeatSystem'.
+lib/iqra/workers/validator.ts(1,61): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/validator.ts(56,38): error TS2339: Property 'is_truth_pattern' does not exist on type 'ResonanceResult'.
+lib/iqra/workers/validator.ts(79,13): error TS2739: Type '{ mission_id: string; from_worker: string; to_worker: string; timestamp: number; artifacts: undefined[]; pending_tasks: string[]; known_issues: string[]; validation_rules: string[]; context_data: { ...; }; }' is missing the following properties from type 'MissionHandoff': intent, context_snapshot, validation_gates
+lib/iqra/workers/worker_conscience.ts(15,33): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/worker_conscience.ts(16,33): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/worker_conscience.ts(17,52): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/worker_conscience.ts(18,51): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+lib/iqra/workers/worker_conscience.ts(19,28): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+scripts/topological_resonance_hunter.ts(15,30): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+scripts/topological_resonance_hunter.ts(252,5): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', 'node20', or 'nodenext'.
+src/connectors/index.ts(57,121): error TS2304: Cannot find name 'ConnectorResponse'.

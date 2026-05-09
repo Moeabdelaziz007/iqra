@@ -16,7 +16,7 @@ export class GoogleConnector extends BaseConnector {
     }
 
     async generate(prompt: string, context: { role: 'user' | 'assistant' | 'system'; content: string }[] = []): Promise<ConnectorResponse> {
-        try {
+        return this.withQuantumResilience(async () => {
             const systemPrompt = context.find(m => m.role === 'system')?.content || IQRA_SYSTEM_PROMPT;
             const history = context
                 .filter(m => m.role !== 'system')
@@ -41,8 +41,30 @@ export class GoogleConnector extends BaseConnector {
                 content,
                 model: 'gemini-1.5-pro'
             };
-        } catch (error: any) {
-            this.handleFailure(error, 'GOOGLE_GENERATE');
+        });
+    }
+
+    private async withQuantumResilience<T>(fn: () => Promise<T>, attempts: number = 5): Promise<T> {
+        const backoff = [1000, 2000, 4000, 8000, 16000];
+        
+        for (let i = 0; i < attempts; i++) {
+            try {
+                return await fn();
+            } catch (error: any) {
+                const isRateLimit = error.message?.includes('429') || 
+                                  error.message?.includes('RESOURCE_EXHAUSTED') ||
+                                  error.status === 429;
+
+                if (isRateLimit && i < attempts - 1) {
+                    const delay = backoff[i] + Math.random() * 1000;
+                    console.warn(`🌀 [Quantum Resilience] 429 Detected. Rerouting via Temporal Backoff: ${delay.toFixed(0)}ms (Sequence ${i + 1}/${attempts})`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    continue;
+                }
+
+                this.handleFailure(error, 'GOOGLE_GENERATE');
+            }
         }
+        throw new Error('Quantum Resonance Failure: Max reconnection attempts exhausted.');
     }
 }

@@ -1,23 +1,20 @@
 /* 
- * 🌀 IQRA Sovereign Styles — نظام الأنماط السيادي
- * 
- * "وَزَيَّنَّا السَّمَاءَ الدُّنْيَا بِمَصَابِيحَ وَحِفْظًا" — فصلت: 12
- * 
- * Theme: Cairo Cyberpunk
+ * 🌀 IQRA Sovereign Styles — Sovereign OS Design System
+ * Theme: Obsidian & Gold (Cyberpunk Cairo)
  */
 
 :root {
-  /* Core Palette */
-  --iqra-black: #0a0a0a;
-  --iqra-dark: #111111;
-  --iqra-surface: rgba(26, 26, 26, 0.8);
-  --iqra-border: #2a2a2a;
+  /* Core Palette (Obsidian) */
+  --iqra-black: #050505;
+  --iqra-dark: #0a0a0a;
+  --iqra-surface: rgba(13, 13, 13, 0.9);
+  --iqra-border: #1a1a1a;
   
-  /* Neon Accents */
-  --iqra-neon: #39ff14;
-  --iqra-neon-dim: #2ecc0f;
-  --iqra-neon-glow: rgba(57, 255, 20, 0.15);
-  --iqra-neon-glow-strong: rgba(57, 255, 20, 0.3);
+  /* Gold Accents (High-Precision) */
+  --iqra-neon: #D4AF37; /* Metallic Gold */
+  --iqra-neon-dim: #996515;
+  --iqra-neon-glow: rgba(212, 175, 55, 0.1);
+  --iqra-neon-glow-strong: rgba(212, 175, 55, 0.25);
   
   /* Functional Colors */
   --iqra-error: #ff3131;
@@ -25,12 +22,7 @@
   --iqra-info: #00d2ff;
   
   /* Typography */
-  --iqra-font-ar: 'Noto Sans Arabic', sans-serif;
-  --iqra-font-en: 'Inter', sans-serif;
-}
-
-[dir="rtl"] {
-  font-family: var(--iqra-font-ar);
+  --iqra-font-en: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 body {
@@ -40,75 +32,84 @@ body {
   padding: 0;
   overflow-x: hidden;
   font-family: var(--iqra-font-en);
+  letter-spacing: -0.01em;
 }
 
 /* 🧪 Glassmorphism Surface */
 .glass-surface {
   background: var(--iqra-surface);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--iqra-border);
-  border-radius: 12px;
+  border-radius: 8px;
 }
 
-/* ⚡ Neon Pulse & Glow */
+/* ⚡ Gold Pulse & Glow */
 .neon-text {
   color: var(--iqra-neon);
-  text-shadow: 0 0 8px var(--iqra-neon-glow);
+  text-shadow: 0 0 10px var(--iqra-neon-glow);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
 .neon-border {
-  border: 1px solid var(--iqra-neon);
-  box-shadow: 0 0 15px var(--iqra-neon-glow);
+  border: 1px solid var(--iqra-border);
+  transition: all 0.3s ease;
+}
+
+.neon-border:hover {
+  border-color: var(--iqra-neon);
+  box-shadow: 0 0 20px var(--iqra-neon-glow);
 }
 
 /* 🌀 Keyframes */
 @keyframes neon-pulse {
   0% { opacity: 1; filter: brightness(1); }
-  50% { opacity: 0.7; filter: brightness(1.5); }
+  50% { opacity: 0.8; filter: brightness(1.2); }
   100% { opacity: 1; filter: brightness(1); }
 }
 
 .pulse-neon {
-  animation: neon-pulse 3s infinite ease-in-out;
+  animation: neon-pulse 4s infinite ease-in-out;
 }
 
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
 }
 
-.float {
-  animation: float 6s infinite ease-in-out;
+.scanline::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(to bottom, transparent, var(--iqra-neon-glow), transparent);
+  animation: scanline 8s infinite linear;
+  pointer-events: none;
+  opacity: 0.1;
 }
 
-/* 📖 Logical Properties (RTL Support) */
+/* 📖 Layout Utilities */
 .iqra-padding {
-  padding-inline-start: 1.5rem;
-  padding-inline-end: 1.5rem;
-  padding-block: 1rem;
-}
-
-.iqra-margin {
-  margin-inline-start: auto;
+  padding: 1.5rem;
 }
 
 /* 🔗 TrustChain Visualizer */
 .trust-chain-node {
   position: relative;
-  padding-inline-start: 1rem;
-  border-inline-start: 2px solid var(--iqra-neon);
+  padding-left: 1.5rem;
+  border-left: 1px solid var(--iqra-border);
 }
 
 .trust-chain-node::before {
   content: '';
   position: absolute;
-  inset-inline-start: -6px;
+  left: -4px;
   top: 0.5rem;
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   background: var(--iqra-neon);
-  border-radius: 50%;
-  box-shadow: 0 0 10px var(--iqra-neon);
+  border-radius: 2px;
+  box-shadow: 0 0 8px var(--iqra-neon);
 }
+

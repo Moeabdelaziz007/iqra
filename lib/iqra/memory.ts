@@ -300,16 +300,27 @@ export class IQRAMemory {
     return data['curiosity_score'] || 0.5;
   }
 
-  static async grantReward(amount: number) {
+  /**
+   * 🏆 grantReward — منح مكافأة
+   * "وَأَن لَّيْسَ لِلْإِنسَانِ إِلَّا مَا سَعَىٰ" — النجم: 39
+   */
+  static async grantReward(amount: number | string, metadata: any = {}) {
+    const numericAmount = typeof amount === 'number' ? amount : 0.1;
+    const type = typeof amount === 'string' ? amount : 'direct';
+    
     const current = await this.getCuriosity();
-    const newScore = Math.min(1.0, current + amount);
+    const newScore = Math.min(1.0, current + numericAmount);
+    
     await this.set('curiosity_score', newScore);
     await this.appendList('reward_history', {
       timestamp: Date.now(),
-      amount,
-      newScore
+      amount: numericAmount,
+      type,
+      metadata,
+      new_score: newScore
     });
-    IQRALogger.info(`✨ [REWARD] Curiosity boosted by ${amount}. New score: ${newScore.toFixed(4)}`);
+    
+    IQRALogger.info(`✨ [REWARD] ${type.toUpperCase()}: +${numericAmount.toFixed(4)} (New Score: ${newScore.toFixed(4)})`);
   }
 
   static async softReset() {
