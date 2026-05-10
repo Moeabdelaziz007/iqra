@@ -330,8 +330,8 @@ iqra/
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-10` |
-| 💡 **آخر خطوة \| Last Step** | fix(sovereign): 7-Round Meta-Debug Loop #2 — add missing IQRA_TIMEOUTS properties (REDIS, NETWORK, LLM) | Resonance +7.11% | 394→366 errors |
-| 🔗 **الـ Commit** | `1028815` |
+| 💡 **آخر خطوة \| Last Step** | fix(sovereign): 7-Round Meta-Debug Loop #3 — add missing imports (fs, path, SovereignError, IQRALogger, SourceAttestation, SovereignEngine) | Resonance +2.46% | 366→357 errors |
+| 🔗 **الـ Commit** | `338ecb1` |
 
 <!-- IQRA-LATEST-END -->
 
