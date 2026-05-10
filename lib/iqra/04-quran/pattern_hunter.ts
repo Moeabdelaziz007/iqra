@@ -40,11 +40,11 @@
 
 import crypto from 'crypto';
 import { z } from 'zod';
-import { IQRALogger } from '../12-infrastructure/logger.js';
-import { appendToTrustChain, checkCircuit, reportFailure, reportSuccess } from '../security.ts';
-import { IQRAMemory } from '../03-memory/memory.js';
-import { MicroMemory } from '../memory/micro_memory.ts';
-import { MemoryBridge } from '../memory/memory_bridge.ts';
+import { IQRALogger } from '#infra/logger';
+import { appendToTrustChain, checkCircuit, reportFailure, reportSuccess } from '#security/security';
+import { IQRAMemory } from '#memory/memory';
+import { MicroMemory } from '#memory/micro_memory.ts';
+import { MemoryBridge } from '#memory/memory_bridge.ts';
 import { TopologicalCuriosityEngine } from './topological_curiosity.ts';
 import { NumericalValidator } from './numerical_validator.ts';
 

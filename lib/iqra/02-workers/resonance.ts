@@ -17,11 +17,11 @@
 import fs from 'fs';
 import path from 'path';
 import { SovereignWorker, WorkerResult, MissionState } from './protocol.ts';
-import type { MissionHandoff } from '../../../agents/contracts.ts';
-import { appendToTrustChain } from '../security.ts';
-import { IQRALogger } from '../12-infrastructure/logger.js';
-import { goEngine } from '../quran/go_engine_client.ts';
-import type { MissionContext, HandoffResult } from '../01-core/mission-context.js';
+import type { MissionHandoff } from '@/agents/contracts.ts';
+import { appendToTrustChain } from '#security/security';
+import { IQRALogger } from '#infra/logger';
+import { goEngine } from '#quran/go_engine_client.ts';
+import type { MissionContext, HandoffResult } from '#core/mission-context.js';
 
 export interface ResonanceData {
   topological_score: number;

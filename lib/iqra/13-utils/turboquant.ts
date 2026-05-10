@@ -8,7 +8,7 @@
  * "وَعَلَّمَكَ مَا لَمْ تَكُن تَعْلَمُ" — النساء: 113
  */
 
-import { IQRALogger } from '../12-infrastructure/logger';
+import { IQRALogger } from '#infra/logger';
 
 export interface QuantizedVector {
   data: Int8Array; // 8-bit quantization for extreme efficiency

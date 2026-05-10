@@ -19,14 +19,14 @@
 
 import fs from 'fs';
 import path from 'path';
-import { MissionContext, HandoffResult } from '../01-core/mission-context.js';
-import { appendToTrustChain } from '../security.ts';
-import { IQRALogger } from '../12-infrastructure/logger.js';
-import { RewardEngine } from '../rewards/engine.ts';
-import { RewardLedger } from '../../../ledger/reward-ledger.ts';
-import { IQRAMemory } from '../03-memory/memory.js';
-import { PatternMemory } from '../memory/pattern_memory.ts';
-import type { RewardInput, RewardEntry } from '../../../rewards/types.ts';
+import { MissionContext, HandoffResult } from '#core/mission-context.js';
+import { appendToTrustChain } from '#security/security';
+import { IQRALogger } from '#infra/logger';
+import { RewardEngine } from '#rewards/engine.ts';
+import { RewardLedger } from '@/ledger/reward-ledger.ts';
+import { IQRAMemory } from '#memory/memory.js';
+import { PatternMemory } from '#memory/pattern_memory.ts';
+import type { RewardInput, RewardEntry } from '@/rewards/types.ts';
 import type { ValidationReport } from './mission_validator.ts';
 import type { ResearchOutput } from './researcher.ts';
 

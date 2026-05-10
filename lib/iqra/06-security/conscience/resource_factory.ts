@@ -22,7 +22,7 @@
  */
 
 import crypto from 'crypto';
-import type { Resource, ResourceType } from '../damir_conscience.ts';
+import type { Resource, ResourceType } from '#security/damir_conscience';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

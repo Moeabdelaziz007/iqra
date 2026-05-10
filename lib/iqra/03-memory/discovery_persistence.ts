@@ -23,8 +23,8 @@ import crypto from 'crypto';
 import { IQRAMemory } from './memory';
 import { LanceDBPlugin } from './lancedb_plugin';
 import { PatternMemory } from './pattern_memory';
-import { IQRALogger } from '../12-infrastructure/logger';
-import { appendToTrustChain } from '../06-security/security';
+import { IQRALogger } from '#infra/logger';
+import { appendToTrustChain } from '#security/security';
 
 export interface Discovery {
   id: string;

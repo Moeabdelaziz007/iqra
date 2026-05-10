@@ -5,10 +5,10 @@
  * It combines "Embedding Curiosity" (Vector Space) with "Topological Curiosity" (Graph Space).
  */
 
-import { IQRAMemory } from '../03-memory/memory';
+import { IQRAMemory } from '#memory/memory';
 import { Qalbin_VM } from './qalbin/qalbin_vm';
 import { Modality } from './qalbin/qalbin_node';
-import { IQRALogger } from '../12-infrastructure/logger';
+import { IQRALogger } from '#infra/logger';
 
 export class CuriosityEngine {
   /**

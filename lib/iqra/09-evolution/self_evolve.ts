@@ -1,5 +1,5 @@
-import { IQRALogger } from '../12-infrastructure/logger.js';
-import { IQRAMemory } from '../03-memory/memory.js';
+import { IQRALogger } from '#infra/logger';
+import { IQRAMemory } from '#memory/memory';
 import { callEconomyModel } from '../llm/economy.ts';
 import fs from 'fs';
 import path from 'path';

@@ -1,11 +1,11 @@
-import { IQRAMemory } from '../03-memory/memory';
-import { iqraThink, IQRABrainMode } from './brain';
-import { applyIQRAStyle } from '../13-utils/style';
-import { DASTUR, MURAQABAH } from './constants';
-import { GrokVoiceService } from '../../../iqra-core/voice/voice_service';
-import { ShuraProtocol } from './shura';
-import { IQRAFilter } from '../filter';
-import { TAWBAH } from './tawbah';
+import { IQRAMemory } from '#memory/memory';
+import { iqraThink, IQRABrainMode } from '#core/brain';
+import { applyIQRAStyle } from '#utils/style';
+import { DASTUR, MURAQABAH } from '#core/constants';
+import { GrokVoiceService } from '@/iqra-core/voice/voice_service';
+import { ShuraProtocol } from '#core/shura';
+import { IQRAFilter } from '#security/filter';
+import { TAWBAH } from '#core/tawbah';
 
 export class AgentCore {
   private static voice = new GrokVoiceService();

@@ -1,5 +1,5 @@
-import { appendToTrustChain } from '../06-security/security';
-import { IQRALogger } from '../12-infrastructure/logger';
+import { appendToTrustChain } from '#security/security';
+import { IQRALogger } from '#infra/logger';
 
 export enum MeshAgentRole {
   MUWAKKIL = 'MUWAKKIL',

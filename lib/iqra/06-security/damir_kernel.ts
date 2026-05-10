@@ -8,11 +8,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { SovereignError } from '#security/security';
-import { Qalbin_VM } from '../quran/qalbin/qalbin_vm';
-import { findSeed } from '../quran/qalbin/quran_seeds';
-import { Modality } from '../quran/qalbin/qalbin_node';
-import { storeReflectionInQdrant } from '../12-infrastructure/qdrant';
-import { discover, PatternType } from '../quran/pattern_engine';
+import { Qalbin_VM } from '#quran/qalbin/qalbin_vm';
+import { findSeed } from '#quran/qalbin/quran_seeds';
+import { Modality } from '#quran/qalbin/qalbin_node';
+import { storeReflectionInQdrant } from '#infra/qdrant';
+import { discover, PatternType } from '#quran/pattern_engine';
 
 export interface ResonanceResult {
   decision: 'ALLOW' | 'BLOCK' | 'WARN' | 'HALT';

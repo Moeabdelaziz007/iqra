@@ -7,7 +7,7 @@
  */
 
 import { ConnectorFactory } from '../../../src/connectors/index';
-import { IQRALogger } from '../12-infrastructure/logger';
+import { IQRALogger } from '#infra/logger';
 
 export interface LeagueVerdict {
   isStable: boolean;

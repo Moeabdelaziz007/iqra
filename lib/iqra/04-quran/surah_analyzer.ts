@@ -31,10 +31,10 @@ import fs from 'fs';
 import path from 'path';
 import { TopologicalCuriosityEngine, TopologicalResonance } from './topological_curiosity.ts';
 import { goEngine, BatchAnalysisRequest, SurahData } from './go_engine_client.ts';
-import { PatternMemory } from '../memory/pattern_memory.ts';
-import { IQRAMemory } from '../03-memory/memory.js';
-import { appendToTrustChain } from '../security.ts';
-import { IQRALogger } from '../12-infrastructure/logger.js';
+import { PatternMemory } from '#memory/pattern_memory.ts';
+import { IQRAMemory } from '#memory/memory';
+import { appendToTrustChain } from '#security/security';
+import { IQRALogger } from '#infra/logger';
 import { NumericalValidator } from './numerical_validator.ts';
 
 // ── Types ─────────────────────────────────────────────────────────────────────

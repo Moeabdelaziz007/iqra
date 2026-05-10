@@ -8,7 +8,7 @@
  */
 
 import { ConnectorFactory } from '../../../src/connectors/index.ts';
-import { IQRALogger } from '../12-infrastructure/logger.js';
+import { IQRALogger } from '#infra/logger';
 
 export class InverseDesign {
   

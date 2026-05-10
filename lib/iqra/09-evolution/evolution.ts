@@ -16,9 +16,9 @@
 
 import fs from 'fs';
 import path from 'path';
-import { IQRAMemory } from '../03-memory/memory';
+import { IQRAMemory } from '#memory/memory';
 import { logToIQRAFile, appendToTrustChain } from '#security/security';
-import { IQRALogger } from '../12-infrastructure/logger';
+import { IQRALogger } from '#infra/logger';
 
 const WISDOM_PATH  = path.join(process.cwd(), 'WISDOM_7.md');
 const META_PATH    = path.join(process.cwd(), 'iqra-core', 'METAMORPHOSIS.md');

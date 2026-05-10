@@ -24,8 +24,8 @@
  * ══════════════════════════════════════════════════════════════
  */
 
-import { IQRALogger } from '../12-infrastructure/logger.js';
-import { appendToTrustChain } from '../security.ts';
+import { IQRALogger } from '#infra/logger';
+import { appendToTrustChain } from '#security/security';
 import { MicroMemory } from './micro_memory.ts';
 import { MemoryBridge } from '#memory/memory_bridge.ts';
 
@@ -193,7 +193,7 @@ export class MemoryTopology {
     // كتابة في Obsidian إذا كان الاكتشاف مهماً
     if (pattern.strength >= 0.7 || pattern.discovery_level === 'resonance') {
       try {
-        const { ObsidianBridge } = await import('../topology/obsidian_bridge.ts');
+        const { ObsidianBridge } = await import('#topology/obsidian_bridge.ts');
         await ObsidianBridge.writeDiscovery({
           title: `نمط ${pattern.pattern_type} في ${pattern.verse_ref}`,
           verse_ref: pattern.verse_ref,
@@ -297,7 +297,7 @@ export class MemoryTopology {
         case 'graph': {
           // بحث في Obsidian
           try {
-            const { ObsidianBridge } = await import('../topology/obsidian_bridge.ts');
+            const { ObsidianBridge } = await import('#topology/obsidian_bridge.ts');
             const files = await ObsidianBridge.searchDiscoveries(query.text, query.topK ?? 7);
             return files.map(f => ({
               type: 'graph' as MemoryType,

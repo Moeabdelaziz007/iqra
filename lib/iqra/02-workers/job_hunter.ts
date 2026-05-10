@@ -12,10 +12,10 @@
  * - Strategic Partnerships
  */
 
-import { IQRALogger } from '../12-infrastructure/logger.js';
-import { appendToTrustChain } from '../security.ts';
-import { SimulationEngine } from '../intelligence/simulation_engine.ts';
-import { executeWithSkill } from '../brain.ts';
+import { IQRALogger } from '#infra/logger';
+import { appendToTrustChain } from '#security/security';
+import { SimulationEngine } from '#core/intelligence/simulation_engine.ts';
+import { executeWithSkill } from '#core/brain.ts';
 
 export interface JobOpportunity {
   id: string;

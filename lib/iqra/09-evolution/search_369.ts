@@ -8,11 +8,11 @@
  */
 
 import { ConnectorFactory } from '../../../src/connectors/index.ts';
-import { IQRAMemory } from '../03-memory/memory.js';
+import { IQRAMemory } from '#memory/memory';
 import { TopologicalAnalyzer } from '../skills/topological_analyzer';
 import { GitSkill } from '../skills/git_skill';
 import { DeterministicSandbox } from './sandbox';
-import { IQRALogger } from '../12-infrastructure/logger.js';
+import { IQRALogger } from '#infra/logger';
 
 export interface SearchNode {
   vector: string;

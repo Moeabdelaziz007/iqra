@@ -9,9 +9,9 @@
 
 import { ImapFlow } from 'imapflow';
 import { simpleParser } from 'mailparser';
-import { iqraSend, iqraNotifyEngineer } from '../13-utils/email';
-import { IQRALogger } from '../12-infrastructure/logger';
-import { IQRAMemory } from '../03-memory/memory';
+import { iqraSend, iqraNotifyEngineer } from '#utils/email';
+import { IQRALogger } from '#infra/logger';
+import { IQRAMemory } from '#memory/memory';
 import { MissionControl } from '../../orchestrator/mission_control';
 
 export class EmailAgent {

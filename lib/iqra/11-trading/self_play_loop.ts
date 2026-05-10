@@ -1,8 +1,8 @@
 import { BybitClient } from './bybit_client';
 import { MarketData } from './market_data';
-import { TopologicalResonanceHunter } from '../../../scripts/topological_resonance_hunter';
-import { RewardEngine } from '../rewards/engine';
-import { MissionReporter } from '../workers/reporter';
+import { TopologicalResonanceHunter } from '@/scripts/topological_resonance_hunter';
+import { RewardEngine } from '#rewards/engine';
+import { MissionReporter } from '#workers/reporter';
 import * as fs from 'fs';
 import path from 'path';
 

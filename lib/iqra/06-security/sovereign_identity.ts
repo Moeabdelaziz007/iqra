@@ -8,10 +8,10 @@
 
 import { IQRA_SOUL } from '#utils/prompts.ts';
 import { HeartbeatSystem } from '../12-infrastructure/heartbeat.js';
-import { IQRAMemory } from '../03-memory/memory.js';
+import { IQRAMemory } from '#memory/memory';
 import { getPersona, Persona } from '../13-utils/personas.js';
 import { SovereignDID } from './did.js';
-import { LanceDBPlugin } from '../memory/lancedb_plugin.js';
+import { LanceDBPlugin } from '#memory/lancedb_plugin.js';
 import crypto from 'crypto';
 
 export class SovereignIdentity {

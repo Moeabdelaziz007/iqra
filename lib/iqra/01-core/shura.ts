@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { IQRALogger } from '../12-infrastructure/logger';
+import { IQRALogger } from '#infra/logger';
 
 export enum ShuraLevel {
   GREEN = 'GREEN',   // Auto-approved (basic code changes)

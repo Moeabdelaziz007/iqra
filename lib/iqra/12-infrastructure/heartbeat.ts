@@ -26,9 +26,9 @@
 
 import { IQRALogger } from '#infra/logger.js';
 import { appendToTrustChain } from '#security/security.ts';
-import { IQRAMemory } from '../03-memory/memory.js';
-import { Pulse369 } from '../memory/pulse_369.js';
-import { MemoryBridge } from '../memory/memory_bridge.js';
+import { IQRAMemory } from '#memory/memory';
+import { Pulse369 } from '#memory/pulse_369.js';
+import { MemoryBridge } from '#memory/memory_bridge.js';
 import { SimulationEngine } from '../intelligence/simulation_engine.js';
 
 // ── Types ─────────────────────────────────────────────────────────────────────

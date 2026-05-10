@@ -1,10 +1,10 @@
 import { SovereignWorker, type MissionState, type WorkerResult } from './protocol.ts';
-import { SelfPlayLoop } from '../trading/self_play_loop.ts';
-import { BybitClient } from '../trading/bybit_client.ts';
-import { MarketData } from '../trading/market_data.ts';
-import { TopologicalResonanceHunter } from '../../../scripts/topological_resonance_hunter.ts';
-import { IQRALogger } from '../12-infrastructure/logger.js';
-import { HeartbeatSystem } from '../12-infrastructure/heartbeat.js';
+import { SelfPlayLoop } from '#trading/self_play_loop.ts';
+import { BybitClient } from '#trading/bybit_client.ts';
+import { MarketData } from '#trading/market_data.ts';
+import { TopologicalResonanceHunter } from '@/scripts/topological_resonance_hunter.ts';
+import { IQRALogger } from '#infra/logger';
+import { HeartbeatSystem } from '#infra/heartbeat.js';
 
 interface TradingActionParams {
   action?: string;

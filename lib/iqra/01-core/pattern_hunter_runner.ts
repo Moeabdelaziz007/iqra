@@ -46,15 +46,15 @@
  * ══════════════════════════════════════════════════════════════
  */
 
-import { IQRALogger } from '../12-infrastructure/logger.js';
+import { IQRALogger } from '#infra/logger';
 import { appendToTrustChain } from '#security/security.ts';
-import { IQRAMemory } from '../03-memory/memory.js';
-import { HeartbeatSystem } from '../12-infrastructure/heartbeat.js';
-import { ToolsRegistry } from '../12-infrastructure/tools_registry.js';
-import { IQRATelegramBot } from '../13-utils/telegram_bot.js';
-import { PatternHunter, type HuntedPattern, type HuntSession } from '../quran/pattern_hunter.js';
-import { MicroMemory } from '../memory/micro_memory.js';
-import { Pulse369 } from '../memory/pulse_369.js';
+import { IQRAMemory } from '#memory/memory.js';
+import { HeartbeatSystem } from '#infra/heartbeat.js';
+import { ToolsRegistry } from '#infra/tools_registry.js';
+import { IQRATelegramBot } from '#utils/telegram_bot.js';
+import { PatternHunter, type HuntedPattern, type HuntSession } from '#quran/pattern_hunter.js';
+import { MicroMemory } from '#memory/micro_memory.js';
+import { Pulse369 } from '#memory/pulse_369.js';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

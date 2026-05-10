@@ -8,9 +8,9 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { IQRALogger } from '../12-infrastructure/logger';
-import { IQRAMemory } from '../03-memory/memory';
-import { PiNetworkSkill } from '../skills/pi_network';
+import { IQRALogger } from '#infra/logger';
+import { IQRAMemory } from '#memory/memory';
+import { PiNetworkSkill } from '#skills/pi_network';
 import { RewardLedger } from './ledger';
 import type {
   PathKey, PathSegment, RewardVector, RewardEntry,
@@ -20,7 +20,7 @@ import {
   PRISTINE_MULTIPLIER, REPEATED_MULTIPLIER,
   STALE_MULTIPLIER, STALE_THRESHOLD,
 } from './types';
-import type { WorkerReport } from '../workers/protocol';
+import type { WorkerReport } from '#workers/protocol';
 
 export class RewardEngine {
 
