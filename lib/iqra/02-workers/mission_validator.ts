@@ -9,7 +9,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { MissionContext, HandoffResult } from '../01-core/mission-context.js';
+import { MissionContext, HandoffResult } from '../01-core/mission-context'
 import { appendToTrustChain } from '#security/security';
 import { IQRALogger } from '#infra/logger';
 import type { ResearchOutput } from './researcher';

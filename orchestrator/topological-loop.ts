@@ -1,14 +1,14 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import { RewardEngine } from '../rewards/engine';
-import { RewardLedger } from '../ledger/reward-ledger';
-import { MissionHandoff, WorkerReport, CommandLog } from '../agents/contracts';
-import { RewardInput, RewardEntry } from '../rewards/types';
-import { MissionControl } from '../lib/iqra/sovereign_orchestrator';
-import { IQRAMemory } from '../lib/iqra/03-memory/memory';
-import { IQRALogger } from '../lib/iqra/12-infrastructure/logger';
-import { IQRAStoryteller } from '../lib/iqra/13-utils/storyteller';
+import { RewardEngine } from '#rewards/engine';
+import { RewardLedger } from '#rewards/ledger';
+import { MissionHandoff, WorkerReport, CommandLog } from '#agents/contracts';
+import { RewardEntry } from '#rewards/types';
+import { MissionControl } from '#core/sovereign_orchestrator';
+import { IQRAMemory } from '#memory/memory';
+import { IQRALogger } from '#infra/logger';
+import { IQRAStoryteller } from '#utils/storyteller';
 
 /**
  * 🌙 IQRA Topological Loop Orchestrator — المنسق الحلقي الطوبولوجي
@@ -93,7 +93,7 @@ export class TopologicalLoop {
       IQRALogger.info(`🌌 [RESONANCE_BALANCE] Pristine Path Discovered: ${pathKey}. Multiplier: 2.0x`);
     }
 
-    const input: RewardInput = {
+    const input: any = {
       mission_id: missionId,
       worker_id: 'orchestrator',
       novelty_score: novelty,
@@ -103,20 +103,25 @@ export class TopologicalLoop {
       timestamp: Date.now()
     };
 
-    const output = RewardEngine.computeTotalReward(input);
+    const output = RewardEngine.computeReward(input);
     
     // Apply path multiplier
-    output.total_reward *= multiplier;
+    output.total *= multiplier;
     
-    const entry: RewardEntry = {
-      ...output,
+    const entry: Omit<RewardEntry, 'ledger_id' | 'recorded_at'> = {
       mission_id: this.mission.mission_id,
       worker_id: 'orchestrator',
       timestamp: Date.now(),
-      validation_status: 'verified'
+      base_reward: output.base,
+      total_reward: output.total,
+      reward_vector: input,
+      discovery_level: RewardEngine.classifyDiscovery(output.total),
+      confidence: 0.8,
+      validation_status: 'verified',
+      notes: `Topological loop completion with ${multiplier}x multiplier`
     };
 
-    await RewardLedger.append(entry);
+    await RewardLedger.record(entry);
     
     // 📖 Storytelling & Voice — رواية القصة
     try {
@@ -133,6 +138,6 @@ export class TopologicalLoop {
     }
 
     IQRALogger.info('🏁 [ORCHESTRATOR] Cycle Completed Successfully.');
-    console.log(`✅ [ORCHESTRATOR] Reward Recorded: ${output.total_reward} (${output.discovery_level})`);
+    console.log(`✅ [ORCHESTRATOR] Reward Recorded: ${output.total} (level: ${RewardEngine.classifyDiscovery(output.total)})`);
   }
 }

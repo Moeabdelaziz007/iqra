@@ -9,8 +9,8 @@
 
 import { ConnectorFactory } from '../../../src/connectors/index';
 import { IQRAMemory } from '#memory/memory';
-import { TopologicalAnalyzer } from '../skills/topological_analyzer';
-import { GitSkill } from '../skills/git_skill';
+import { TopologicalAnalyzer } from '#skills/topological_analyzer';
+import { GitSkill } from '#skills/git_skill';
 import { DeterministicSandbox } from './sandbox';
 import { IQRALogger } from '#infra/logger';
 

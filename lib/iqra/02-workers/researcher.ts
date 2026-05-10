@@ -20,7 +20,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { MissionContext, HandoffResult } from '#core/mission-context.js';
+import { MissionContext, HandoffResult } from '#core/mission-context'
 import { appendToTrustChain } from '#security/security';
 import { IQRALogger } from '#infra/logger';
 import { IQRA_SOUL } from '#utils/prompts';

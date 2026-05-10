@@ -21,7 +21,7 @@ import type { MissionHandoff } from '#core/mission-context';
 import { appendToTrustChain } from '#security/security';
 import { IQRALogger } from '#infra/logger';
 import { goEngine } from '#quran/go_engine_client';
-import type { MissionContext, HandoffResult } from '#core/mission-context.js';
+import type { MissionContext, HandoffResult } from '#core/mission-context'
 
 export interface ResonanceData {
   topological_score: number;

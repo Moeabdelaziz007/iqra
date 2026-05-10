@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { SovereignEngine } from '@/lib/iqra/sovereign';
+import { SovereignEngine } from '#core/sovereign'; // [TC] reason: redirect @/lib/iqra duplicate to #alias | id: c1-sov
 
 /**
  * Sovereign Sync Cycle

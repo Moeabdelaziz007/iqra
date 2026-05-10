@@ -4,7 +4,7 @@ import { BybitClient } from '#trading/bybit_client';
 import { MarketData } from '#trading/market_data';
 import { TopologicalResonanceHunter } from '#scripts/topological_resonance_hunter';
 import { IQRALogger } from '#infra/logger';
-import { HeartbeatSystem } from '#infra/heartbeat.js';
+import { HeartbeatSystem } from '#infra/heartbeat'
 
 interface TradingActionParams {
   action?: string;

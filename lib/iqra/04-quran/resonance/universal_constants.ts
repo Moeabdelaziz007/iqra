@@ -1,5 +1,5 @@
-import { Qalbin_VM } from '#quran/qalbin/qalbin_vm.js';
-import { Modality, type QalbinKind } from '#quran/qalbin/qalbin_node.js';
+import { Qalbin_VM } from '#quran/qalbin/qalbin_vm'
+import { Modality, type QalbinKind } from '#quran/qalbin/qalbin_node'
 
 /**
  * ⚛️ IQRA | Universal Resonance Registry

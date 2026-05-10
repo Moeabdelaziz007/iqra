@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { IQRAMemory } from '@/lib/iqra/memory';
+import { IQRAMemory } from '#memory/memory'; // [TC] reason: redirect @/lib/iqra duplicate to #alias | id: c1-taz
 
 /**
  * Arba'ūn Tazkiyah Cycle (40)

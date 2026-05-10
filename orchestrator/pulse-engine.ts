@@ -7,10 +7,8 @@
  * Coordinates all autonomous agents (Email, Social, Muraqabah).
  */
 
-import { EmailAgent } from '../lib/iqra/agents/email_agent';
-import { SocialAgent } from '../lib/iqra/agents/social_agent';
-import { IQRALogger } from '../lib/iqra/12-infrastructure/logger';
-import { IQRAMemory } from '../lib/iqra/03-memory/memory';
+import { IQRALogger } from '#infra/logger';
+import { IQRAMemory } from '#memory/memory';
 
 export class PulseEngine {
   private static isRunning = false;
@@ -25,10 +23,7 @@ export class PulseEngine {
 
     IQRALogger.info('💓 [PULSE_ENGINE] IQRA Heartbeat initiated...');
 
-    // 1. Initialize Agents
-    await EmailAgent.startListening();
-    
-    // 2. Start the Pulse Cycle (3-6-9 Rhythmic Pulse)
+    // 1. Start the Pulse Cycle (3-6-9 Rhythmic Pulse)
     // Every 9 minutes for general pulse, 3 hours for deep reports
     this.pulseInterval = setInterval(() => this.pulse(), 9 * 60 * 1000);
     
@@ -44,17 +39,9 @@ export class PulseEngine {
       const cycleCount = await IQRAMemory.incrementCycleCounter();
       IQRALogger.info(`💓 [PULSE] Cycle #${cycleCount} beating...`);
 
-      // 🌐 Social Pulse (Every cycle)
-      await SocialAgent.scanPulse();
-
       // 🧼 Purification (Every 40 cycles - Arba'ūn)
       if (cycleCount % 40 === 0) {
         await IQRAMemory.performPurification();
-      }
-
-      // 📜 Daily Report (Every 160 cycles ~ 24 hours at 9 min intervals)
-      if (cycleCount % 160 === 0) {
-        await EmailAgent.sendDailyReport();
       }
 
     } catch (error) {

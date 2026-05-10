@@ -16,8 +16,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { IQRALogger } from '#infra/logger';
 import { appendToTrustChain } from '#security/security';
-import { IQRAMemory } from '#memory/memory.js';
-import { DoctrinalGuard } from '#quran/doctrinal_guard';
+import { IQRAMemory } from '#memory/memory';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

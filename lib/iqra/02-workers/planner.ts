@@ -10,10 +10,10 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import { MissionContext, HandoffResult } from '../01-core/mission-context.js';
+import { MissionContext, HandoffResult } from '../01-core/mission-context'
 import { appendToTrustChain } from '#security/security';
 import { IQRALogger } from '#infra/logger';
-import { SkillBank } from '../08-skills/skill_bank.js';
+import { SkillBank } from '../08-skills/skill_bank'
 
 export interface PlanStep {
   id: string;

@@ -27,11 +27,11 @@
  */
 
 import { z } from 'zod';
-import { IQRALogger } from '#infra/logger.js';
+import { IQRALogger } from '#infra/logger'
 import { appendToTrustChain, checkCircuit, reportFailure, reportSuccess } from '#security/security';
 import { IQRAMemory } from '#memory/memory';
-import { Pulse369 } from '#memory/pulse_369.js';
-import { MemoryBridge } from '#memory/memory_bridge.js';
+import { Pulse369 } from '#memory/pulse_369'
+import { MemoryBridge } from '#memory/memory_bridge'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -172,7 +172,7 @@ export class ToolsRegistry {
         ayah: z.number().int().min(1).max(286),
       }),
       handler: async ({ surah, ayah }) => {
-        const { QuranLoader } = await import('../quran/quran_loader.js');
+        const { QuranLoader } = await import('#quran/quran_loader');
         return await (QuranLoader as any).getVerse?.(surah, ayah) ?? { surah, ayah };
       },
     });
@@ -184,7 +184,7 @@ export class ToolsRegistry {
       category: 'QURAN',
       inputSchema: z.object({ text: z.string().min(1).max(5000) }),
       handler: async ({ text }) => {
-        const { MicroMemory } = await import('../memory/micro_memory.js');
+        const { MicroMemory } = await import('#memory/micro_memory');
         await MicroMemory.init();
         const hel = MicroMemory.computeShannonHEL(text);
         const sig = MicroMemory.hasQuranSignature(text);
@@ -215,7 +215,7 @@ export class ToolsRegistry {
         mission_id: z.string().optional(),
       }),
       handler: async ({ verse_ref, field, mission_id }) => {
-        const { TopologicalCuriosityEngine } = await import('../quran/topological_curiosity.js');
+        const { TopologicalCuriosityEngine } = await import('#quran/topological_curiosity');
         return await TopologicalCuriosityEngine.discoverResonance(verse_ref, field, mission_id);
       },
       circuit_breaker: 'topological_engine',

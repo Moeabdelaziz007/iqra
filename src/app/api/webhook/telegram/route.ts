@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { handleTelegramWebhook } from '@/lib/iqra/13-utils/telegram_bot';
+import { handleTelegramWebhook } from '#utils/telegram_bot'; // [TC] reason: redirect @/lib/iqra duplicate to #alias | id: c1-tele
 
 export async function POST(request: NextRequest) {
   const env = {
