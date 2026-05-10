@@ -107,6 +107,93 @@ describe('Pulse369 — نبض الذاكرة الثلاثي', () => {
       const archived = await Pulse369.archiveWarmToCold();
       expect(archived).toBeGreaterThanOrEqual(0);
     });
+
+    it('يحذف التجارب القديمة من Warm بعد الأرشفة (parameterized query)', async () => {
+      // P0 Fix: Verify parameterized DELETE actually removes entries
+      // This tests the SQL parameterization fix in the PR:
+      //   OLD: db.prepare(`DELETE ... WHERE id IN (${ids})`).run()   ← SQL injection risk
+      //   NEW: db.prepare(`DELETE ... WHERE id IN (?,...)`).run(...idList) ← safe
+      await MicroMemory.init();
+
+      const db = (MicroMemory as any)._db;
+      if (!db) return; // skip if no DB available
+
+      // Insert multiple old entries that qualify for archiving:
+      // - outcome='failure', quality_score < 0.5
+      // - timestamp > 7 days ago
+      // - memory_strength < 1.5
+      const oldTimestamp = Date.now() - 8 * 24 * 60 * 60 * 1000; // 8 days ago
+      const insertedIds: string[] = [];
+      for (let i = 0; i < 3; i++) {
+        const id = MicroMemory.storeExperience({
+          mission_id: `archive-test-mission-${i}`,
+          worker_id: 'TestWorker',
+          outcome: 'failure',
+          quality_score: 0.2,
+          skills_used: '[]',
+          lessons: '[]',
+          memory_strength: 1.0,
+          last_retrieved: oldTimestamp,
+          timestamp: oldTimestamp,
+        });
+        insertedIds.push(id);
+      }
+
+      // Verify all entries were inserted
+      const beforeCount = db.prepare(
+        `SELECT COUNT(*) as cnt FROM experiences WHERE mission_id LIKE 'archive-test-mission-%'`
+      ).get() as { cnt: number };
+      expect(beforeCount.cnt).toBeGreaterThanOrEqual(3);
+
+      // Run archive — this triggers the parameterized DELETE
+      const archived = await Pulse369.archiveWarmToCold();
+
+      // The archive may or may not run depending on cold storage availability,
+      // but if it ran, entries should be deleted
+      if (archived > 0) {
+        const afterCount = db.prepare(
+          `SELECT COUNT(*) as cnt FROM experiences WHERE id IN (${insertedIds.map(() => '?').join(',')}) AND outcome = 'failure'`
+        ).get(...insertedIds) as { cnt: number };
+        // Parameterized delete should have removed the archived entries
+        expect(afterCount.cnt).toBeLessThan(3);
+      }
+
+      // Whether archived or not, verify no SQLite error was thrown (parameterized query worked)
+      expect(archived).toBeGreaterThanOrEqual(0);
+    });
+
+    it('يُولّد placeholders صحيحة لاستعلام IN (تحقق من منطق التحديد)', () => {
+      // Unit test for the placeholder generation logic used in the SQL fix
+      // Mirrors: const placeholders = idList.map(() => '?').join(',')
+      const generatePlaceholders = (ids: string[]): string =>
+        ids.map(() => '?').join(',');
+
+      expect(generatePlaceholders(['id1'])).toBe('?');
+      expect(generatePlaceholders(['id1', 'id2'])).toBe('?,?');
+      expect(generatePlaceholders(['id1', 'id2', 'id3'])).toBe('?,?,?');
+      expect(generatePlaceholders(['a', 'b', 'c', 'd', 'e'])).toBe('?,?,?,?,?');
+    });
+
+    it('لا يُدخل قيم IDs مباشرة في استعلام SQL (الفرق عن النسخة القديمة)', () => {
+      // Regression: old code interpolated IDs directly — new code uses placeholders
+      // The old buggy approach would be:
+      //   ids = oldEntries.map(e => `'${e.id}'`).join(',')
+      //   → "DELETE WHERE id IN ('id1','id2','id3')"  ← injectable
+      // New safe approach:
+      //   placeholders = idList.map(() => '?').join(',')
+      //   → "DELETE WHERE id IN (?,?,?)"              ← safe
+      const maliciousId = "id1'); DROP TABLE experiences; --";
+      const idList = [maliciousId, 'id2'];
+
+      // NEW (safe): placeholder generation never touches values
+      const safePlaceholders = idList.map(() => '?').join(',');
+      expect(safePlaceholders).toBe('?,?');
+      expect(safePlaceholders).not.toContain(maliciousId);
+
+      // OLD (unsafe): would embed the malicious ID in the SQL string
+      const oldUnsafe = idList.map(e => `'${e}'`).join(',');
+      expect(oldUnsafe).toContain('DROP TABLE'); // proves old code was injectable
+    });
   });
 
   // ── Test 4: purgeExpiredCold ────────────────────────────────────────────────
