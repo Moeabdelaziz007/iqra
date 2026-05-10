@@ -113,6 +113,9 @@ export class IQRAConsciousness {
 
   /**
    * C-3 & C-5: Muraqabah Check (Intention & Filter)
+   * 
+   * Validates content against constitutional rules and ethical filters.
+   * Returns immediately if content violates HARAM_LIST.
    */
   static async muraqabahCheck(content: string, type: string = 'action'): Promise<{ isAllowed: boolean; reason?: string }> {
     // 1. Basic filter check
@@ -139,7 +142,13 @@ export class IQRAConsciousness {
       }
       return { isAllowed: true };
     } catch (err) {
-      return { isAllowed: true }; // Placeholder
+      // If LLM fails, default to REJECT (fail-safe)
+      // This ensures we never accidentally allow harmful content due to system failure
+      IQRALogger.error('❌ [CONSCIOUSNESS] muraqabahCheck LLM failed, defaulting to REJECT:', err);
+      return { 
+        isAllowed: false, 
+        reason: 'System error during ethical validation. Defaulting to REJECT for safety.' 
+      };
     }
   }
 

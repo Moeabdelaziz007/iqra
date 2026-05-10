@@ -26,16 +26,53 @@ export interface ToolAuditReport {
   lastAudit: string;
 }
 
+/**
+ * AgentBus — Event Publishing System
+ * 
+ * Note: Event bus functionality is currently not used in the active architecture.
+ * The mesh communication uses direct method calls and TrustChain for audit trails.
+ * 
+ * If event-driven architecture is needed in the future, implement via:
+ * - EventEmitter pattern (Node.js)
+ * - Message queue (Redis/RabbitMQ)
+ * - Pub/Sub system (Firebase/AWS SNS)
+ * 
+ * See: PLAN.md - Phase 4: Event Bus Architecture (if needed)
+ */
 export class AgentBus {
+  /**
+   * Publish an event to all subscribers
+   * 
+   * @deprecated Not currently used. Direct method calls preferred for determinism.
+   * @param event - Event name
+   * @param payload - Event data
+   */
   static publish(event: string, payload: Record<string, unknown>): void {
-    // TODO: implement event bus
+    // Not implemented — use direct method calls instead
+    // This is intentional to maintain deterministic behavior and full audit trails
+    throw new Error(
+      'AgentBus.publish() is not implemented. ' +
+      'Use direct method calls on AlMuwakkil/ShahidAlAdah instead. ' +
+      'All operations are logged in TrustChain.'
+    );
   }
 
+  /**
+   * Subscribe to an event
+   * 
+   * @deprecated Not currently used. Direct method calls preferred for determinism.
+   * @param event - Event name
+   * @param handler - Callback function
+   */
   static subscribe(
     event: string,
     handler: (payload: Record<string, unknown>) => void
   ): void {
-    // TODO: implement event bus
+    // Not implemented — use direct method calls instead
+    throw new Error(
+      'AgentBus.subscribe() is not implemented. ' +
+      'Use direct method calls on AlMuwakkil/ShahidAlAdah instead.'
+    );
   }
 }
 
