@@ -330,8 +330,8 @@ iqra/
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-10` |
-| 💡 **آخر خطوة \| Last Step** | fix(sovereign): 7-Round Meta-Debug Loop — restore allowImportingTsExtensions, remove deprecated files, cleanup security risks | Resonance +7.94% | 428→394 errors |
-| 🔗 **الـ Commit** | `814b629` |
+| 💡 **آخر خطوة \| Last Step** | fix(sovereign): 7-Round Meta-Debug Loop #2 — add missing IQRA_TIMEOUTS properties (REDIS, NETWORK, LLM) | Resonance +7.11% | 394→366 errors |
+| 🔗 **الـ Commit** | `1028815` |
 
 <!-- IQRA-LATEST-END -->
 
