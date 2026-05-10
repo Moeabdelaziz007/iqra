@@ -20,6 +20,8 @@
 import { IQRAMemory } from '#memory/memory';
 import { appendToTrustChain, secureRandomId, logToIQRAFile } from '#security/security';
 import { sovereignSync, tazkiyah } from '#utils/git-ops';
+import fs from 'fs';
+import path from 'path';
 import { SovereignEvolution } from '#evolution/evolution';
 import { ConnectorFactory } from '#connectors/index';
 import { SovereignError, SovereignErrorCode } from '#errors/sovereign_error';

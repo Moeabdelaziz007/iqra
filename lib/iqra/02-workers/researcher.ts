@@ -25,6 +25,7 @@ import { appendToTrustChain } from '#security/security';
 import { IQRALogger } from '#infra/logger';
 import { IQRA_SOUL } from '#utils/prompts';
 import type { MissionHandoff } from '#core/mission-context';
+import { SourceAttestation } from '#agents/contracts';
 
 // ── Embedded Dastūr Prompt Fragment ──────────────────────────────────────────
 // القواعد الدستورية تُحقن مباشرة في كل Prompt — لا تعتمد على ملف خارجي وحده.

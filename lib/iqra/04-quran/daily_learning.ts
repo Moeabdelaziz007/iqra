@@ -9,6 +9,7 @@
 import { fetchSurah } from './quran_loader';
 import { discoverPatterns, PatternType, QuranPattern } from './pattern_engine';
 import { IQRAMemory } from '#memory/memory';
+import { SovereignEngine } from '#core/sovereign';
 
 export async function performDailyLearning() {
   console.log('🌙 IQRA Daily Learning — بسم الله...');
