@@ -10,7 +10,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { IQRALogger } from '#infra/logger';
 import { IQRAMemory } from '#memory/memory';
-import { PiNetworkSkill } from '#skills/pi_network';
 import { RewardLedger } from './ledger';
 import type {
   PathKey, PathSegment, RewardVector, RewardEntry,

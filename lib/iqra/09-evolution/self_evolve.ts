@@ -1,6 +1,8 @@
 import { IQRALogger } from '#infra/logger';
 import { IQRAMemory } from '#memory/memory';
-import { callEconomyModel } from '../llm/economy.ts';
+import { GitSkill } from '#skills/git_skill';
+import { appendToTrustChain } from '#security/security';
+import { callEconomyModel } from '#llm/economy';
 import fs from 'fs';
 import path from 'path';
 
@@ -47,7 +49,26 @@ export class IQRAEvolution {
 
         // 3. Document the evolutionary step
         await this.logEvolutionStep(strategy);
-        
+
+        // 4. 🔄 إغلاق الحلقة: إنشاء PR تلقائيًا (The Paperclip Hack)
+        if (this.isCriticalFix(strategy)) {
+            const branchName = `iqra-evolution-${Date.now()}`;
+            const commitMessage = `[EVOLUTION] ${strategy.slice(0, 50)}...`;
+
+            const pushed = await GitSkill.pushToBranch(branchName, commitMessage);
+            if (pushed) {
+                const prUrl = await GitSkill.openPR(
+                    `[EVOLUTION] Auto-generated architectural fix`,
+                    `## 🧬 Strategy\n${strategy}\n\n## التحقق\n- [ ] اختبار E2E ناجح\n- [ ] مراجعة Damir Conscience\n- [ ] موافقة بشرية (Shura)`
+                );
+
+                if (prUrl) {
+                    IQRALogger.info(`🔗 [EVOLUTION] PR created: ${prUrl}`);
+                    await appendToTrustChain('EVOLUTION:PR_CREATED', branchName, prUrl, 0.9);
+                }
+            }
+        }
+
         return strategy;
     }
 
@@ -63,5 +84,14 @@ export class IQRAEvolution {
         const logPath = path.join(this.REFLECTION_DIR, 'EVOLUTION_LOG.md');
         const entry = `\n## 🧬 [EVOLUTION_STEP] ${new Date().toISOString()}\n- **Strategy**: ${strategy}\n- **Status**: ANALYSIS_COMPLETE\n`;
         fs.appendFileSync(logPath, entry);
+    }
+
+    /**
+     * 🔍 تحديد ما إذا كان الإصلاح "حرجًا" يستحق إنشاء PR
+     */
+    private static isCriticalFix(strategy: string): boolean {
+        const criticalTerms = ['refactor', 'architect', 'security', 'fix', 'bug', 'error', 'critical', 'broken'];
+        const strategyLower = strategy.toLowerCase();
+        return criticalTerms.some(term => strategyLower.includes(term));
     }
 }

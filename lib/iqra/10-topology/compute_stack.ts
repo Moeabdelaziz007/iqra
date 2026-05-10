@@ -309,7 +309,7 @@ export class ComputeStack {
     system: string | undefined,
     start: number
   ): Promise<ComputeResult> {
-    const { gemma4Local } = await import('../llm/ollama.ts');
+    const { gemma4Local } = await import('#llm/ollama');
     const response = await gemma4Local.generate(prompt, system);
 
     return {
@@ -345,7 +345,7 @@ export class ComputeStack {
     prompt: string,
     start: number
   ): Promise<ComputeResult> {
-    const { ObsidianBridge } = await import('./obsidian_bridge.ts');
+    const { ObsidianBridge } = await import('./obsidian_bridge');
     const results = await ObsidianBridge.searchDiscoveries(prompt, 7);
 
     const response = results.length > 0

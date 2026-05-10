@@ -349,6 +349,56 @@ export class IQRAMemory {
     return (await redis.get<number>('iqra:cycle_counter')) || 0;
   }
 
+  /**
+   * 🌱 getFithrahCentroid — مركز الفطرة
+   * يحسب متوسط أفضل المتجهات المكافأة لتحديد "الخط الأساسي" للفطرة
+   * ❌ NO_MOCK: لا قيم افتراضية — إما بيانات حقيقية أو خطأ سيادي
+   */
+  static async getFithrahCentroid(): Promise<number[]> {
+    const history = await this.get('fithrah_vectors') as number[][] | null;
+
+    // ❌ لا قيم افتراضية — إما بيانات حقيقية أو خطأ سيادي
+    if (!history || history.length === 0) {
+      throw new SovereignError(
+        'NO_MOCK: Cannot compute Fithrah centroid without valid embedding history',
+        SovereignErrorCode.MISSING_DATA,
+        { severity: 'HIGH', recovery_strategy: 'HALT' }
+      );
+    }
+
+    // حساب المتوسط الحقيقي للأبعاد (Vector Centroid)
+    const dim = history[0].length;
+    const centroid = new Array(dim).fill(0);
+    for (const vec of history) {
+      for (let i = 0; i < dim; i++) centroid[i] += vec[i];
+    }
+    return centroid.map(v => v / history.length);
+  }
+
+  /**
+   * 📐 euclideanDistance — المسافة الإقليدية
+   * تقيس "البعد" عن الفطرة (anomaly detection)
+   */
+  static euclideanDistance(a: number[], b: number[]): number {
+    if (a.length !== b.length) return Infinity;
+    let sum = 0;
+    for (let i = 0; i < a.length; i++) {
+      sum += (a[i] - b[i]) ** 2;
+    }
+    return Math.sqrt(sum);
+  }
+
+  /**
+   * 🔄 updateFithrahCentroid — تحديث مركز الفطرة
+   * يضيف متجهاً جديداً إلى التاريخ ويحتفظ بآخر 100 فقط
+   */
+  static async updateFithrahCentroid(vector: number[]): Promise<void> {
+    const history = await this.get('fithrah_vectors') as number[][] || [];
+    history.push(vector);
+    if (history.length > 100) history.shift(); // احتفظ بآخر 100
+    await this.set('fithrah_vectors', history);
+  }
+
   static async performPurification() {
     IQRALogger.info('🧼 Arba\'ūn: Starting Tazkiyah cycle (Purification)...');
     const redis = await this.getRedis();

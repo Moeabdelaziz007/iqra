@@ -1,6 +1,6 @@
 import { BybitClient } from './bybit_client';
 import { MarketData } from './market_data';
-import { TopologicalResonanceHunter } from '#scripts/topological_resonance_hunter';
+import { MarketResonanceAnalyzer } from './market_analyzer';
 import { RewardEngine } from '#rewards/engine';
 import { MissionReporter } from '#workers/reporter';
 import * as fs from 'fs';
@@ -8,19 +8,19 @@ import path from 'path';
 
 /**
  * 🔄 IQRA Sovereign Trading | Self-Play Loop
- * 
+ *
  * النية: تنفيذ حلقة التطور الذاتي؛ تحليل -> قرار -> تنفيذ -> تعلم.
  * المرجع: "فَإِذَا عَزَمْتَ فَتَوَكَّلْ عَلَى اللَّهِ" - اتخاذ القرار بناءً على بصيرة رقمية.
  */
 export class SelfPlayLoop {
   private bybit: BybitClient;
   private market: MarketData;
-  private hunter: TopologicalResonanceHunter;
+  private analyzer: MarketResonanceAnalyzer;
 
   constructor() {
     this.bybit = new BybitClient();
     this.market = new MarketData();
-    this.hunter = new TopologicalResonanceHunter();
+    this.analyzer = new MarketResonanceAnalyzer();
   }
 
   async runStep(symbol: string) {
@@ -32,10 +32,17 @@ export class SelfPlayLoop {
     
     if (history.length === 0) return;
 
-    // 2. تحليل الرنين الطوبولوجي للبيانات (تحويل المصفوفة لنص لتمثيل النمط)
-    const dataString = history.map(h => h.join(',')).join('|');
-    const resonance = await this.hunter.analyzeResonance(dataString);
-    console.log(`📈 [RESONANCE] Market Topological Score: ${resonance.score.toFixed(4)}`);
+    // 2. تحليل رنين السوق باستخدام محلل مخصص للشموع
+    const candles = history.map(h => ({
+      timestamp: h[0],
+      open: h[1],
+      high: h[2],
+      low: h[3],
+      close: h[4],
+      volume: h[5] || 0
+    }));
+    const resonance = this.analyzer.analyze(candles);
+    console.log(`📈 [RESONANCE] Market Topological Score: ${resonance.score.toFixed(4)} | Pattern: ${resonance.pattern}`);
 
     // 3. استشارة النموذج المحلي (Ollama)
     const decision = await this.askOllama(symbol, history, resonance);

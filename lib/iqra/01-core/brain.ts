@@ -23,7 +23,7 @@ import { MissionControl } from '#core/sovereign_orchestrator';
 import { SkillBank } from '#skills/skill_bank';
 import { gemma4Local, isLocalMode, IQRA_LOCAL_TOOLS } from '#llm/ollama';
 
-import { FULL_SYSTEM_PROMPT, IQRA_SOUL } from '#utils/prompts.ts';
+import { FULL_SYSTEM_PROMPT, IQRA_SOUL } from '#utils/prompts';
 import { HeartbeatSystem } from '#infra/heartbeat';
 export { FULL_SYSTEM_PROMPT, IQRA_SOUL };
 
@@ -385,7 +385,7 @@ async function fitrahFilter(input: string): Promise<{
   // 2. Damir Conscience Engine (Intelligence — < 5ms, offline, free)
   // القاعدة: FITRAH + Damir = محرك واحد موحد
   try {
-    const { globalDamir } = await import('#security/damir_conscience.ts');
+    const { globalDamir } = await import('#security/damir_conscience');
     
     const action = {
       id: `fitrah_${Date.now()}`,

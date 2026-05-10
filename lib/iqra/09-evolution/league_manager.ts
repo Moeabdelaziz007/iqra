@@ -52,7 +52,8 @@ export class LeagueManager {
     `;
     
     const result = await connector.generate(prompt);
-    return result.split('\n').filter(line => line.includes('-') || line.includes('*'));
+    const content = typeof result === 'string' ? result : result.content;
+    return content.split('\n').filter(line => line.includes('-') || line.includes('*'));
   }
 
   /**

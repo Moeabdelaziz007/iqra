@@ -353,7 +353,7 @@ export class GephiExporter {
    * يُصدّر كل الأنماط والعلاقات السببية كـ GEXF
    */
   static async export(): Promise<string> {
-    const { MicroMemory } = await import('../memory/micro_memory.ts');
+    const { MicroMemory } = await import('#memory/micro_memory');
     await MicroMemory.init();
 
     const db = (MicroMemory as any)._db;

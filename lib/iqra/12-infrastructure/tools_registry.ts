@@ -28,7 +28,7 @@
 
 import { z } from 'zod';
 import { IQRALogger } from '#infra/logger.js';
-import { appendToTrustChain, checkCircuit, reportFailure, reportSuccess } from '#security/security.ts';
+import { appendToTrustChain, checkCircuit, reportFailure, reportSuccess } from '#security/security';
 import { IQRAMemory } from '#memory/memory';
 import { Pulse369 } from '#memory/pulse_369.js';
 import { MemoryBridge } from '#memory/memory_bridge.js';
@@ -449,7 +449,7 @@ export class ToolsRegistry {
       category: 'SECURITY',
       inputSchema: z.object({ input: z.unknown() }),
       handler: async ({ input }) => {
-        const { validateInput } = await import('./security.ts');
+        const { validateInput } = await import('#security/security');
         return validateInput(input);
       },
       sensitive: true,

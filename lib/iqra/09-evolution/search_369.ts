@@ -84,7 +84,8 @@ export class Search369 {
     `;
     
     const result = await connector.generate(prompt);
-    return result.split('\n')
+    const content = typeof result === 'string' ? result : result.content;
+    return content.split('\n')
       .filter(line => line.includes('[Vector'))
       .map(line => line.split(']')[1].trim());
   }
