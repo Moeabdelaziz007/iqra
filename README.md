@@ -330,8 +330,8 @@ iqra/
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-10` |
-| 💡 **آخر خطوة \| Last Step** | chore: cleanup .iqra folder and audit documentation |
-| 🔗 **الـ Commit** | `bc10e40` |
+| 💡 **آخر خطوة \| Last Step** | debug and fixing js errors and  routes |
+| 🔗 **الـ Commit** | `555e806` |
 
 <!-- IQRA-LATEST-END -->
 
