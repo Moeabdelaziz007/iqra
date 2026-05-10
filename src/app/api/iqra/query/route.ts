@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { iqraThink, IQRABrainMode } from '../../../../../lib/iqra/01-core/brain'; // [TC] reason: relative path to canonical lib/iqra | id: c1-qbrain
-import { IQRAMemory } from '../../../../../lib/iqra/03-memory/memory'; // [TC] reason: relative path to canonical lib/iqra | id: c1-qmem
+import { IQRAMemory } from '../../../../../lib/iqra/03-memory/memory'; /**
+ * Handle POST requests for IQRA queries by performing a semantic memory search and generating a brain response.
+ *
+ * @param req - Incoming Next.js request whose JSON body must include `query` and may include `mode`
+ * @returns A JSON object with `response` (brain-generated output), `echoes` (semantic memory matches), and `timestamp` (milliseconds since epoch). On failure, returns a JSON object with an `error` message and an appropriate HTTP status.
+ */
 
 export async function POST(req: NextRequest) {
   try {

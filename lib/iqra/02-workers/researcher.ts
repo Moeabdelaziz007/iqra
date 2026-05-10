@@ -68,7 +68,16 @@ export interface ResearchOutput {
   source_attestations: SourceAttestation[];  // وسوم المصادر — القاعدة ٣
 }
 
-// ── LLM Caller ────────────────────────────────────────────────────────────────
+/**
+ * Request a JSON-only research result that finds a non-trivial resonance between a Qur'anic verse and a field of inquiry from the chosen provider.
+ *
+ * @param verse - Verse identifier (e.g., "surah:ayah")
+ * @param field - Field of inquiry to relate the verse to
+ * @param provider - Provider key to use (e.g., "google", "groq", "simulated")
+ * @param devMode - When true, enables dev-only behaviors such as the simulated provider
+ * @returns The parsed LLM output augmented with `provider` and `model` and a provenance `tag`, or `null` if no provider produced a result
+ * @throws Error if `provider` is "simulated" but `devMode` is false (simulated provider is forbidden outside dev mode)
+ */
 
 async function callLLMForResearch(
   verse: string,

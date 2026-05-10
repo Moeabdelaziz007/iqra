@@ -131,11 +131,15 @@ export function updateMissionStatus(
 
 // ── validateProvider — مُصدَّرة للاستخدام المباشر ────────────────────────────
 /**
- * يتحقق من أن provider ليس simulated في بيئة الإنتاج.
- * يُستخدم كـ utility مستقلة خارج parseMissionScope.
+ * Enforces that the configured provider is not `simulated` in production.
  *
- * @throws NO_MOCK_ERR إذا كان provider = simulated بدون dev_mode: true
- */
+ * Validates the resolved provider and throws an error if simulation is requested
+ * while `dev_mode` is not enabled for the given mission.
+ *
+ * @param provider - The configured provider name (e.g., `"google"`, `"groq"`, `"simulated"`). If undefined, `"google"` is assumed.
+ * @param devMode - Whether development mode is enabled (`true` to allow simulated providers).
+ * @param missionId - The mission identifier included in the error message when validation fails.
+ * @throws Error labeled `NO_MOCK_ERR` if `provider` resolves to `"simulated"` and `devMode` is not `true`.
 export function validateProvider(
   provider: string | undefined,
   devMode: boolean | undefined,
@@ -157,7 +161,9 @@ export function validateProvider(
 const DEFAULT_MAX_CYCLES = 3;
 
 /**
- * Initialize cycle metadata for a new mission
+ * Create default cycle metadata used to track worker handoff iterations.
+ *
+ * @returns A `CycleMetadata` object with `count` set to 0, `maxCycles` set to `DEFAULT_MAX_CYCLES`, and an empty `history` array.
  */
 export function initCycles(): CycleMetadata {
   return {
@@ -168,8 +174,12 @@ export function initCycles(): CycleMetadata {
 }
 
 /**
- * Increment cycle count and check if max cycles reached
- * @throws Error if max cycles exceeded (prevents infinite loops)
+ * Advance cycle metadata by one and record the given worker transition.
+ *
+ * @param cycles - Existing cycle metadata, or `undefined` to initialize defaults
+ * @param workerTransition - Identifier of the worker transition to append to history
+ * @returns The updated `CycleMetadata` with `count` incremented and `workerTransition` appended to `history`
+ * @throws Error if the increment would make `count` exceed `maxCycles`; the thrown error message includes the attempted transition and the current history
  */
 export function incrementCycle(
   cycles: CycleMetadata | undefined,
@@ -196,7 +206,10 @@ export function incrementCycle(
 }
 
 /**
- * Check if max cycles would be exceeded (non-throwing version)
+ * Determine whether the cycle limit has been reached.
+ *
+ * @param cycles - Current cycle metadata; if omitted, a fresh default is used
+ * @returns `true` if the current cycle count is greater than or equal to the maximum allowed cycles, `false` otherwise
  */
 export function wouldExceedMaxCycles(cycles: CycleMetadata | undefined): boolean {
   const current = cycles ?? initCycles();

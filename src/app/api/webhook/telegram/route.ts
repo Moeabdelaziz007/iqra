@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { handleTelegramWebhook } from '../../../lib/iqra/13-utils/telegram_bot'; // [TC] reason: relative path to canonical lib/iqra | id: c1-tele
+import { handleTelegramWebhook } from '../../../lib/iqra/13-utils/telegram_bot'; /**
+ * Handle incoming Telegram webhook POST requests.
+ *
+ * Reads Telegram credentials from environment variables and delegates processing to the Telegram webhook handler.
+ *
+ * @returns A NextResponse produced by the Telegram webhook handler; on failure, a JSON response `{ status: 'error' }` with HTTP status 500.
+ */
 
 export async function POST(request: NextRequest) {
   const env = {
