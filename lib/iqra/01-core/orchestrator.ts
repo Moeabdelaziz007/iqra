@@ -1,6 +1,12 @@
 /**
  * IQRA Orchestration Layer — التنسيق
- * 
+ *
+ * @deprecated This LangChain-based orchestrator is deprecated.
+ * Use `sovereign_orchestrator.ts` instead for the canonical sovereign orchestration.
+ * This file is kept only for backward compatibility and will be removed in a future version.
+ *
+ * [PURIFICATION] 2026-05-10: Marked as deprecated - sovereign_orchestrator.ts provides full mission control
+ *
  * Powered by LangChain and LangGraph (Dynamic/Sovereign).
  * Manages the flow between the Brain, Memory, and Tools.
  */

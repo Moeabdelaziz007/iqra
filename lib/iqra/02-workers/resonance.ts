@@ -20,7 +20,7 @@ import { SovereignWorker, WorkerResult, MissionState } from './protocol.ts';
 import type { MissionHandoff } from '@/agents/contracts.ts';
 import { appendToTrustChain } from '#security/security';
 import { IQRALogger } from '#infra/logger';
-import { goEngine } from '#quran/go_engine_client.ts';
+import { goEngine } from '#quran/go_engine_client';
 import type { MissionContext, HandoffResult } from '#core/mission-context.js';
 
 export interface ResonanceData {
@@ -170,31 +170,7 @@ export async function executeResonanceWorker(
     const result = await worker.execute(input, state);
 
     if (!result.success) {
-      // GoEngineBridge فشل — نستخدم fallback بدلاً من إيقاف الحلقة
-      const fallbackData: ResonanceData = {
-        topological_score: 0.5,
-        pattern_matched: 'FALLBACK_RESONANCE',
-        resonance_entropy: 0.5,
-        soul_alignment: 0.75,
-      };
-      issues.push(`ResonanceWorker failed: ${result.error} — using fallback data`);
-      implemented.push('Fallback resonance data applied (Go engine unavailable)');
-
-      return {
-        status: 'success',   // لا نُوقف الحلقة — الرنين اختياري
-        worker: 'Resonance',
-        next: 'Builder',
-        data: {
-          ...fallbackData,
-          outputPath: previousOutput?.outputPath,  // نُمرّر مسار البحث للأمام
-        },
-        artifacts: [],
-        implemented,
-        undone: ['Go engine resonance analysis'],
-        issues,
-        procedures_followed: false,
-        timestamp: Date.now(),
-      };
+      throw new Error(`ResonanceWorker failed: ${result.error}. Go engine is required for mathematical truth.`);
     }
 
     const data = result.data as ResonanceData;
@@ -233,25 +209,6 @@ export async function executeResonanceWorker(
   } catch (err: any) {
     issues.push(err.message);
     IQRALogger.error('❌ [RESONANCE] Failed:', err.message);
-
-    // Resonance فشل كلياً — نُرجع fallback ولا نُوقف الحلقة
-    return {
-      status: 'success',   // non-fatal — Builder يمكنه العمل بدون resonance
-      worker: 'Resonance',
-      next: 'Builder',
-      data: {
-        topological_score: 0.5,
-        pattern_matched: 'ERROR_FALLBACK',
-        resonance_entropy: 0.5,
-        soul_alignment: 0.75,
-        outputPath: previousOutput?.outputPath,
-      },
-      artifacts: [],
-      implemented,
-      undone: ['resonance analysis'],
-      issues,
-      procedures_followed: false,
-      timestamp: Date.now(),
-    };
+    throw new Error(`Resonance analysis failed: ${err.message}. Go engine is required for mathematical truth.`);
   }
 }

@@ -6,7 +6,7 @@
  */
 
 import { SovereignEngine } from '../lib/iqra/sovereign';
-import { handleTelegramWebhook, TelegramEnv, sendTelegramNotification } from '../lib/iqra/13-utils/telegram';
+import { handleTelegramWebhook, TelegramEnv, sendTelegramNotification } from '../lib/iqra/13-utils/telegram_bot';
 import { performDailyLearning } from '../lib/iqra/quran/daily_learning';
 
 export interface Env extends TelegramEnv {

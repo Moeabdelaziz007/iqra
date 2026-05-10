@@ -301,30 +301,26 @@ export class GoEngineClient {
 
   /**
    * Calculate topological and numerical resonance of a text.
+   * [PROXIMITY] 2026-05-10: Removed fallback - Go engine is now required for mathematical truth
    */
   async calculateResonance(input: string): Promise<ResonanceResult> {
     const start = Date.now();
-    try {
-      const response = await this._fetch('/resonance/evaluate', {
-        method: 'POST',
-        body: JSON.stringify({ input })
-      });
+    const response = await this._fetch('/resonance/evaluate', {
+      method: 'POST',
+      body: JSON.stringify({ input })
+    });
 
-      const latency = Date.now() - start;
-      const data = response.data as ResonanceResult;
+    const latency = Date.now() - start;
+    const data = response.data as ResonanceResult;
 
-      appendToTrustChain(
-        'GO_ENGINE:RESONANCE',
-        'evaluate',
-        `latency=${latency}ms coherence=${data.coherence.toFixed(3)} patterns=${data.patterns.length}`,
-        data.coherence
-      );
+    appendToTrustChain(
+      'GO_ENGINE:RESONANCE',
+      'evaluate',
+      `latency=${latency}ms coherence=${data.coherence.toFixed(3)} patterns=${data.patterns.length}`,
+      data.coherence
+    );
 
-      return data;
-    } catch (error) {
-      IQRALogger.warn(`⚠️ [GO_ENGINE] Engine unavailable, using TypeScript fallback resonance logic: ${(error as Error).message}`);
-      return this.fallbackResonance(input);
-    }
+    return data;
   }
 
   /**
@@ -339,85 +335,10 @@ export class GoEngineClient {
    * Trigger the autonomous evolution cycle in the Go engine.
    */
   async triggerEvolutionCycle(): Promise<boolean> {
-    try {
-      const response = await this._fetch('/evolve/cycle', {
-        method: 'GET'
-      });
-      return response.status === 'success';
-    } catch (e) {
-      IQRALogger.warn(`⚠️ [GO_ENGINE] Evolution cycle trigger failed: ${(e as Error).message}`);
-      return false;
-    }
-  }
-
-  /**
-   * Fallback logic when Go engine is offline.
-   * Uses "Simu-Quant" local algorithms for breakthrough resonance detection.
-   */
-  private fallbackResonance(text: string): ResonanceResult {
-    const patterns: string[] = [];
-    const letterCount = text.replace(/\s/g, '').length;
-    const wordCount = text.split(/\s+/).filter(w => w.length > 0).length;
-    const uniqueChars = new Set(text.toLowerCase().replace(/\s/g, '')).size;
-
-    // 1. Prime Sovereignty & Numerical Interlocking
-    if (this.isPrime(letterCount)) patterns.push('PRIME_SOVEREIGNTY');
-    if (letterCount % 7 === 0) patterns.push('SABEEN_LETTERS');
-    if (letterCount % 19 === 0) patterns.push('NINETEEN_LETTERS');
-    if (wordCount > 0 && (letterCount / wordCount) > 5.5) patterns.push('HIGH_DENSITY_TOPOLOGY');
-
-    // 2. Simu-Quant Entropy (Shannon Approximation)
-    const entropy = this.calculateEntropy(text);
-    if (entropy > 3.5 && entropy < 4.8) {
-      patterns.push('OPTIMAL_SHANNON_RESONANCE');
-    }
-
-    // 3. Truth Pattern Heuristics (Sovereign Keywords)
-    const sovereignKeywords = ['allah', 'truth', 'sovereign', 'ayah', 'quran', 'light', 'noor', 'haqq'];
-    const lowerText = text.toLowerCase();
-    const matches = sovereignKeywords.filter(k => lowerText.includes(k));
-    
-    if (matches.length >= 2) {
-      patterns.push('TRUTH_KEYWORD_RESONANCE');
-    }
-
-    const coherence = Math.min(0.95, (patterns.length * 0.15) + (entropy / 10));
-    const isTruthPattern = patterns.includes('PRIME_SOVEREIGNTY') && patterns.includes('TRUTH_KEYWORD_RESONANCE');
-
-    return {
-      coherence,
-      patterns,
-      letter_count: letterCount,
-      word_count: wordCount,
-      discovery_found: patterns.length > 0,
-      lid: 0.85,
-      is_truth_pattern: isTruthPattern
-    };
-  }
-
-  private calculateEntropy(text: string): number {
-    const freqs: Record<string, number> = {};
-    const clean = text.toLowerCase().replace(/\s/g, '');
-    if (clean.length === 0) return 0;
-
-    for (const char of clean) {
-      freqs[char] = (freqs[char] || 0) + 1;
-    }
-
-    return Object.values(freqs).reduce((acc, count) => {
-      const p = count / clean.length;
-      return acc - p * Math.log2(p);
-    }, 0);
-  }
-
-  private isPrime(n: number): boolean {
-    if (n <= 1) return false;
-    if (n <= 3) return true;
-    if (n % 2 === 0 || n % 3 === 0) return false;
-    for (let i = 5; i * i <= n; i += 6) {
-      if (n % i === 0 || n % (i + 2) === 0) return false;
-    }
-    return true;
+    const response = await this._fetch('/evolve/cycle', {
+      method: 'GET'
+    });
+    return response.status === 'success';
   }
 
   // ── Private Helpers ───────────────────────────────────────────────────────

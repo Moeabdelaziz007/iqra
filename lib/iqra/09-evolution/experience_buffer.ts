@@ -31,6 +31,7 @@ import crypto from 'crypto';
 import { IQRALogger } from '#infra/logger';
 import { appendToTrustChain } from '#security/security';
 import type { WorkerReport } from '../../../agents/contracts.ts';
+import { EbbinghausEngine } from '#memory/micro_memory';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -116,55 +117,6 @@ export interface HandoffResult {
   quality_score?: number;
   context_tags?: string[];
   quran_ref?: string;
-}
-
-// ── Ebbinghaus Engine ─────────────────────────────────────────────────────────
-
-/**
- * محرك منحنى Ebbinghaus للنسيان
- *
- * المعادلة الأصلية: R(t) = e^(-t/S)
- * حيث:
- *   R = نسبة الاحتفاظ (0.0 – 1.0)
- *   t = الزمن منذ آخر استرجاع (بالأيام)
- *   S = قوة الذاكرة (تبدأ بـ 1، تزداد مع كل استرجاع)
- *
- * المرجع: Ebbinghaus, H. (1885). Über das Gedächtnis.
- */
-export class EbbinghausEngine {
-  /**
-   * يحسب وزن الاحتفاظ الحالي لتجربة
-   * @param lastRetrieved - آخر وقت استرجاع (Unix ms)
-   * @param memoryStrength - قوة الذاكرة S (≥ 1.0)
-   * @returns وزن الاحتفاظ R ∈ [0.0, 1.0]
-   */
-  static computeRetention(lastRetrieved: number, memoryStrength: number): number {
-    const nowMs = Date.now();
-    const elapsedDays = (nowMs - lastRetrieved) / (1000 * 60 * 60 * 24);
-    // R(t) = e^(-t/S)
-    const retention = Math.exp(-elapsedDays / Math.max(memoryStrength, 1.0));
-    return Math.max(0.0, Math.min(1.0, retention));
-  }
-
-  /**
-   * يُقوّي الذاكرة عند الاسترجاع (Spaced Repetition)
-   * كل استرجاع يضاعف قوة الذاكرة بمعامل 1.5
-   * @param currentStrength - القوة الحالية
-   * @returns القوة الجديدة
-   */
-  static strengthen(currentStrength: number): number {
-    // تقوية تدريجية — لا تتجاوز 49 (7×7 من DASTŪR)
-    return Math.min(49.0, currentStrength * 1.5);
-  }
-
-  /**
-   * يُضعف الذاكرة عند الفشل (Negative Reinforcement)
-   * @param currentStrength - القوة الحالية
-   * @returns القوة الجديدة
-   */
-  static weaken(currentStrength: number): number {
-    return Math.max(0.5, currentStrength * 0.7);
-  }
 }
 
 // ── ExperienceBuffer ──────────────────────────────────────────────────────────

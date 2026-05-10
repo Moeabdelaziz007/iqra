@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { handleTelegramWebhook } from '@/lib/iqra/telegram';
+import { handleTelegramWebhook } from '@/lib/iqra/13-utils/telegram_bot';
 
 export async function POST(request: NextRequest) {
   const env = {

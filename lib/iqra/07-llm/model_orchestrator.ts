@@ -35,7 +35,7 @@ import { z } from 'zod';
 import { IQRALogger } from '#infra/logger';
 import { appendToTrustChain, checkCircuit, reportFailure, reportSuccess } from '#security/security';
 import { globalDamir } from '#security/damir_conscience';
-import type { TaskType, ClassifiedTask } from './task_classifier';
+import type { TaskType, ClassifiedTask } from '#core/router/task_classifier';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 

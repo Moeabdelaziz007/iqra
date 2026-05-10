@@ -53,6 +53,82 @@ async function loadGrammy() {
   }
 }
 
+// ── Types (for compatibility with telegram.ts) ───────────────────────────────
+
+export interface TelegramEnv {
+  TELEGRAM_BOT_TOKEN: string;
+  TELEGRAM_CHAT_ID: string;
+}
+
+// ── Simple Notification Wrapper (for compatibility with telegram.ts) ───────────
+
+/**
+ * Simple notification function - wrapper for sendMessage
+ * [PURIFICATION] 2026-05-10: Added for compatibility, replacing telegram.ts
+ */
+export async function sendTelegramNotification(env: TelegramEnv, text: string): Promise<boolean> {
+  if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) {
+    console.warn("Telegram Token or Chat ID is missing. Notification skipped.");
+    return false;
+  }
+
+  try {
+    const res = await fetch(
+      `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: env.TELEGRAM_CHAT_ID,
+          text,
+          parse_mode: 'Markdown',
+        }),
+      }
+    );
+    return res.ok;
+  } catch (err) {
+    console.error("Error connecting to Telegram API:", err);
+    return false;
+  }
+}
+
+/**
+ * Handles incoming webhooks from Telegram
+ * [PURIFICATION] 2026-05-10: Added for compatibility, replacing telegram.ts
+ */
+export async function handleTelegramWebhook(env: TelegramEnv, request: Request): Promise<Response> {
+  try {
+    const data: any = await request.json();
+    
+    if (!data || !data.message || !data.message.text) {
+      return new Response("OK", { status: 200 });
+    }
+
+    const chatId = data.message.chat.id.toString();
+    const userText = data.message.text;
+
+    // Security: Only authorized chat can talk to IQRA
+    if (chatId !== env.TELEGRAM_CHAT_ID) {
+      return new Response("OK", { status: 200 });
+    }
+
+    // Log interaction in TrustChain
+    appendToTrustChain(
+      'TELEGRAM:WEBHOOK',
+      chatId,
+      `msg_len=${userText.length}`,
+      1.0
+    );
+
+    // For now, just acknowledge - the bot handles commands via long polling
+    return new Response("OK", { status: 200 });
+
+  } catch (error) {
+    console.error("Error handling Telegram Webhook:", error);
+    return new Response("Error", { status: 200 });
+  }
+}
+
 // ── IQRATelegramBot ───────────────────────────────────────────────────────────
 
 export class IQRATelegramBot {

@@ -20,23 +20,41 @@
  *   يعتمد على: كلمات مفتاحية + أنماط regex + سياق.
  *   دقة مستهدفة: > 90% على مهام IQRA.
  *
- * النماذج السبعة:
- *   1. writer      → gemma3:4b-it-qat     (3.2GB) — الكاتب
- *   2. reader      → granite4-tiny:7b     (4.8GB) — القارئ
- *   3. sight       → liquid:lfm2-vl-1.6b  (1.2GB) — البصيرة
- *   4. hearing     → whisper-small        (1.5GB) — السمع
- *   5. topologist  → phi3:mini-4k         (2.7GB) — الطوبولوجي
- *   6. memory      → nomic-embed-text     (300MB) — الذاكرة
- *   7. conscience  → internal (no model)  (<10MB) — الضمير
+ * النماذج التسعة (السبع المثاني + 2):
+ *   1. writer         → gemma3:4b-it-qat     (3.2GB) — الكاتب
+ *   2. reader         → granite4-tiny:7b     (4.8GB) — القارئ
+ *   3. sight          → liquid:lfm2-vl-1.6b  (1.2GB) — البصيرة
+ *   4. hearing        → whisper-small        (1.5GB) — السمع
+ *   5. topologist     → phi3:mini-4k         (2.7GB) — الطوبولوجي
+ *   6. memory         → nomic-embed-text     (300MB) — الذاكرة
+ *   7. conscience     → internal (no model)  (<10MB) — الضمير
+ *   8. tts            → edge-tts             (50MB) — النطق
+ *   9. system_command → OpenClaw             (0MB) — أوامر النظام
+ * ══════════════════════════════════════════════════════════════
+ * [PURIFICATION] 2026-05-10: Merged edge/ and router/ task classifiers
+ * - Added Zod validation from edge/
+ * - Added feedback mechanism from edge/
+ * - Kept 9 task types from router/
+ * - Deleted edge/ directory
  * ══════════════════════════════════════════════════════════════
  */
 
 import { IQRALogger } from '#infra/logger';
 import { appendToTrustChain } from '#security/security';
+import { z } from 'zod';
+
+// ── Zod Schema (from edge/ version) ─────────────────────────────────────────
+
+const ClassifyInputSchema = z.object({
+  input: z.string().min(1).max(10000),
+  has_image: z.boolean().default(false),
+  has_audio: z.boolean().default(false),
+  context_hint: z.enum(['quran', 'science', 'general', 'memory']).optional(),
+});
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-/** أنواع المهام السبعة */
+/** أنواع المهام التسعة — السبع المثاني + TTS + System Command */
 export type TaskType =
   | 'conversation'     // → writer  (Gemma 3 4B)
   | 'deep_analysis'    // → reader  (Granite4 7B)
@@ -147,6 +165,14 @@ export class TaskClassifier {
     system_command: 0,
   };
 
+  /** سجل التصنيفات للتعلم (MemRL-inspired from edge/) */
+  private _history: Array<{
+    type: TaskType;
+    confidence: number;
+    correct?: boolean;
+  }> = [];
+  private _lastType: TaskType | null = null;
+
   // ── Core: classify ────────────────────────────────────────────────────────
 
   /**
@@ -219,6 +245,8 @@ export class TaskClassifier {
 
     this._stats[bestType]++;
 
+    this._lastType = bestType;
+
     IQRALogger.info(
       `🧭 [CLASSIFIER] "${input.slice(0, 40)}" → ${bestType} ` +
       `(${(confidence * 100).toFixed(0)}%) ${result.latency_ms}ms`
@@ -234,10 +262,42 @@ export class TaskClassifier {
     return result;
   }
 
+  // ── Feedback (MemRL-inspired from edge/) ─────────────────────────────────
+
+  /**
+   * تغذية راجعة لتحسين التصنيف
+   * مستوحى من MemRL (arXiv:2601.03192)
+   * @param input - the original input text
+   * @param wasCorrect - whether the classification was correct
+   */
+  feedback(input: string, wasCorrect: boolean): void {
+    const entry = this._history.find(h => h.type === this._lastType);
+    if (entry) {
+      entry.correct = wasCorrect;
+    }
+    IQRALogger.info(
+      `🧭 [CLASSIFIER] Feedback: "${input.slice(0, 16)}..." → ${wasCorrect ? '✅' : '❌'}`
+    );
+  }
+
   // ── Stats ─────────────────────────────────────────────────────────────────
 
-  getStats(): { total: number; by_type: Record<TaskType, number> } {
-    return { total: this._classifyCount, by_type: { ...this._stats } };
+  getStats(): {
+    total: number;
+    by_type: Record<TaskType, number>;
+    accuracy: number;
+    history_size: number;
+  } {
+    const correct = this._history.filter(h => h.correct === true).length;
+    const totalFeedback = this._history.filter(h => h.correct !== undefined).length;
+    const accuracy = totalFeedback > 0 ? correct / totalFeedback : 1.0;
+
+    return {
+      total: this._classifyCount,
+      by_type: { ...this._stats },
+      accuracy,
+      history_size: this._history.length,
+    };
   }
 
   // ── Private ───────────────────────────────────────────────────────────────

@@ -30,7 +30,7 @@
 import fs from 'fs';
 import path from 'path';
 import { TopologicalCuriosityEngine, TopologicalResonance } from './topological_curiosity.ts';
-import { goEngine, BatchAnalysisRequest, SurahData } from './go_engine_client.ts';
+import { goEngine } from './go_engine_client';
 import { PatternMemory } from '#memory/pattern_memory.ts';
 import { IQRAMemory } from '#memory/memory';
 import { appendToTrustChain } from '#security/security';
