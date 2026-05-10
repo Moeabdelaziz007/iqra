@@ -31,6 +31,12 @@ export const IQRA_TIMEOUTS = {
   PULSE_WARM: 27000,
   /** 81 seconds — نبض Tesla الثالث */
   PULSE_DEEP: 81000,
+  /** 10 seconds — Redis operations */
+  REDIS: 10000,
+  /** 15 seconds — Network requests */
+  NETWORK: 15000,
+  /** 30 seconds — LLM calls */
+  LLM: 30000,
 } as const;
 
 /**

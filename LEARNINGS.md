@@ -27,3 +27,28 @@ When a project uses `.ts` extensions in imports, `allowImportingTsExtensions` mu
 
 ### TrustChain Hash
 {{hash}}
+
+---
+
+## [FIX] TS2339 IQRA_TIMEOUTS Missing Properties
+**Date:** 2026-05-10
+**Error Count Before:** 394
+**Error Count After:** 366
+**Resonance:** +7.11%
+
+### Root Cause
+- IQRA_TIMEOUTS object missing REDIS, NETWORK, LLM properties
+- These properties were used in memory.ts but not defined in timeout.ts
+
+### Solution
+- Added REDIS: 10000, NETWORK: 15000, LLM: 30000 to IQRA_TIMEOUTS
+- These are reasonable timeout values for their respective operations
+
+### Pattern
+When adding new timeout constants, always update the IQRA_TIMEOUTS object in timeout.ts to maintain type safety.
+
+### Files Modified
+- lib/iqra/13-utils/timeout.ts (added REDIS, NETWORK, LLM)
+
+### TrustChain Hash
+{{hash}}
