@@ -14,7 +14,7 @@ import { validateInput, appendToTrustChain, checkCircuit, reportFailure, reportS
 import { SovereignEngine } from '#core/sovereign';
 import { IQRAMemory, QuantumTopologyStore, SpiritualCoordinate } from '#memory/memory';
 import { IQRALogger } from '#infra/logger';
-import { iqraExecute } from '#core/orchestrator';
+import { iqraExecute } from '#core/sovereign';
 import { withTimeout, IQRA_TIMEOUTS } from '#utils/timeout';
 import { IQRA_PERSONALITY } from '#utils/personality';
 import * as fs from 'fs';

@@ -25,6 +25,8 @@
  */
 
 import path from 'path';
+import { RewardLedger } from '#rewards/ledger';
+import { MicroMemory } from '#memory/micro_memory';
 import { IQRALogger } from '#infra/logger';
 import { appendToTrustChain } from '#security/security';
 
@@ -232,7 +234,7 @@ async function executeIQRATool(
       if (!intention) return { error: 'intention required' };
 
       try {
-        const { DamirConscience } = await import('../damir_conscience.ts');
+        const { DamirConscience } = await import('#security/damir_conscience.ts');
         const damir = new DamirConscience();
         const action = {
           id: `tool_check_${Date.now()}`,
@@ -254,7 +256,7 @@ async function executeIQRATool(
     // ── get_reward_stats ───────────────────────────────────────────────────
     case 'get_reward_stats': {
       try {
-        const { RewardLedger } = await import('../rewards/ledger.ts');
+        const { RewardLedger } = await import('#rewards/ledger');
         const summary = RewardLedger.getSummary();
         return summary;
       } catch (e) {
@@ -268,7 +270,7 @@ async function executeIQRATool(
       if (!text) return { error: 'text required' };
 
       try {
-        const { MicroMemory } = await import('../memory/micro_memory.ts');
+        const { MicroMemory } = await import('#memory/micro_memory');
         const hel = MicroMemory.computeShannonHEL(text);
         const { isQuranLike, confidence } = MicroMemory.hasQuranSignature(text);
         return { hel, is_quran_like: isQuranLike, confidence };

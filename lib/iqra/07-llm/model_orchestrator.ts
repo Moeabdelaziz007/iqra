@@ -433,7 +433,7 @@ export class ModelOrchestrator {
    */
   private async _pulseTick(taskType: TaskType): Promise<void> {
     try {
-      const { Pulse369 } = await import('../memory/pulse_369');
+      const { Pulse369 } = await import('#memory/pulse_369');
       await Pulse369.tick(`orchestrator:${taskType}`);
     } catch { /* non-blocking */ }
   }

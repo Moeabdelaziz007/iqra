@@ -14,7 +14,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { RewardEntry } from '../rewards/types';
+import { RewardEntry, RewardVector } from '../lib/iqra/05-rewards/types';
 
 export class RewardLedger {
   /**

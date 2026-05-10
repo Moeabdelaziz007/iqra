@@ -8,7 +8,7 @@ import type { Provider } from '#connectors/index';
 import fs from 'fs';
 import path from 'path';
 import { logToIQRAFile, appendToTrustChain } from '#security/security';
-import { ResourceFactory } from '#core/conscience/resource_factory';
+import { ResourceFactory } from '#security/conscience/resource_factory';
 import { RewardEngine } from '#rewards/engine';
 import { SovereignIdentity } from '#security/sovereign_identity';
 import { TopologicalAnalyzer } from '#skills/topological_analyzer';
@@ -18,11 +18,11 @@ import { FithrahBaseline } from '#security/audit/fithrah_baseline';
 import { IQRAMemory } from '#memory/memory';
 
 // ── Damir يُحمَّل lazily لتجنب circular imports ──────────────────────────────
-let _missionDamir: import('#core/damir_conscience').DamirConscience | null = null;
+let _missionDamir: import('#security/damir_conscience').DamirConscience | null = null;
 
 async function getMissionDamir() {
   if (!_missionDamir) {
-    const { DamirConscience } = await import('#core/damir_conscience');
+    const { DamirConscience } = await import('#security/damir_conscience');
     _missionDamir = new DamirConscience();
   }
   return _missionDamir;

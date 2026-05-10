@@ -35,7 +35,6 @@ import { PatternMemory } from '#memory/pattern_memory';
 import { IQRAMemory } from '#memory/memory';
 import { appendToTrustChain } from '#security/security';
 import { IQRALogger } from '#infra/logger';
-import { CodebaseTopologyMapper } from '../topology/codebase_mapper';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

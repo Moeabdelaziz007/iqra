@@ -445,25 +445,14 @@ export class Pulse369 {
         discovery_level: analysisResult.discovery_level ?? 'branch',
       });
 
-      // ④ كتابة في Obsidian
+      // ④ كتابة في Obsidian (اختياري)
       if (process.env.IQRA_OBSIDIAN === 'true') {
-        const { ObsidianBridge } = await import('../topology/obsidian_bridge.ts');
-        await ObsidianBridge.writeDiscovery({
-          title: `تحليل ${pattern.verse} — ${pattern.field}`,
-          verse_ref: pattern.verse,
-          arabic: '',
-          field: pattern.field,
-          resonance: analysisResult.confidence ?? pattern.resonance,
-          links: analysisResult.analysis?.semantic?.related_verses ?? [],
-          insights: [analysisResult.reasoning ?? ''],
-          mission_id: missionId,
-          timestamp: Date.now(),
-          shannon_hel: pattern.shannon_hel,
-        });
+        // ObsidianBridge غير متاح حالياً
+        console.log('⚠️ ObsidianBridge not available - skipping Obsidian write');
       }
 
       // ⑥ تسجيل في Causal Graph
-      const { MicroMemory } = await import('./micro_memory.ts');
+      const { MicroMemory } = await import('#memory/micro_memory');
       MicroMemory.recordCausalEdge({
         cause_id: pattern.id,
         cause_type: 'pattern',

@@ -317,7 +317,7 @@ ${reflections.map((r, i) => `${i + 1}. ${r}`).join('\n')}
     logToIQRAFile('REFLECTION_7.md', wisdom).catch(console.error);
 
     // Automatically store the reflection in Qdrant Semantic Memory
-    const { storeReflectionInQdrant } = await import('./qdrant');
+    const { storeReflectionInQdrant } = await import('#infra/qdrant');
     await storeReflectionInQdrant(wisdom).catch(console.error);
 
     console.log('✅ IQRA | Sab\'iyyah: Wisdom of Seven synchronized.');

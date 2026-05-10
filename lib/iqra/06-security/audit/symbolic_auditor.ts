@@ -7,7 +7,7 @@
  * Verifies LLM proposals against formal logic and physical constraints.
  */
 
-import { ConnectorFactory } from '../../../src/connectors/index';
+import { ConnectorFactory } from '#connectors/index';
 import { IQRALogger } from '#infra/logger';
 
 export interface ProofResult {

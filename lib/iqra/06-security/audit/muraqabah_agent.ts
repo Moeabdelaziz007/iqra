@@ -8,7 +8,7 @@
  */
 
 import { LlmAgent } from '@google/adk';
-import { SovereignIdentity } from '../06-security/sovereign_identity';
+import { SovereignIdentity } from '#security/sovereign_identity';
 import { IQRALogger } from '#infra/logger';
 import { IQRAMemory } from '#memory/memory';
 

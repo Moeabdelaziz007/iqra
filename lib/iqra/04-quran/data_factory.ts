@@ -4,7 +4,7 @@
  * Injects sample ayahs into the Vector Engine for performance stress testing.
  */
 
-import { VectorEngine } from './lib/iqra/quran/vector_engine';
+import { VectorEngine } from '#quran/vector_engine';
 
 export async function runDataFactory(env: any) {
   const engine = new VectorEngine(env);

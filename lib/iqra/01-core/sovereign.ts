@@ -434,8 +434,16 @@ export class SovereignEngine {
     `;
 
     try {
-      const insight = await connector.generate(prompt);
-      if (insight.includes('[DISCOVERY]')) {
+      const response = await connector.generate(prompt);
+      const insight = response.content;
+      if (insight.includes('ERROR') || insight.includes('FAIL')) {
+        const errorParts = insight.split(':');
+        throw new SovereignError(
+          SovereignErrorCode.INTEGRITY_ERR,
+          `Discovery loop failed: ${errorParts[1].trim()}`,
+          { logsCount: recentLogs.length }
+        );
+      } else if (insight.includes('[DISCOVERY]')) {
         const cleanInsight = insight.split('[DISCOVERY]')[1].trim();
         await IQRAMemory.appendList('self_insights', cleanInsight);
         logToIQRAFile('DISCOVERIES.md', `\n- [${new Date().toISOString()}] ${cleanInsight}`);
@@ -446,7 +454,7 @@ export class SovereignEngine {
       }
     } catch (err: any) {
       throw new SovereignError(
-        SovereignErrorCode.DISCOVERY_FAILURE,
+        SovereignErrorCode.INTEGRITY_ERR,
         `Discovery loop failed: ${err.message}`,
         { logsCount: recentLogs.length }
       );
