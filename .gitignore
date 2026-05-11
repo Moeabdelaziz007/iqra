@@ -45,6 +45,9 @@ iqra-core/benchmark_results.json
 iqra-core/data/reward_ledger.jsonl
 iqra-core/data/*.jsonl
 
+# Archive folder — local history and logs
+archive/
+
 # MCP local config (may contain tokens)
 .ag/mcp.json
 mcp.json
