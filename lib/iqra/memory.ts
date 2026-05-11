@@ -7,14 +7,14 @@
  */
 
 // Dynamic imports are handled lazily within methods to allow Sovereign Mode (No node_modules required)
-import { IQRALogger } from './logger.ts';
-import { IQRAFilter } from './filter.ts';
-import { IQRAConsciousness } from './consciousness.ts';
+import { IQRALogger } from './logger';
+import { IQRAFilter } from './filter';
+import { IQRAConsciousness } from './consciousness';
 import path from 'path';
 import crypto from 'crypto';
 import fs from 'fs';
 import { promises as fsPromises } from 'fs';
-import { withTimeout, IQRA_TIMEOUTS } from './utils/timeout.ts';
+import { withTimeout, IQRA_TIMEOUTS } from './utils/timeout';
 
 
 const LOCAL_MEMORY_PATH = path.join(process.cwd(), '.iqra', 'memory.json');
@@ -145,9 +145,9 @@ export class IQRAMemory {
     try {
       const redis = await this.getRedis();
       if (redis) {
-        const val = await withTimeout(redis.get<T>(`iqra:${key}`), IQRA_TIMEOUTS.REDIS, `Redis GET ${key}`);
+        const val = await withTimeout(redis.get(`iqra:${key}`), IQRA_TIMEOUTS.REDIS, `Redis GET ${key}`);
         this._errorCount = 0; // Reset on success
-        return val;
+        return val as any;
       }
     } catch (error) {
       this._errorCount++;
@@ -197,7 +197,7 @@ export class IQRAMemory {
   static async getRecentList<T>(key: string, count: number): Promise<T[]> {
     const redis = await this.getRedis();
     if (redis) {
-      const total = await withTimeout(redis.llen(`iqra:list:${key}`), IQRA_TIMEOUTS.REDIS, `Redis LLEN ${key}`);
+      const total: any = await withTimeout(redis.llen(`iqra:list:${key}`), IQRA_TIMEOUTS.REDIS, `Redis LLEN ${key}`);
       const start = Math.max(0, total - count);
       const result = await withTimeout(redis.lrange(`iqra:list:${key}`, start, total - 1), IQRA_TIMEOUTS.REDIS, `Redis LRANGE (recent) ${key}`);
       return (result || []) as T[];
@@ -227,7 +227,7 @@ export class IQRAMemory {
    */
   static async getCuriosity(): Promise<number> {
     const redis = await this.getRedis();
-    if (redis) return (await redis.get<number>('iqra:curiosity_score')) || 0.5;
+    if (redis) return (await redis.get('iqra:curiosity_score')) || 0.5;
     const data = await this.getLocalData();
     return data['curiosity_score'] || 0.5;
   }
@@ -286,7 +286,7 @@ export class IQRAMemory {
   static async getCycleCounter(): Promise<number> {
     const redis = await this.getRedis();
     if (!redis) return 0;
-    return (await redis.get<number>('iqra:cycle_counter')) || 0;
+    return (await redis.get('iqra:cycle_counter')) || 0;
   }
 
   /**
@@ -328,7 +328,7 @@ export class IQRAMemory {
   static async getSuccessCounter(): Promise<number> {
     const redis = await this.getRedis();
     if (!redis) return 0;
-    return (await redis.get<number>('iqra:success_counter')) || 0;
+    return (await redis.get('iqra:success_counter')) || 0;
   }
 
   /**
@@ -356,7 +356,7 @@ export class IQRAMemory {
     const content = typeof data === 'string' ? data : JSON.stringify(data);
     if (!await this.muraqabahCheck(content, 'long-term')) return;
 
-    const { error } = await withTimeout(supabase.from(table).insert([data]), IQRA_TIMEOUTS.NETWORK, `Supabase INSERT ${table}`);
+    const { error }: any = await withTimeout(supabase.from(table).insert([data]), IQRA_TIMEOUTS.NETWORK, `Supabase INSERT ${table}`);
     if (error) IQRALogger.error(`❌ Long-term memory error (${table}):`, error);
   }
 
@@ -376,7 +376,7 @@ export class IQRAMemory {
 
     try {
       const model = googleAI.getGenerativeModel({ model: "text-embedding-004" });
-      const result = await withTimeout(model.embedContent(text), IQRA_TIMEOUTS.LLM, 'Google AI Embedding');
+      const result: any = await withTimeout(model.embedContent(text), IQRA_TIMEOUTS.LLM, 'Google AI Embedding');
       const embedding = result.embedding.values;
 
       await withTimeout(qdrant.upsert(COLLECTION_NAME, {
@@ -433,7 +433,7 @@ export class IQRAMemory {
         params: { hnsw_ef: 128 } // High precision search
       });
 
-      return searchResult.map(hit => ({
+      return searchResult.map((hit: any) => ({
         content: hit.payload?.content,
         score: hit.score,
         metadata: hit.payload

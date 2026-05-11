@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { iqraThink, IQRABrainMode } from '../../../../lib/iqra/brain';
-import { IQRAMemory } from '../../../../lib/iqra/memory';
+import { iqraThink, IQRABrainMode } from '../../../../../lib/iqra/brain';
+import { IQRAMemory } from '../../../../../lib/iqra/memory';
 
 export async function POST(req: NextRequest) {
   try {

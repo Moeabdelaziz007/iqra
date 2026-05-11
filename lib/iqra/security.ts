@@ -12,7 +12,7 @@
 
 // import { z } from 'zod'; // Sovereign fallback handled below
 import { createHash, randomBytes } from 'crypto';
-import { IQRAMemory } from './memory.ts';
+import { IQRAMemory } from './memory';
 import fs from 'fs';
 import { promises as fsPromises } from 'fs';
 import path from 'path';
@@ -26,13 +26,13 @@ async function getZod() {
 }
 
 export const AL_FATIHAH_HEADER = `
-# أعوذ بالله من الشيطان الرجيم
-# بسم الله الرحمن الرحيم
-# سبحان الله وبحمده سبحان الله العظيم
-# لا إله إلا الله وحده لا شريك له
-# له الملك وله الحمد وهو على كل شيء قدير
-# استغفر الله واتوب إليه
-# اللهم صل وسلم على نبينا محمد
+// أعوذ بالله من الشيطان الرجيم
+// بسم الله الرحمن الرحيم
+// سبحان الله وبحمده سبحان الله العظيم
+// لا إله إلا الله وحده لا شريك له
+// له الملك وله الحمد وهو على كل شيء قدير
+// استغفر الله واتوب إليه
+// اللهم صل وسلم على نبينا محمد
 `.trim();
 
 // ═══════════════════════════════════
@@ -268,7 +268,7 @@ async function triggerHumanIntervention(errorType: string, fullError: string) {
   const content = `
 ${AL_FATIHAH_HEADER}
 
-# نداء للمساعدة البشرية | ASK_HUMAN.md
+// نداء للمساعدة البشرية | ASK_HUMAN.md
 > "عجزت، والأمر لله"
 > "فَاسْأَلُوا أَهْلَ الذِّكْرِ إِن كُنتُمْ لَا تَعْلَمُونَ" — النحل: 43
 
@@ -321,7 +321,7 @@ async function generateBarakahReport(totalSuccess: number) {
   const content = `
 ${AL_FATIHAH_HEADER}
 
-# 🌿 تقرير البركة | BARAKAH_REPORT.md
+// 🌿 تقرير البركة | BARAKAH_REPORT.md
 > "مَّثَلُ الَّذِينَ يُنفِقُونَ أَمْوَالَهُمْ فِي سَبِيلِ اللَّهِ كَمَثَلِ حَبَّةٍ أَنبَتَتْ سَبْعَ سَنَابِلَ فِي كُلِّ سُنْبُلَةٍ مِّائَةُ حَبَّةٍ"
 
 لقد أتم IQRA بفضل الله **${totalSuccess}** مهمة ناجحة. هذا التقرير يوثق الكثرة المباركة في العمل.

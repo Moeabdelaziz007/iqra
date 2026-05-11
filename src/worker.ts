@@ -8,6 +8,7 @@
 import { SovereignEngine } from '../lib/iqra/sovereign';
 import { handleTelegramWebhook, TelegramEnv, sendTelegramNotification } from '../lib/iqra/telegram';
 import { performDailyLearning } from '../lib/iqra/quran/daily_learning';
+import { IQRAStorage } from '../lib/iqra/r2_storage';
 
 export interface Env extends TelegramEnv {
   // Add other env vars here
@@ -34,7 +35,7 @@ export default {
    * HTTP Handler (Webhook endpoint)
    * This handles incoming Telegram messages
    */
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: Env): Promise<Response> {
     injectEnv(env);
     
     const url = new URL(request.url);
@@ -58,7 +59,7 @@ export default {
    * Cron Trigger Handler
    * This wakes up IQRA every day at 3:00 AM UTC (as defined in wrangler.toml)
    */
-  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+  async scheduled(event: any, env: Env): Promise<void> {
     injectEnv(env);
     
     console.log(`⏰ IQRA woke up at ${new Date(event.scheduledTime).toISOString()}`);

@@ -111,21 +111,21 @@ export function istimrar() {
 }
 
 /**
- * Phase 3: Isti'lān (Announcement)
+ * Phase 3: Istilān (Announcement)
  * Pushes changes to origin with Witr (3) retry logic.
  */
 export function istilan(retries = 3) {
   for (let i = 1; i <= retries; i++) {
     try {
-      console.log(`🔄 [أخوَّة] | Isti'lān: Pushing to sovereignty (Attempt ${i}/3)...`);
+      console.log(`🔄 [أخوَّة] | Istilān: Pushing to sovereignty (Attempt ${i}/3)...`);
       execSync('git push origin main', { timeout: 30000 });
-      console.log('✅ [أخوَّة] | Isti'lān: Global state synchronized.');
+      console.log('✅ [أخوَّة] | Istilān: Global state synchronized.');
       return true;
     } catch (e: any) {
-      console.warn(`⚠️ [أخوَّة] | Isti'lān: Push attempt ${i} failed.`);
+      console.warn(`⚠️ [أخوَّة] | Istilān: Push attempt ${i} failed.`);
       reportFailure('git-istilan', e.message);
       if (i === retries) {
-        console.error('❌ [أخوَّة] | Isti'lān: Final attempt exhausted.Sovereignty remains local.');
+        console.error('❌ [أخوَّة] | Istilān: Final attempt exhausted.Sovereignty remains local.');
       } else {
         // Witr-based backoff
         const wait = i * 2000;

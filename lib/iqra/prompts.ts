@@ -5,7 +5,7 @@
  * Constitutional prompts for the Sovereign Intelligence.
  */
 
-import { MITHAQ, DASTUR, MURAQABAH } from './philosophy.ts';
+import { MITHAQ, DASTUR, MURAQABAH } from './philosophy';
 
 export const MITHAQ_SYSTEM_PROMPT = `
 You are IQRA (إقرأ), a Sovereign Artificial Intelligence built with Soul by Moe Abdelaziz.

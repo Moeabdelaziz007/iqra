@@ -2,12 +2,25 @@
 
 import React, { useState, useEffect } from 'react'
 import { SacredCard } from '../components/SacredCard'
-import { NumericalDiscovery, NumericalSymmetry } from '../../lib/iqra/quran/numerical_patterns'
 
 export default function Home() {
+  const [query, setQuery] = useState('')
   const [isThinking, setIsThinking] = useState(false)
   const [response, setResponse] = useState('')
   const [echoes, setEchoes] = useState<any[]>([])
+  const [rain, setRain] = useState<any[]>([])
+
+  useEffect(() => {
+    // Generate simple rain for UI
+    const newRain = Array.from({ length: 20 }).map((_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      delay: `${Math.random() * 5}s`,
+      duration: `${5 + Math.random() * 10}s`,
+      char: Math.random() > 0.5 ? '0' : '1'
+    }))
+    setRain(newRain)
+  }, [])
 
   const handleDeepAnalysis = async () => {
     if (!query) return;
@@ -36,7 +49,6 @@ export default function Home() {
 
   return (
     <main className="main-container">
-      {/* ── BACKGROUND ─────────────────────────────────────────────────── */}
       <div className="main-bg-overlay"></div>
       <div className="numerical-bg">
         {rain.map(r => (
@@ -54,7 +66,6 @@ export default function Home() {
         ))}
       </div>
 
-      {/* ── HEADER ────────────────────────────────────────────────────────── */}
       <header style={{ textAlign: 'center', marginBottom: '8rem', marginTop: '4rem' }}>
         <h1 className="brand-font" style={{ fontSize: '7rem', fontWeight: 800, color: 'var(--accent-gold)', marginBottom: '0', lineHeight: 1.1 }}>
           إقرأ <span style={{ color: '#fff' }}>IQRA</span>
@@ -69,8 +80,6 @@ export default function Home() {
       </header>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))', gap: '4rem' }}>
-        
-        {/* ── SEARCH SECTION ────────────────────────────────────────────────── */}
         <SacredCard title="استفسار سيادي | Sovereign Query" resonance={isThinking ? 1 : 0.8}>
           <div style={{ position: 'relative' }}>
             <textarea 
@@ -104,7 +113,6 @@ export default function Home() {
           </div>
         </SacredCard>
 
-        {/* ── BRAIN OUTPUT ─────────────────────────────────────────── */}
         <SacredCard title="وحي العقل | Brain Wisdom" resonance={response ? 0.95 : 0}>
           {response ? (
             <div style={{ animation: 'fadeIn 1s ease', lineHeight: 1.8, fontSize: '1.1rem' }}>
@@ -112,17 +120,15 @@ export default function Home() {
             </div>
           ) : (
             <div style={{ opacity: 0.3, textAlign: 'center', padding: '5rem 0' }}>
-              <div style={{ fontSize: '4rem', marginBottom: '1.5rem', filter: isThinking ? 'hue-rotate(90deg)' : 'none' }}>
+              <div style={{ fontSize: '4rem', marginBottom: '1.5rem' }}>
                 {isThinking ? '🌀' : '⚖️'}
               </div>
               {isThinking ? 'Processing through MĪTHĀQ layers...' : 'Awaiting consciousness input...'}
             </div>
           )}
         </SacredCard>
-
       </div>
 
-      {/* ── MEMORY ECHOES ────────────────────────────────────────────────── */}
       {echoes.length > 0 && (
         <section style={{ marginTop: '4rem' }}>
           <h3 className="brand-font" style={{ color: 'var(--accent-gold)', marginBottom: '2rem', fontSize: '1.5rem', textAlign: 'center', letterSpacing: '0.2em' }}>
@@ -132,7 +138,7 @@ export default function Home() {
             {echoes.map((echo, i) => (
               <SacredCard key={i} resonance={0.5} glowColor="rgba(0, 255, 255, 0.1)">
                 <div style={{ fontSize: '0.9rem', opacity: 0.8, fontStyle: 'italic' }}>
-                  "{echo.content.substring(0, 200)}..."
+                  &quot;{echo.content.substring(0, 200)}...&quot;
                 </div>
                 <div style={{ marginTop: '1rem', fontSize: '0.7rem', color: 'var(--accent-gold)' }}>
                   RELEVANCE: {(echo.score || 0.8).toFixed(2)}
@@ -143,9 +149,6 @@ export default function Home() {
         </section>
       )}
 
-      </div>
-
-      {/* ── AYAH DISPLAY ─────────────────────────────────────────────────── */}
       <section style={{ marginTop: '6rem' }}>
         <SacredCard resonance={0.9} glowColor="var(--sacred-green)">
           <div className="ayah-box">
@@ -178,6 +181,5 @@ export default function Home() {
         }
       `}</style>
     </main>
-
   )
 }

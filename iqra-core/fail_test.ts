@@ -1,5 +1,5 @@
-import { IQRAEvolution } from './lib/iqra/evolution/self_evolve.ts';
-import { IQRALogger } from './lib/iqra/logger.ts';
+import { IQRAEvolution } from '../lib/iqra/evolution/self_evolve';
+import { IQRALogger } from '../lib/iqra/logger';
 import fs from 'fs';
 import path from 'path';
 
@@ -23,7 +23,6 @@ async function testFailureAndEvolution() {
     IQRALogger.info("✅ [TEST] Failure injected into FAILURES.md");
 
     // 2. Trigger the Evolution Cycle
-    // This will read the log, call the LLM (Real API if keys present, or fail if not)
     const strategy = await IQRAEvolution.runEvolutionCycle();
     
     if (strategy) {

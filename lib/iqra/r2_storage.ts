@@ -6,7 +6,7 @@
  */
 
 export interface R2Env {
-  IQRA_BUCKET: R2Bucket;
+  IQRA_BUCKET: any;
 }
 
 export class IQRAStorage {

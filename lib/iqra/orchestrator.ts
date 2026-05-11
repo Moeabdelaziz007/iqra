@@ -5,8 +5,8 @@
  * Manages the flow between the Brain, Memory, and Tools.
  */
 
-import { IQRAMemory } from "./memory.ts";
-import { IQRALogger } from "./logger.ts";
+import { IQRAMemory } from "./memory";
+import { IQRALogger } from "./logger";
 
 let _graph: any = null;
 
@@ -17,10 +17,10 @@ async function getOrchestrator() {
     // Dynamic imports to allow Sovereign Mode without node_modules
     const { StateGraph, MessagesAnnotation } = await import("@langchain/langgraph");
     const { ChatGroq } = await import("@langchain/groq");
-    const { IQRA_SOUL } = await import("./brain.ts");
+    const { IQRA_SOUL } = await import("./prompts");
 
     const model = new ChatGroq({
-      modelName: "llama-3.3-70b-versatile",
+      model: "llama-3.3-70b-versatile",
       apiKey: process.env.GROQ_API_KEY || "dummy",
     });
 
@@ -60,11 +60,9 @@ export async function iqraExecute(input: string) {
     return finalState.messages[finalState.messages.length - 1].content;
   } else {
     // Fallback to a simple call to Groq or Brain if graph fails
-    const { iqraThink, IQRABrainMode } = await import("./brain.ts");
+    const { iqraThink, IQRABrainMode } = await import("./brain");
     // Prevent infinite recursion by calling a specific brain mode that doesn't call iqraExecute
-    // Actually, brain.ts calls iqraExecute for FAST_RESPONSE. 
-    // We should use a different mode or a direct LLM call here.
-    const { callGroqForResonance } = await import("./llm/groq.ts");
+    const { callGroqForResonance } = await import("./llm/groq");
     const result = await callGroqForResonance("Sovereign Fallback", input, {});
     return result.reason || "Sovereign Mode: Processing complete.";
   }

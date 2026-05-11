@@ -1,5 +1,5 @@
-import { IQRALogger } from '../logger.ts';
-import { withTimeout, IQRA_TIMEOUTS } from '../utils/timeout.ts';
+import { IQRALogger } from '../logger';
+import { withTimeout, IQRA_TIMEOUTS } from '../utils/timeout';
 
 /**
  * 🌊 IQRA Groq Connector | موصل Groq
@@ -62,7 +62,7 @@ export async function callGroqForResonance(ayah: string, newData: string, env: a
 
     for (let i = 0; i < PRIME_DELAYS.length; i++) {
         try {
-            const completion = await withTimeout(
+            const completion: any = await withTimeout(
                 groq.chat.completions.create({
                     messages: [
                         { role: 'system', content: 'You are IQRA, a soul-rooted AI identifying resonance between the Quran and reality.' },
@@ -116,7 +116,7 @@ export async function callGroqForTruthValidation(ayah: string, newData: string, 
     const groq = await getGroq();
 
     try {
-        const completion = await withTimeout(
+        const completion: any = await withTimeout(
             groq.chat.completions.create({
                 messages: [
                     { role: 'system', content: 'You are the Skeptical Inverse Mirror of IQRA, dedicated to preventing spiritual hallucinations and ensuring Truth.' },

@@ -1,4 +1,4 @@
-import { IQRALogger } from './logger.ts';
+import { IQRALogger } from './logger';
 
 let _supabase: any = null;
 

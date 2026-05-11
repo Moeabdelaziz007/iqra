@@ -7,11 +7,11 @@
  * and external data sources using Topological Curiosity and Inverse Mirror validation.
  */
 
-import { IQRALogger } from '../logger.ts';
-import { computeArabicSimilarity } from '../utils/similarity.ts';
-import { callGroqForResonance, callGroqForTruthValidation } from '../llm/groq.ts';
-import { IQRAMemory } from '../memory.ts';
-import { appendToTrustChain } from '../security.ts';
+import { IQRALogger } from '../logger';
+import { computeArabicSimilarity } from '../utils/similarity';
+import { callGroqForResonance, callGroqForTruthValidation } from '../llm/groq';
+import { IQRAMemory } from '../memory';
+import { appendToTrustChain } from '../security';
 
 /**
  * 🌀 Resonance Types | انواع الرنين

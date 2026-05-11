@@ -120,7 +120,7 @@ CREATE INDEX IF NOT EXISTS idx_tafsir_ayah ON tafsir(ayah_id);
 async function embedAndStore(ayat: Ayah[]) {
   console.log('🧠 Generating ingestion worker...');
   const workerScript = generateIngestionWorker(ayat);
-  const workerPath = path.join(process.cwd(), 'scripts', 'iqra_ingest_worker.ts');
+  const workerPath = path.join(process.cwd(), 'scripts', 'iqra_ingest_worker');
   fs.writeFileSync(workerPath, workerScript);
   console.log(`📝 Generated ingestion worker at ${workerPath}`);
 }

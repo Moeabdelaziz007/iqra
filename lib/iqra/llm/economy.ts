@@ -1,6 +1,6 @@
-import { IQRALogger } from '../logger.ts';
-import { withTimeout, IQRA_TIMEOUTS } from '../utils/timeout.ts';
-import { IQRA_SOUL } from '../prompts.ts';
+import { IQRALogger } from '../logger';
+import { withTimeout, IQRA_TIMEOUTS } from '../utils/timeout';
+import { IQRA_SOUL } from '../prompts';
 
 /**
  * 🍃 Economy Model Connector | الموصل الاقتصادي

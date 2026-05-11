@@ -1,25 +1,28 @@
 #!/bin/bash
 
-# IQRA Status Helper for macOS Intel
-# Gets CPU, RAM, and Temp metrics without heavy dependencies
+# IQRA Status Helper for Linux/Sandbox
+# Gets CPU, RAM, and Temp metrics
 
 echo "IQRA Metrics Snapshot - $(date)"
 
 # 1. RAM Usage
-total_ram=$(sysctl hw.memsize | awk '{print $2/1024/1024/1024}')
-used_ram=$(vm_stat | perl -ne '/page size of (\d+) bytes/ and $s=$1; /Pages active: +(\d+)/ and $a=$1; /Pages speculative: +(\d+)/ and $sp=$1; /Pages wired down: +(\d+)/ and $w=$1; /Pages compressed: +(\d+)/ and $c=$1; END { printf "%.2f", ($a+$sp+$w+$c)*$s/1024/1024/1024 }')
-echo "RAM: $used_ram GB / ${total_ram%.*} GB"
+total_ram=$(free -g | awk '/^Mem:/{print $2}')
+used_ram=$(free -g | awk '/^Mem:/{print $3}')
+echo "RAM: ${used_ram} GB / ${total_ram} GB"
 
 # 2. CPU Load (1 min)
-cpu_load=$(sysctl -n vm.loadavg | awk '{print $2}')
+cpu_load=$(cat /proc/loadavg | awk '{print $1}')
 echo "CPU Load (1m): $cpu_load"
 
-# 3. Temperature (using powermetrics if possible, or fallback)
-# Note: powermetrics requires sudo, so we might use a lighter tool if available
-# Fallback: check thermal state
-thermal_level=$(sysctl -n kern.thermal_level)
-echo "Thermal Level: $thermal_level (0=Normal, 1=Fair, 2=Serious, 3=Critical)"
+# 3. Thermal Level (Simplified for Sandbox)
+# Check if thermal data exists
+if [ -f /sys/class/thermal/thermal_zone0/temp ]; then
+    temp=$(cat /sys/class/thermal/thermal_zone0/temp | awk '{print $1/1000}')
+    echo "Temperature: ${temp}°C"
+else
+    echo "Thermal Level: 0 (Normal - Data not available)"
+fi
 
 # 4. Git Stats
-recent_commits=$(git log --since="24 hours ago" --oneline | wc -l | xargs)
+recent_commits=$(git log --since="24 hours ago" --oneline 2>/dev/null | wc -l | xargs)
 echo "Recent Commits (24h): $recent_commits"

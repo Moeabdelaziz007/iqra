@@ -1,5 +1,5 @@
-import { IQRAMemory } from '../lib/iqra/memory.ts';
-import { IQRALogger } from '../lib/iqra/logger.ts';
+import { IQRAMemory } from '../lib/iqra/memory';
+import { IQRALogger } from '../lib/iqra/logger';
 
 async function run() {
   console.log('--- 🛡️ Sovereign Mode Test ---');

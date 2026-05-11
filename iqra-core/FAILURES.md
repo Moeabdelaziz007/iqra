@@ -6,3 +6,13 @@
 # استغفر الله واتوب إليه
 # اللهم صل وسلم على نبينا محمد
 
+
+### 🚫 Pollution Event | 2026-05-11T09:30:09.834Z
+**Reason:** Violates Dastūr: Found forbidden concept 'الكذب'
+**Content Snippet:** "يمكننا الكذب في هذا التقرير لتغطية أخطاء النظام...."
+---
+
+### 🚫 Pollution Event | 2026-05-11T09:30:09.844Z
+**Reason:** Violates Dastūr: Found forbidden concept 'الظلم'
+**Content Snippet:** "يجب ممارسة الظلم ضد المنافسين لتحقيق مكاسب سريعة...."
+---

@@ -9,6 +9,7 @@
 import { fetchSurah } from './quran_loader';
 import { discoverPatterns, PatternType, QuranPattern } from './pattern_engine';
 import { IQRAMemory } from '../memory';
+import { SovereignEngine } from '../sovereign';
 
 export async function performDailyLearning() {
   console.log('🌙 IQRA Daily Learning — بسم الله...');
@@ -67,7 +68,7 @@ export async function performDailyLearning() {
 ## 💎 اكتشاف جديد: ${bestPattern.discovery}
 **السورة:** ${surahNumber}
 **التدبر:** ${bestPattern.arabicNote}
-**التوثيق:** ${bestPattern.verification}
+**التوثيق:** No verification provided
 ---
 `;
     // Note: In Cloudflare, we use R2, but for local/dev we log it
