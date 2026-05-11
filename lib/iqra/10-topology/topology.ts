@@ -101,11 +101,36 @@ export class IQRATopology {
    */
   calculateCurvature(): number {
     try {
-      const ramUsage = parseFloat(execSync("ps -A -o %mem | awk '{s+=$1} END {print s}'").toString().trim());
-      const loadAverage = parseFloat(execSync("sysctl -n vm.loadavg | awk '{print $2}'").toString().trim());
+      // Get RAM usage (cross-platform)
+      let ramUsage = 0;
+      try {
+        ramUsage = parseFloat(execSync("ps -A -o %mem | awk '{s+=$1} END {print s}'").toString().trim());
+      } catch {
+        ramUsage = 25; // Fallback if ps fails
+      }
+      
+      // Get load average (cross-platform)
+      let loadAverage = 0;
+      try {
+        if (process.platform === 'darwin') {
+          // macOS: use sysctl
+          loadAverage = parseFloat(execSync("sysctl -n vm.loadavg | awk '{print $2}'").toString().trim());
+        } else if (process.platform === 'linux') {
+          // Linux: read from /proc/loadavg
+          const loadavg = execSync("cat /proc/loadavg").toString().trim();
+          loadAverage = parseFloat(loadavg.split(' ')[0]);
+        } else {
+          // Other platforms: use uptime command
+          const uptime = execSync("uptime").toString();
+          const match = uptime.match(/load average[s]?: ([\d.]+)/);
+          loadAverage = match ? parseFloat(match[1]) : 0;
+        }
+      } catch {
+        loadAverage = 0.5; // Fallback if all methods fail
+      }
       
       // Curvature = (RAM % / 100) + (Load Avg / 10)
-      // High load or memory creates "gravity" that curves the topological surface.
+      // High load or memory creates "gravity" that curves topological surface.
       const curvature = (ramUsage / 100) + (loadAverage / 10);
       return Math.round(curvature * 100) / 100;
     } catch {

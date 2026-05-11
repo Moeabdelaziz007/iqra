@@ -115,7 +115,78 @@ export class IQRAExecutionLoop {
   }
 
   private static performTopologicalReset() {
-    console.log("✨ System re-aligned with FITRAH.md");
-    // Implementation for real reset logic
+    console.log("✨ [TOPOLOGICAL_RESET] System re-aligning with FITRAH.md...");
+    
+    try {
+      // 1. Clear memory caches
+      const memoryPath = path.join(process.cwd(), '.iqra/memory_cache');
+      if (fs.existsSync(memoryPath)) {
+        fs.rmSync(memoryPath, { recursive: true, force: true });
+        console.log("🧹 Cleared memory cache");
+      }
+      
+      // 2. Reset topology state
+      const topologyState = {
+        currentState: 'RECEPTION',
+        failureCount: 0,
+        lastReset: new Date().toISOString(),
+        integrity: 100
+      };
+      
+      const topologyPath = path.join(process.cwd(), '.iqra/topology_state.json');
+      fs.writeFileSync(topologyPath, JSON.stringify(topologyState, null, 2));
+      console.log("📊 Reset topology state");
+      
+      // 3. Clear reward ledger recent entries
+      const rewardLedgerPath = path.join(process.cwd(), '.iqra/reward_ledger.jsonl');
+      if (fs.existsSync(rewardLedgerPath)) {
+        const lines = fs.readFileSync(rewardLedgerPath, 'utf8').split('\n').filter(line => line.trim());
+        // Keep only last 50 entries
+        const recentLines = lines.slice(-50);
+        fs.writeFileSync(rewardLedgerPath, recentLines.join('\n'));
+        console.log("🏆 Pruned reward ledger (kept last 50 entries)");
+      }
+      
+      // 4. Reset evolution metrics
+      const evolutionState = {
+        lastEvolution: null,
+        evolutionCount: 0,
+        lastReset: new Date().toISOString()
+      };
+      
+      const evolutionPath = path.join(process.cwd(), '.iqra/evolution_state.json');
+      fs.writeFileSync(evolutionPath, JSON.stringify(evolutionState, null, 2));
+      console.log("🧬 Reset evolution state");
+      
+      // 5. Log reset to trust chain
+      const resetEntry = {
+        timestamp: new Date().toISOString(),
+        action: 'TOPOLOGICAL_RESET',
+        reason: 'Scheduled 40-cycle reset',
+        integrity: topologyState.integrity
+      };
+      
+      const trustChainPath = path.join(process.cwd(), '.iqra/trust_chain.jsonl');
+      if (fs.existsSync(trustChainPath)) {
+        fs.appendFileSync(trustChainPath, JSON.stringify(resetEntry) + '\n');
+        console.log("🔗 Logged reset to trust chain");
+      }
+      
+      // 6. Create reset marker for monitoring
+      const resetMarker = {
+        timestamp: new Date().toISOString(),
+        cycleCount: 0,
+        status: 'RESET_COMPLETE'
+      };
+      
+      const markerPath = path.join(process.cwd(), '.iqra/reset_marker.json');
+      fs.writeFileSync(markerPath, JSON.stringify(resetMarker, null, 2));
+      
+      console.log("✅ [TOPOLOGICAL_RESET] System successfully re-aligned");
+      
+    } catch (error) {
+      console.error("❌ [TOPOLOGICAL_RESET] Failed:", error);
+      // Continue with degraded state rather than failing completely
+    }
   }
 }

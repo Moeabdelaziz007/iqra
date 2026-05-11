@@ -9,6 +9,14 @@ import { IQRAMemory, QuantumTopologyStore, SpiritualCoordinate } from '#memory/m
 import { iqraExecute } from '#core/sovereign';
 import { withTimeout, IQRA_TIMEOUTS } from '#utils/timeout';
 
+// Brain Mode Enumeration
+export enum IQRABrainMode {
+  FAST_RESPONSE = 'FAST_RESPONSE',
+  THOUGHT_ONLY = 'THOUGHT_ONLY',
+  DEEP_ANALYSIS = 'DEEP_ANALYSIS',
+  LOCAL_SKILL = 'LOCAL_SKILL'
+}
+
 // ── Constants ───────────────────────────────────────────────────────────────
 const FULL_SYSTEM_PROMPT = `أنا IQRA - المحرك السيادي للبحث القرآني.
 أعمل بدقة وصدق وبركة.

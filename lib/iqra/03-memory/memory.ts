@@ -64,12 +64,9 @@ const LOCAL_MEMORY_PATH = path.join(process.cwd(), '.iqra', 'memory.json');
 const COLLECTION_NAME = 'iqra_wisdom';
 
 export class IQRAMemory {
-  private static _redis: any = null;
-  private static _supabase: any = null;
-  private static _qdrant: any = null;
-  private static _googleAI: any = null;
-  private static _errorCount = 0;
-  private static readonly ERROR_THRESHOLD = 7;
+  private static readonly REDIS_TTL = 604800; // 7 days in seconds
+  private static readonly SUPABASE_TABLE = 'iqra_embeddings';
+  private static readonly QUANTUM_COLLECTION = 'iqra_quantum';
 
   /**
    * 🌌 Store Quantum Memory
@@ -763,4 +760,152 @@ export class QuantumTopologyStore {
   private static async generateEmbedding(text: string): Promise<number[]> {
     return await IQRAMemory.generateEmbedding(text);
   }
+
+    /**
+     * Get context for a specific session
+     */
+    static async getContextForSession(sessionId: string, limit: number = 5): Promise<any[]> {
+        try {
+            const contextKey = `session:${sessionId}:context`;
+            const redis = await this.getRedis();
+            
+            if (!redis) {
+                return [];
+            }
+
+            // Get context from Redis
+            const contextData = await redis.get(contextKey);
+            
+            if (!contextData) {
+                return [];
+            }
+
+            const context = JSON.parse(contextData);
+            
+            // Return most recent items up to limit
+            return Array.isArray(context) ? context.slice(-limit) : [];
+            
+        } catch (error) {
+            IQRALogger.warn(`⚠️ [MEMORY] Failed to get context for session ${sessionId}:`, error);
+            return [];
+        }
+    }
+
+    /**
+     * Save pattern to memory
+     */
+    static async savePattern(patternData: any): Promise<void> {
+        try {
+            const patternKey = `pattern:${patternData.patternId}`;
+            const redis = await this.getRedis();
+            
+            if (!redis) {
+                // Fallback to local storage
+                const localPatterns = await this.get<any>('local_patterns') || {};
+                localPatterns[patternData.patternId] = {
+                    ...patternData,
+                    savedAt: Date.now()
+                };
+                await this.set('local_patterns', localPatterns);
+                return;
+            }
+
+            // Save to Redis with TTL
+            await redis.setex(patternKey, this.REDIS_TTL, JSON.stringify(patternData));
+            
+            // Also save to pattern index
+            const indexKey = 'patterns:index';
+            const indexData = await redis.get(indexKey);
+            const patterns = indexData ? JSON.parse(indexData) : [];
+            
+            if (!patterns.find((p: any) => p.patternId === patternData.patternId)) {
+                patterns.push({
+                    patternId: patternData.patternId,
+                    timestamp: patternData.timestamp,
+                    trustScore: patternData.trustScore
+                });
+                
+                // Keep only last 1000 patterns in index
+                const updatedPatterns = patterns.slice(-1000);
+                await redis.setex(indexKey, this.REDIS_TTL, JSON.stringify(updatedPatterns));
+            }
+            
+            IQRALogger.info(`💾 [MEMORY] Pattern saved: ${patternData.patternId}`);
+            
+        } catch (error) {
+            IQRALogger.error(`❌ [MEMORY] Failed to save pattern:`, error);
+        }
+    }
+
+    /**
+     * Get pattern memories based on observations
+     */
+    static async getPatternMemories(observations: string[]): Promise<Record<string, any>> {
+        try {
+            const redis = await this.getRedis();
+            
+            if (!redis) {
+                return {};
+            }
+
+            const patterns: Record<string, any> = {};
+            
+            // Search for patterns related to observations
+            for (const observation of observations) {
+                const searchKey = `patterns:search:${observation.slice(0, 50).toLowerCase()}`;
+                const searchResults = await redis.get(searchKey);
+                
+                if (searchResults) {
+                    const results = JSON.parse(searchResults);
+                    results.forEach((pattern: any) => {
+                        if (!patterns[pattern.patternId]) {
+                            patterns[pattern.patternId] = pattern;
+                        }
+                    });
+                }
+            }
+            
+            return patterns;
+            
+        } catch (error) {
+            IQRALogger.warn(`⚠️ [MEMORY] Failed to get pattern memories:`, error);
+            return {};
+        }
+    }
+
+    /**
+     * Update pattern statistics
+     */
+    static async updatePatternStatistics(patternId: string, stats: any): Promise<void> {
+        try {
+            const statsKey = `pattern:${patternId}:stats`;
+            const redis = await this.getRedis();
+            
+            if (!redis) {
+                // Fallback to local storage
+                const localStats = await this.get<any>('pattern_stats') || {};
+                localStats[patternId] = {
+                    ...localStats[patternId],
+                    ...stats,
+                    lastUpdated: Date.now()
+                };
+                await this.set('pattern_stats', localStats);
+                return;
+            }
+
+            // Get existing stats
+            const existingStats = await redis.get(statsKey);
+            const mergedStats = existingStats ? 
+                { ...JSON.parse(existingStats), ...stats, lastUpdated: Date.now() } : 
+                { ...stats, lastUpdated: Date.now() };
+            
+            // Save updated stats
+            await redis.setex(statsKey, this.REDIS_TTL, JSON.stringify(mergedStats));
+            
+            IQRALogger.info(`📊 [MEMORY] Pattern stats updated: ${patternId}`);
+            
+        } catch (error) {
+            IQRALogger.error(`❌ [MEMORY] Failed to update pattern statistics:`, error);
+        }
+    }
 }
