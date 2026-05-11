@@ -18,7 +18,10 @@
  */
 
 /**
- * Execute sovereign meta-loop
+ * Entry point that accepts an intent string and executes the Sovereign meta-loop entry action.
+ *
+ * @param intent - A brief description of the desired action or task intent
+ * @returns An object containing `success: true` and the original `intent` string
  */
 export async function iqraExecute(intent: string): Promise<any> {
   // Implementation for iqraExecute

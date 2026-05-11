@@ -27,7 +27,12 @@ import { FULL_SYSTEM_PROMPT, IQRA_SOUL } from '#utils/prompts';
 import { HeartbeatSystem } from '#infra/heartbeat';
 export { FULL_SYSTEM_PROMPT, IQRA_SOUL };
 
-// ── Skill Router ──────────────────────────────────────────────────────────────
+/**
+ * Detects a supported skill by scanning the input for skill-specific keywords.
+ *
+ * @param input - The user-provided text to inspect for skill keywords.
+ * @returns The matched skill identifier (`quran_search` or `trading_skill`), or `null` if no skill is detected.
+ */
 
 function detectSkill(input: string): string | null {
   const lower = input.toLowerCase();
@@ -73,6 +78,17 @@ interface SkillResult {
   skill: string;
 }
 
+/**
+ * Execute a named skill against the provided user input and return its structured output.
+ *
+ * @param skillName - Identifier of the skill to run (must exist in SkillBank)
+ * @param userInput - The user's input or prompt to be processed by the skill
+ * @throws Error - If the requested skill is not found in SkillBank
+ * @returns The skill execution result object containing:
+ *   - `result`: the skill-specific result or error object,
+ *   - `raw_json`: the parsed JSON produced by the model (may include `{ error: 'parse_failed', raw: ... }`),
+ *   - `skill`: the executed skill name
+ */
 export async function executeWithSkill(
   skillName: string,
   userInput: string
@@ -188,7 +204,17 @@ export async function executeWithSkill(
 }
 
 /**
- * يُنفّذ الأداة المحلية بناءً على JSON المُرجَع من المهارة
+ * Execute a local action determined by a parsed skill JSON and return the skill's result.
+ *
+ * Executes built-in handlers for known skills (for example `quran_search`, `damir_check`,
+ * `pattern_validate`, and `trading_skill`) and returns either the skill-specific result
+ * object or the original parsed payload for unknown skills.
+ *
+ * @param skillName - The identifier of the skill to execute (e.g., `quran_search`, `trading_skill`)
+ * @param parsed - The JSON object produced by the skill LLM containing at minimum `action` and `params` when required
+ * @returns The skill-specific result object (for example `{ verses, count }` for quran searches,
+ * a verdict object for `damir_check`, a validation summary for `pattern_validate`, trading context for
+ * `trading_skill`) or an object with an `error` property when execution fails or the skill output is invalid.
  */
 async function _executeSkillAction(skillName: string, parsed: Record<string, any>): Promise<Record<string, any> | unknown> {
   switch (skillName) {
@@ -318,6 +344,20 @@ export function validateSoulInjection(systemPrompt: string): boolean {
   return required.every(phrase => systemPrompt.includes(phrase));
 }
 
+/**
+ * Process user input through IQRA's decision pipeline and return the generated response and its source.
+ *
+ * The function validates and filters the input, attempts memory-based fast-paths, routes to a skill
+ * when detected, or orchestrates MissionControl; it may use local models when available and logs
+ * learned patterns and execution metadata to memory.
+ *
+ * @param input - The user's prompt or query to process
+ * @param mode - Brain operating mode that influences provider selection and behavior
+ * @param context - Optional conversational context (roles: `user | assistant | system`) supplied for validation and conditioning
+ * @returns An object containing `response` (the textual reply) and `provider` (the source used, e.g. `'groq'`, `'skill:xyz'`, `'fitrah'`, `'MissionControl'`, etc.)
+ * @throws Error If soul-injection validation fails (covenant missing)
+ * @throws Error If input validation fails (validation error is persisted and the function throws)
+ */
 export async function iqraThink({
   input,
   mode = IQRABrainMode.FAST_RESPONSE,

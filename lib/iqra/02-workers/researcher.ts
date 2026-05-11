@@ -68,7 +68,16 @@ export interface ResearchOutput {
   source_attestations: SourceAttestation[];  // وسوم المصادر — القاعدة ٣
 }
 
-// ── LLM Caller ────────────────────────────────────────────────────────────────
+/**
+ * Query an LLM provider (real or simulated) for structured research about a Qur'anic verse and a field of inquiry.
+ *
+ * @param verse - The Qur'anic verse text to research
+ * @param field - The domain or field of inquiry to relate the verse to
+ * @param provider - Provider identifier: `'google'`, `'groq'`, or `'simulated'`
+ * @param devMode - When true, allows use of the `'simulated'` provider for mock responses
+ * @returns An object with `raw` (the provider's parsed research output excluding `mission_id`, `timestamp`, and `source_attestations`) and a `tag` indicating provenance (`'[fetched]'` or `'[prior-training]'`), or `null` if no provider produced a result
+ * @throws Error - Thrown immediately if `provider === 'simulated'` but `devMode` is false (constitutional/no-mock guard)
+ */
 
 async function callLLMForResearch(
   verse: string,

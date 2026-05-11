@@ -1,5 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { SovereignDID } from '../../lib/iqra/06-security/did'; // [TC] reason: relative path to canonical lib/iqra | id: c1-did
+import { SovereignDID } from '../../lib/iqra/06-security/did'; /**
+ * Resolve the domain used for DID document generation.
+ *
+ * @param req - The incoming Next.js API request; its `Host` header is used if no environment override is provided.
+ * @returns The domain string to use: `NEXT_PUBLIC_APP_DOMAIN` (trimmed and with any leading `http://` or `https://` removed) if set and non-empty; otherwise the request's `Host` header; otherwise `"localhost:3000"`.
+ */
 
 function resolveDomain(req: NextApiRequest): string {
   const explicit = process.env.NEXT_PUBLIC_APP_DOMAIN?.trim();

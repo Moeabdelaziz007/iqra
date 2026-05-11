@@ -278,14 +278,19 @@ ${this.metadata.partialResults ? `- **Partial Results**: ${JSON.stringify(this.m
 }
 
 /**
- * Helper to check if an error is a SovereignError
+ * Determines whether a value is a SovereignError.
+ *
+ * @returns `true` if `error` is an instance of `SovereignError`, `false` otherwise.
  */
 export function isSovereignError(error: unknown): error is SovereignError {
     return error instanceof SovereignError;
 }
 
 /**
- * Helper to extract partial results from any error
+ * Extracts `partialResults` from an error's metadata when available.
+ *
+ * @param error - The value to inspect for embedded partial results
+ * @returns The `partialResults` object from the error's metadata, or `undefined` if the value is not a `SovereignError` or has no `partialResults`
  */
 export function extractPartialResults(error: unknown): Record<string, unknown> | undefined {
     if (isSovereignError(error)) {

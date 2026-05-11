@@ -47,8 +47,10 @@ const WEAK_EVIDENCE = [
 ];
 
 /**
- * Consistency check helper - verifies claims are supported by evidence structure
- * [TC] reason: add consistency check to detect hallucinations bypassing regex | id: TC-hallucination-consistency
+ * Evaluates how well research claims are supported by the provided evidence and metadata.
+ *
+ * @param research - Research output containing `evidence`, `reasoning`, `resonance_score`, and optional `source_attestations`
+ * @returns A consistency score between 0 and 1, where higher values indicate stronger alignment between claims and supporting evidence
  */
 function _checkConsistency(research: ResearchOutput): number {
   let score = 1.0;
@@ -83,6 +85,14 @@ function _checkConsistency(research: ResearchOutput): number {
   return Math.max(0, score);
 }
 
+/**
+ * Validate prior research and produce a structured validation report used to decide mission handoff.
+ *
+ * Runs hallucination, consistency, evidence-strength, resonance, verse-format, and optional knowledge-node checks against the prior research output, writes a `validation_report.json` into the working directory, appends a trust-chain entry, and returns a `HandoffResult` that routes the mission to the next worker on pass or reports failure on validation errors.
+ *
+ * @param context - MissionContext containing `scope`, `workingDir`, and optionally `previousOutput` paths used to locate research and node files
+ * @returns A HandoffResult containing the produced `ValidationReport` (under `data.report`), the report file path, the `resonance_score`, the computed `hallucination_penalty`, and status fields indicating success (PASS → next: "Planner") or failure. On internal errors the function returns a failure HandoffResult whose report includes the error message in `violations`.
+ */
 export async function executeMissionValidator(context: MissionContext): Promise<HandoffResult> {
   const { scope, workingDir, previousOutput } = context;
   const implemented: string[] = [];

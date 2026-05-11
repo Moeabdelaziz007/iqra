@@ -107,7 +107,9 @@ export function checkHumility(): void {
 }
 
 /**
- * مسح السجل عند "التوبة النصوحة" (إصلاح حقيقي للأخطاء)
+ * Clears the Tawbah ledger and resets in-memory error state.
+ *
+ * If the Tawbah ledger file exists, it is overwritten with a cleared header and the current ISO timestamp, and an informational log entry is emitted. The in-memory error log is always cleared.
  */
 export function clearTawbah(): void {
   if (existsSync(TAWBAH_PATH)) {
