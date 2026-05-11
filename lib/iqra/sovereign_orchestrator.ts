@@ -120,7 +120,7 @@ export class MissionControl {
     const skills = this.classifyMission(input);
     IQRALogger.info(`🎯 [MISSION_CONTROL] Skills identified: ${skills.join(', ') || 'general'}`);
 
-    // Initialize Mission State
+    // Initialize Mission State with enhanced tracking
     let state: MissionState = {
       initial_input: input,
       reports: [],
@@ -128,48 +128,113 @@ export class MissionControl {
       assigned_skills: skills,
       metadata: {
         start_time: Date.now(),
-        mission_id: `mission_${Math.random().toString(36).substring(7)}`
+        mission_id: `mission_${Math.random().toString(36).substring(7)}`,
+        phase_history: [],
+        error_count: 0,
+        retry_count: 0
       }
     };
 
-    // 1. Resonance Worker
-    const resResult = await this.executePhase('resonance', input, state);
-    if (resResult.updated_state) state = resResult.updated_state;
-    this.reports.push(resResult.report);
-    
-    if (!resResult.success) {
-       return { response: "Mission Aborted: Resonance Failure.", reports: this.reports, context: state.context };
+    // Enhanced orchestration with retry logic and error recovery
+    const phases = ['resonance', 'research', 'validation', 'execution'];
+    let lastError: string | null = null;
+
+    for (const phase of phases) {
+      const maxRetries = 2;
+      let phaseSuccess = false;
+      
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          IQRALogger.info(`🛰️ [MISSION_CONTROL] Executing phase '${phase}' (attempt ${attempt + 1}/${maxRetries + 1})`);
+          
+          const phaseResult = await this.executePhase(phase, input, state);
+          
+          // Track phase execution
+          if (!state.metadata.phase_history) state.metadata.phase_history = [];
+          state.metadata.phase_history.push({
+            phase,
+            attempt: attempt + 1,
+            success: phaseResult.success,
+            timestamp: Date.now(),
+            worker_id: phaseResult.report?.worker_id
+          });
+
+          if (phaseResult.success) {
+            if (phaseResult.updated_state) state = phaseResult.updated_state;
+            this.reports.push(phaseResult.report);
+            phaseSuccess = true;
+            IQRALogger.info(`✅ [MISSION_CONTROL] Phase '${phase}' completed successfully`);
+            break;
+          } else {
+            lastError = phaseResult.error || `Phase ${phase} failed`;
+            state.metadata.error_count = (state.metadata.error_count || 0) + 1;
+            IQRALogger.warn(`⚠️ [MISSION_CONTROL] Phase '${phase}' failed: ${lastError}`);
+            
+            if (attempt === maxRetries) {
+              // Final attempt failed - check if we can continue
+              if (phase === 'validation') {
+                return { 
+                  response: `Mission Aborted: Dastur Violation. ${lastError}`, 
+                  reports: this.reports, 
+                  context: state.context 
+                };
+              } else if (phase === 'resonance') {
+                return { 
+                  response: "Mission Aborted: Resonance Failure.", 
+                  reports: this.reports, 
+                  context: state.context 
+                };
+              } else if (phase === 'research') {
+                // Research failure is less critical - continue with warning
+                IQRALogger.warn(`⚠️ [MISSION_CONTROL] Research failed but continuing: ${lastError}`);
+                phaseSuccess = true;
+                break;
+              }
+            } else {
+              // Retry with exponential backoff
+              const backoffMs = Math.pow(2, attempt) * 1000;
+              IQRALogger.info(`⏳ [MISSION_CONTROL] Retrying phase '${phase}' in ${backoffMs}ms...`);
+              await new Promise(resolve => setTimeout(resolve, backoffMs));
+              state.metadata.retry_count = (state.metadata.retry_count || 0) + 1;
+            }
+          }
+        } catch (error) {
+          lastError = error instanceof Error ? error.message : String(error);
+          state.metadata.error_count = (state.metadata.error_count || 0) + 1;
+          IQRALogger.error(`❌ [MISSION_CONTROL] Phase '${phase}' threw error: ${lastError}`);
+          
+          if (attempt === maxRetries) {
+            return { 
+              response: `Mission Aborted: Critical Error in ${phase}. ${lastError}`, 
+              reports: this.reports, 
+              context: state.context 
+            };
+          }
+        }
+      }
+
+      if (!phaseSuccess) {
+        IQRALogger.error(`❌ [MISSION_CONTROL] Phase '${phase}' failed after all retries`);
+        return { 
+          response: `Mission Aborted: ${phase} phase failed after ${maxRetries + 1} attempts. ${lastError}`, 
+          reports: this.reports, 
+          context: state.context 
+        };
+      }
     }
 
-    // 2. Research Worker
-    const researchResult = await this.executePhase('research', input, state);
-    if (researchResult.updated_state) state = researchResult.updated_state;
-    this.reports.push(researchResult.report);
-
-    if (!researchResult.success) {
-      return { response: "Mission Aborted: Research Failure.", reports: this.reports, context: state.context };
-    }
-
-    // 3. Validation Worker
-    const valResult = await this.executePhase('validation', input, state);
-    if (valResult.updated_state) state = valResult.updated_state;
-    this.reports.push(valResult.report);
-
-    if (!valResult.success) {
-      return { response: `Mission Aborted: Dastur Violation. ${valResult.error}`, reports: this.reports, context: state.context };
-    }
-
-    // 4. Execution Worker
-    const execResult = await this.executePhase('execution', input, state);
-    if (execResult.updated_state) state = execResult.updated_state;
-    this.reports.push(execResult.report);
-
-    IQRALogger.info('🏁 [MISSION_CONTROL] Chain completed successfully.');
+    // Mission completed successfully
+    const totalTime = Date.now() - state.metadata.start_time;
+    IQRALogger.info(`🏁 [MISSION_CONTROL] Chain completed successfully in ${totalTime}ms`);
+    IQRALogger.info(`📊 [MISSION_CONTROL] Total phases: ${phases.length}, Retries: ${state.metadata.retry_count || 0}, Errors: ${state.metadata.error_count || 0}`);
     
     return {
-      response: execResult.data || "Processing complete.",
+      response: this.reports[this.reports.length - 1]?.data || "Processing complete.",
       reports: this.reports,
-      context: state.context
+      context: {
+        ...state.context,
+        mission_metadata: state.metadata
+      }
     };
   }
 

@@ -16,9 +16,9 @@
 
 import fs from 'fs';
 import path from 'path';
-import { IQRAMemory } from './memory.ts';
-import { logToIQRAFile, appendToTrustChain } from './security.ts';
-import { IQRALogger } from './logger.ts';
+import { IQRAMemory } from './memory';
+import { logToIQRAFile, appendToTrustChain } from './security';
+import { IQRALogger } from './logger';
 
 const WISDOM_PATH  = path.join(process.cwd(), 'WISDOM_7.md');
 const META_PATH    = path.join(process.cwd(), 'iqra-core', 'METAMORPHOSIS.md');
@@ -63,7 +63,7 @@ async function extractWisdomFromFailures(): Promise<string | null> {
 
     if (violations.size === 0) return null;
 
-    const topViolation = [...violations.entries()].sort((a, b) => b[1] - a[1])[0];
+    const topViolation = Array.from(violations.entries()).sort((a, b) => b[1] - a[1])[0];
     return `Most blocked concept: "${topViolation[0]}" (${topViolation[1]} times). Filter is working correctly.`;
   } catch {
     return null;
@@ -84,18 +84,29 @@ export class SovereignEvolution {
     const cycleNum = Math.floor(counter / 7);
     const timestamp = new Date().toISOString();
 
-    // 1. Check last wisdom timestamp — avoid duplicate within same second
+    // 1. Enhanced deduplication logic — avoid duplicate cycles
     let lastWisdomTime = 0;
+    let lastCycleNum = -1;
+    
     try {
-      const recent = await IQRAMemory.getRecentList<any>('wisdom_log', 1);
+      const recent = await IQRAMemory.getRecentList<any>('wisdom_log', 3);
       if (recent.length > 0) {
-        const item = typeof recent[0] === 'string' ? JSON.parse(recent[0]) : recent[0];
-        lastWisdomTime = item?.timestamp || 0;
+        // Check last 3 entries for better deduplication
+        for (const entry of recent) {
+          const item = typeof entry === 'string' ? JSON.parse(entry) : entry;
+          if (item?.cycle === cycleNum) {
+            IQRALogger.info(`⏭️ [EVOLUTION] Cycle ${cycleNum} already processed`);
+            return;
+          }
+          if (item?.timestamp > lastWisdomTime) {
+            lastWisdomTime = item.timestamp;
+          }
+        }
       }
     } catch { /* Redis may be unavailable — continue */ }
 
     const secondsSince = (Date.now() - lastWisdomTime) / 1000;
-    if (secondsSince < 5 && lastWisdomTime > 0) {
+    if (secondsSince < 3 && lastWisdomTime > 0) {
       IQRALogger.info(`⏭️ [EVOLUTION] Skipping duplicate write (${secondsSince.toFixed(1)}s since last)`);
       return;
     }

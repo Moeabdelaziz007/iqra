@@ -111,6 +111,7 @@ export class TopologicalLoop {
     const entry: RewardEntry = {
       ...output,
       mission_id: this.mission.mission_id,
+      worker_id: 'topological-loop-worker',
       timestamp: Date.now(),
       validation_status: 'verified'
     };
