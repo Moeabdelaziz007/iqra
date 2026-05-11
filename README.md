@@ -329,9 +329,9 @@ iqra/
 
 | | |
 |---|---|
-| 📅 **التاريخ \| Date** | `2026-05-11` |
-| 💡 **آخر خطوة \| Last Step** | feat(memory): add metadata support for pattern persistence and retrieval |
-| 🔗 **الـ Commit** | `4ee8066` |
+| 📅 **التاريخ \| Date** | `2026-05-12` |
+| 💡 **آخر خطوة \| Last Step** | IQRA Sovereign Runtime: Stabilization and Structural Unification |
+| 🔗 **الـ Commit** | `8317a4c` |
 
 <!-- IQRA-LATEST-END -->
 
