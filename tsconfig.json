@@ -25,64 +25,64 @@
     ],
     "paths": {
       "@iqra/*": [
-        "./lib/iqra/*"
+        "./src/lib/iqra/*"
       ],
       "@/*": [
         "./src/*"
       ],
       "@/lib/iqra/*": [
-        "./lib/iqra/*"
+        "./src/lib/iqra/*"
       ],
       "@/errors/*": [
-        "./lib/iqra/01-core/*"
+        "./src/lib/iqra/01-core/*"
       ],
       "#core/*": [
-        "./lib/iqra/01-core/*"
+        "./src/lib/iqra/01-core/*"
       ],
       "#workers/*": [
-        "./lib/iqra/02-workers/*"
+        "./src/lib/iqra/02-workers/*"
       ],
       "#memory/*": [
-        "./lib/iqra/03-memory/*"
+        "./src/lib/iqra/03-memory/*"
       ],
       "#quran/*": [
-        "./lib/iqra/04-quran/*"
+        "./src/lib/iqra/04-quran/*"
       ],
       "#rewards/*": [
-        "./lib/iqra/05-rewards/*"
+        "./src/lib/iqra/05-rewards/*"
       ],
       "#security/*": [
-        "./lib/iqra/06-security/*"
+        "./src/lib/iqra/06-security/*"
       ],
       "#llm/*": [
-        "./lib/iqra/07-llm/*"
+        "./src/lib/iqra/07-llm/*"
       ],
       "#skills/*": [
-        "./lib/iqra/08-skills/*"
+        "./src/lib/iqra/08-skills/*"
       ],
       "#evolution/*": [
-        "./lib/iqra/09-evolution/*"
+        "./src/lib/iqra/09-evolution/*"
       ],
       "#topology/*": [
-        "./lib/iqra/10-topology/*"
+        "./src/lib/iqra/10-topology/*"
       ],
       "#trading/*": [
-        "./lib/iqra/11-trading/*"
+        "./src/lib/iqra/11-trading/*"
       ],
       "#infra/*": [
-        "./lib/iqra/12-infrastructure/*"
+        "./src/lib/iqra/12-infrastructure/*"
       ],
       "#utils/*": [
-        "./lib/iqra/13-utils/*"
+        "./src/lib/iqra/13-utils/*"
       ],
       "#scripts/*": [
         "./scripts/*"
       ],
       "#connectors/*": [
-        "./lib/iqra/07-llm/connectors/*"
+        "./src/lib/iqra/07-llm/connectors/*"
       ],
       "#errors/*": [
-        "./lib/iqra/01-core/*"
+        "./src/lib/iqra/01-core/*"
       ],
       "#iqra-core/*": [
         "./iqra-core/*"
@@ -106,7 +106,6 @@
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
-    "src/lib/iqra"
+    "node_modules"
   ]
 }

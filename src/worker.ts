@@ -5,9 +5,9 @@
  * Runs 24/7 on the edge, responding to webhooks and executing scheduled cron tasks.
  */
 
-import { SovereignEngine } from '../lib/iqra/01-core/sovereign'; // [TC] reason: relative path to canonical lib/iqra | id: c1-wsov
-import { handleTelegramWebhook, TelegramEnv, sendTelegramNotification } from '../lib/iqra/13-utils/telegram_bot'; // [TC] reason: relative path to canonical lib/iqra | id: c1-wtel
-import { performDailyLearning } from '../lib/iqra/04-quran/daily_learning'; // [TC] reason: relative path to canonical lib/iqra | id: c1-wdl
+import { SovereignEngine } from './lib/iqra/01-core/sovereign'; // [TC] reason: relative path to canonical lib/iqra | id: c1-wsov
+import { handleTelegramWebhook, TelegramEnv, sendTelegramNotification } from './lib/iqra/13-utils/telegram_bot'; // [TC] reason: relative path to canonical lib/iqra | id: c1-wtel
+import { performDailyLearning } from './lib/iqra/04-quran/daily_learning'; // [TC] reason: relative path to canonical lib/iqra | id: c1-wdl
 
 export interface Env extends TelegramEnv {
   // Add other env vars here
@@ -61,7 +61,7 @@ export default {
 
     // Sovereign Identity (DID) - did:web:axiomid.app
     if (url.pathname === "/.well-known/did.json") {
-      const { SovereignDID } = await import('../lib/iqra/06-security/did');
+      const { SovereignDID } = await import('./lib/iqra/06-security/did');
       const doc = await SovereignDID.generateDocument("core", "axiomid.app");
       return new Response(JSON.stringify(doc), {
         headers: { "Content-Type": "application/json" }
@@ -71,7 +71,7 @@ export default {
     // Agent-specific DIDs
     if (url.pathname.startsWith("/did/")) {
       const agentId = url.pathname.split("/")[2];
-      const { SovereignDID } = await import('../lib/iqra/06-security/did');
+      const { SovereignDID } = await import('./lib/iqra/06-security/did');
       const doc = await SovereignDID.generateDocument(agentId, "axiomid.app");
       return new Response(JSON.stringify(doc), {
         headers: { "Content-Type": "application/json" }

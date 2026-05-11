@@ -15,4 +15,4 @@ export {
   getPersona,
   getPersonaSystemPrompt,
   type Persona
-} from '../lib/iqra/13-utils/personality';
+} from './lib/iqra/13-utils/personality';
