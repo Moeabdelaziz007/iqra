@@ -330,8 +330,8 @@ iqra/
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-11` |
-| 💡 **آخر خطوة \| Last Step** | IQRA v0.3.6.9 updates and reshape rules. |
-| 🔗 **الـ Commit** | `e24722e` |
+| 💡 **آخر خطوة \| Last Step** | refactor(iqra): migrate to path aliases and fix core thinking signatures |
+| 🔗 **الـ Commit** | `8dcfef6` |
 
 <!-- IQRA-LATEST-END -->
 
