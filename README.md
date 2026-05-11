@@ -330,8 +330,8 @@ iqra/
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-11` |
-| 💡 **آخر خطوة \| Last Step** | refactor(iqra): migrate to path aliases and fix core thinking signatures |
-| 🔗 **الـ Commit** | `8dcfef6` |
+| 💡 **آخر خطوة \| Last Step** | feat(memory): add metadata support for pattern persistence and retrieval |
+| 🔗 **الـ Commit** | `4ee8066` |
 
 <!-- IQRA-LATEST-END -->
 
