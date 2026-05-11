@@ -37,5 +37,135 @@
       "Successfully handled high-difficulty analysis task"
     ],
     "should_include_in_training": true
+  },
+  {
+    "task_id": "failure_1778458579586_0",
+    "reviewed_at": "2026-05-11T00:16:25.812Z",
+    "quality_score": 0.9,
+    "doctrinal_safe": true,
+    "lessons_learned": [
+      "High-quality correction achieved via groq",
+      "Slow execution (5999ms) — consider caching"
+    ],
+    "should_include_in_training": true
+  },
+  {
+    "task_id": "failure_1778458585817_0",
+    "reviewed_at": "2026-05-11T00:16:39.937Z",
+    "quality_score": 0.9,
+    "doctrinal_safe": true,
+    "lessons_learned": [
+      "High-quality correction achieved via groq",
+      "Slow execution (7216ms) — consider caching"
+    ],
+    "should_include_in_training": true
+  },
+  {
+    "task_id": "curiosity_1778458586176_0",
+    "reviewed_at": "2026-05-11T00:16:44.945Z",
+    "quality_score": 0.7,
+    "doctrinal_safe": false,
+    "lessons_learned": [
+      "Successfully handled high-difficulty discovery task"
+    ],
+    "should_include_in_training": false,
+    "rejection_reason": "Doctrinal safety check failed"
+  },
+  {
+    "task_id": "evolution_1778458586176_0",
+    "reviewed_at": "2026-05-11T00:16:44.946Z",
+    "quality_score": 0.9,
+    "doctrinal_safe": true,
+    "lessons_learned": [
+      "High-quality analysis achieved via groq",
+      "Successfully handled high-difficulty analysis task"
+    ],
+    "should_include_in_training": true
+  },
+  {
+    "task_id": "failure_1778458748080_0",
+    "reviewed_at": "2026-05-11T00:19:08.669Z",
+    "quality_score": 0.6,
+    "doctrinal_safe": true,
+    "lessons_learned": [
+      "Task type \"failure_derived\" failed with local — try different provider"
+    ],
+    "should_include_in_training": false,
+    "rejection_reason": "Output too short"
+  },
+  {
+    "task_id": "failure_1778458748671_0",
+    "reviewed_at": "2026-05-11T00:19:10.639Z",
+    "quality_score": 0.6,
+    "doctrinal_safe": true,
+    "lessons_learned": [
+      "Task type \"failure_derived\" failed with local — try different provider"
+    ],
+    "should_include_in_training": false,
+    "rejection_reason": "Output too short"
+  },
+  {
+    "task_id": "curiosity_1778458748883_0",
+    "reviewed_at": "2026-05-11T00:19:52.770Z",
+    "quality_score": 0.6,
+    "doctrinal_safe": true,
+    "lessons_learned": [
+      "Task type \"curiosity_driven\" failed with local — try different provider"
+    ],
+    "should_include_in_training": false,
+    "rejection_reason": "Output too short"
+  },
+  {
+    "task_id": "evolution_1778458748883_0",
+    "reviewed_at": "2026-05-11T00:19:52.772Z",
+    "quality_score": 0.6,
+    "doctrinal_safe": true,
+    "lessons_learned": [
+      "Task type \"self_generated\" failed with local — try different provider"
+    ],
+    "should_include_in_training": false,
+    "rejection_reason": "Output too short"
+  },
+  {
+    "task_id": "failure_1778463392492_0",
+    "reviewed_at": "2026-05-11T01:36:34.808Z",
+    "quality_score": 0.9,
+    "doctrinal_safe": true,
+    "lessons_learned": [
+      "High-quality correction achieved via groq"
+    ],
+    "should_include_in_training": true
+  },
+  {
+    "task_id": "failure_1778463394816_0",
+    "reviewed_at": "2026-05-11T01:36:40.958Z",
+    "quality_score": 0.8,
+    "doctrinal_safe": true,
+    "lessons_learned": [
+      "High-quality correction achieved via groq"
+    ],
+    "should_include_in_training": true
+  },
+  {
+    "task_id": "curiosity_1778463395037_0",
+    "reviewed_at": "2026-05-11T01:37:23.075Z",
+    "quality_score": 0.9,
+    "doctrinal_safe": true,
+    "lessons_learned": [
+      "High-quality discovery achieved via groq",
+      "Successfully handled high-difficulty discovery task"
+    ],
+    "should_include_in_training": true
+  },
+  {
+    "task_id": "evolution_1778463395037_0",
+    "reviewed_at": "2026-05-11T01:37:23.077Z",
+    "quality_score": 0.6,
+    "doctrinal_safe": true,
+    "lessons_learned": [
+      "Task type \"self_generated\" failed with local — try different provider"
+    ],
+    "should_include_in_training": false,
+    "rejection_reason": "Output too short"
   }
 ]

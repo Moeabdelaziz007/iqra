@@ -1,5 +1,5 @@
-import { IQRAEvolution } from './lib/iqra/evolution/self_evolve.ts';
-import { IQRALogger } from './lib/iqra/logger.ts';
+import { IQRAEvolution } from '../lib/iqra/evolution/self_evolve';
+import { IQRALogger } from '../lib/iqra/logger';
 import fs from 'fs';
 import path from 'path';
 

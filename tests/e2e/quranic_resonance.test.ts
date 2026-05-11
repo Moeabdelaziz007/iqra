@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { TopologicalCuriosityEngine } from '../../lib/iqra/quran/topological_curiosity';
+import { TopologicalCuriosity } from '../../lib/iqra/quran/topological_curiosity';
 import { IQRAMemory } from '../../lib/iqra/memory';
+import { VectorEngine } from '../../lib/iqra/quran/vector_engine';
 
 describe('Quranic Resonance E2E', () => {
   it('should find resonance between Quranic ayah and modern data', async () => {
@@ -11,12 +12,13 @@ describe('Quranic Resonance E2E', () => {
     vi.spyOn(IQRAMemory, 'get').mockResolvedValue(100);
     vi.spyOn(IQRAMemory, 'set').mockResolvedValue(undefined as any);
 
-    const resonance = await TopologicalCuriosityEngine.discoverResonance(ayah, modernData, "Biology");
+    const curiosity = new TopologicalCuriosity(new VectorEngine({}), IQRAMemory);
+    const resonance = await curiosity.explore(ayah);
 
     expect(resonance).not.toBeNull();
     if (resonance) {
-      expect(resonance.resonance_score).toBeGreaterThan(0.6);
-      expect(resonance.bridge).toContain('Found harmony');
+      expect(resonance.resonanceScore).toBeGreaterThan(0.6);
+      expect(resonance.topMatches).toBeDefined();
     }
   });
 
@@ -24,7 +26,9 @@ describe('Quranic Resonance E2E', () => {
     const ayah = "قُلْ هُوَ اللَّهُ أَحَدٌ";
     const modernData = "سعر صرف العملات اليوم غير مستقر";
 
-    const resonance = await TopologicalCuriosityEngine.discoverResonance(ayah, modernData);
-    expect(resonance).toBeNull();
+    const curiosity2 = new TopologicalCuriosity(new VectorEngine({}), IQRAMemory);
+    const resonance = await curiosity2.explore(ayah);
+    expect(resonance.resonanceScore).toBeLessThan(0.6);
+    expect(resonance.numericalResonance.isResonant).toBe(false);
   });
 });
