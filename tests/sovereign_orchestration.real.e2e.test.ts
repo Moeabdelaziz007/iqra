@@ -9,6 +9,9 @@ import { MissionControl } from '../lib/iqra/sovereign_orchestrator';
 import { IQRALogger } from '../lib/iqra/logger';
 import { IQRAMemory } from '../lib/iqra/memory';
 
+// Vitest setup
+import { expect, describe, test, beforeAll } from 'vitest';
+
 describe('Sovereign Worker Orchestration Real E2E Tests', () => {
   let missionControl: MissionControl;
 

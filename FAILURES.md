@@ -2150,3 +2150,51 @@
 - **Source**: GROQ_GENERATE
 - **Recovery**: REFLECT
 ---
+
+### ❌ [SOVEREIGN_FAILURE] | 2026-05-11T04:47:01.448Z
+- **Code**: CONNECTION_FAILURE
+- **Message**: Connection to Groq (Llama) failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kb7pqyhvek0twtxn9bksfbnx` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98557, Requested 5214. Please try again in 54m18.144s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+- **Severity**: HIGH
+- **Source**: GROQ_GENERATE
+- **Recovery**: REFLECT
+---
+
+### ❌ [SOVEREIGN_FAILURE] | 2026-05-11T04:47:01.844Z
+- **Code**: CONNECTION_FAILURE
+- **Message**: Connection to Google (Gemini) failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent: [400 Bad Request] API key not valid. Please pass a valid API key. [{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"API_KEY_INVALID","domain":"googleapis.com","metadata":{"service":"generativelanguage.googleapis.com"}},{"@type":"type.googleapis.com/google.rpc.LocalizedMessage","locale":"en-US","message":"API key not valid. Please pass a valid API key."}]
+- **Severity**: HIGH
+- **Source**: GOOGLE_GENERATE
+- **Recovery**: REFLECT
+---
+
+### ❌ [SOVEREIGN_FAILURE] | 2026-05-11T04:47:02.974Z
+- **Code**: CONNECTION_FAILURE
+- **Message**: Connection to Groq (Llama) failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kb7pqyhvek0twtxn9bksfbnx` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98555, Requested 5214. Please try again in 54m16.416s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+- **Severity**: HIGH
+- **Source**: GROQ_GENERATE
+- **Recovery**: REFLECT
+---
+
+### ❌ [SOVEREIGN_FAILURE] | 2026-05-11T04:47:03.096Z
+- **Code**: CONNECTION_FAILURE
+- **Message**: Connection to Google (Gemini) failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent: [400 Bad Request] API key not valid. Please pass a valid API key. [{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"API_KEY_INVALID","domain":"googleapis.com","metadata":{"service":"generativelanguage.googleapis.com"}},{"@type":"type.googleapis.com/google.rpc.LocalizedMessage","locale":"en-US","message":"API key not valid. Please pass a valid API key."}]
+- **Severity**: HIGH
+- **Source**: GOOGLE_GENERATE
+- **Recovery**: REFLECT
+---
+
+### ❌ [SOVEREIGN_FAILURE] | 2026-05-11T04:47:05.272Z
+- **Code**: CONNECTION_FAILURE
+- **Message**: Connection to Groq (Llama) failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kb7pqyhvek0twtxn9bksfbnx` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98552, Requested 5214. Please try again in 54m13.824s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+- **Severity**: HIGH
+- **Source**: GROQ_GENERATE
+- **Recovery**: REFLECT
+---
+
+### ❌ [SOVEREIGN_FAILURE] | 2026-05-11T04:47:05.390Z
+- **Code**: CONNECTION_FAILURE
+- **Message**: Connection to Google (Gemini) failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent: [400 Bad Request] API key not valid. Please pass a valid API key. [{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"API_KEY_INVALID","domain":"googleapis.com","metadata":{"service":"generativelanguage.googleapis.com"}},{"@type":"type.googleapis.com/google.rpc.LocalizedMessage","locale":"en-US","message":"API key not valid. Please pass a valid API key."}]
+- **Severity**: HIGH
+- **Source**: GOOGLE_GENERATE
+- **Recovery**: REFLECT
+---

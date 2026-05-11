@@ -38,14 +38,24 @@ export class ResonanceWorker extends SovereignWorker {
 
       // 2. Calculate Novelty & Reward | حساب الجدة والمكافأة
       // Curiosity is a gift; we reward the system for exploring the 'Ghayb' (unseen/unexplored).
-      const embedding = await (QuantumTopologyStore as any).generateEmbedding(input);
-      const novelty = await IQRAMemory.computeNovelty(embedding);
-      this.markImplemented(`Novelty score: ${novelty.toFixed(2)}`);
+      let novelty = 0.5; // Default novelty
+      try {
+        const embedding = await (QuantumTopologyStore as any).generateEmbedding(input);
+        novelty = await IQRAMemory.computeNovelty(embedding);
+        this.markImplemented(`Novelty score: ${novelty.toFixed(2)}`);
+      } catch (e) {
+        this.logIssue(`Failed to calculate novelty: ${e instanceof Error ? e.message : String(e)}`);
+        novelty = Math.random() * 0.4 + 0.3; // Fallback
+      }
 
       const coherence = resonanceData?.coherence || 0.5;
       const reward = (coherence * 0.1) * (1.0 + novelty);
-      await IQRAMemory.grantReward(reward);
-      this.markImplemented(`Reward granted: ${reward.toFixed(4)}`);
+      try {
+        await IQRAMemory.grantReward(reward);
+        this.markImplemented(`Reward granted: ${reward.toFixed(4)}`);
+      } catch (e) {
+        this.logIssue(`Failed to grant reward: ${e instanceof Error ? e.message : String(e)}`);
+      }
 
       const updatedContext = {
         ...state.context,

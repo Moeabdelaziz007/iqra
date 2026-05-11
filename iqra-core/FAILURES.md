@@ -380,3 +380,45 @@ Let's delve into the connections between this Quranic
 **Reason:** Violates Dastūr: Found forbidden concept 'الظلم'
 **Content Snippet:** "يجب ممارسة الظلم ضد المنافسين لتحقيق مكاسب سريعة...."
 ---
+
+
+### 🚫 Doctrinal Hallucination Blocked | 2026-05-11T04:35:14.208Z
+- **Ayah**: 999:999
+- **Claim**: The Quran predicts quantum computing
+- **Reason**: الآية المُدَّعاة [999:999] لم يتم التحقق من وجودها أو صحتها
+- **Counter**: N/A
+---
+
+
+### 🚫 Doctrinal Hallucination Blocked | 2026-05-11T04:35:15.568Z
+- **Ayah**: 21:30
+- **Claim**: The color blue is popular in modern design because water is blue
+- **Reason**: The Quranic Ayah states that all living things are made from water, and the data point mentions that water is blue, which is a popular color in modern design. Through the Congzi lens, we can analyze the structural patterns and physical analogies. Water, as a substance, has a unique property of being essential for life, and its blue color is often associated with tranquility and harmony. The resonance lies in the idea that just as water has a calming effect on the environment, the color blue can have a similar impact on design. This connection highlights the balance and equilibrium that water represents in both the natural and aesthetic worlds.
+- **Counter**: The proposed resonance is based on a superficial and misleading connection between the color blue in modern design and the fact that water is blue. The Ayah 'وَجَعَلْنَا مِنَ الْمَاءِ كُلَّ شَيْءٍ حَيٍّ' actually discusses the origin of all living things from water, not the aesthetic or design preferences of humans. Furthermore, the popularity of the color blue in modern design can be attributed to various factors such as cultural associations, psychological effects, and design trends, rather than a direct connection to the color of water. This resonance seems to be a stretch (Te'weel) and is based on a misunderstanding of the Ayah and the data.
+---
+
+
+### 🚫 Doctrinal Hallucination Blocked | 2026-05-11T04:35:16.935Z
+- **Ayah**: invalid-ref
+- **Claim**: Some claim
+- **Reason**: الآية المُدَّعاة [invalid-ref] لم يتم التحقق من وجودها أو صحتها
+- **Counter**: N/A
+---
+
+
+### 🚫 Doctrinal Hallucination Blocked | 2026-05-11T04:35:32.080Z
+- **Ayah**: 22:45
+- **Claim**: Analyzing the Quranic ayah [22:45], which mentions "وَبِئْرٍ مُّعَطَّلَةٍ وَقَصْرٍ مَّشِيدٍ" (an abandoned well and a lofty palace), we can draw connections to modern abandoned wells and civilizations
+- **Reason**: The Quranic ayah mentions an abandoned well and a lofty palace, which can be seen as contrasting structures in terms of entropy and equilibrium. The abandoned well represents a state of decay and high entropy, while the lofty palace symbolizes a state of grandeur and low entropy. This contrast can be analyzed through the lens of Congzi, which focuses on structural patterns and physical analogies. The ayah may be highlighting the impermanence of human constructs and the inevitability of decline and fall, drawing a parallel between the physical structures and the rise and fall of civilizations.
+- **Counter**: The proposed resonance between the Quranic ayah and modern abandoned wells and civilizations appears to be a stretch. The ayah in question, [22:45], is part of a larger context discussing the destruction of towns and the consequences of disbelief. The mention of 'an abandoned well and a lofty palace' is likely a metaphorical or descriptive device used to illustrate the consequences of divine wrath or the fleeting nature of worldly power, rather than a literal prediction or description of modern events. The connection to modern abandoned wells and civilizations is not inherently supported by the text and seems to be an example of post hoc reasoning, where a modern phenomenon is being retroactively connected to an ancient text without a clear, historically or contextually grounded link. This type of interpretation could be considered an example of 'te'weel' or a strained interpretation that does not naturally emerge from the text itself.
+---
+
+### 🚫 Pollution Event | 2026-05-11T04:36:34.267Z
+**Reason:** Violates Dastūr: Found forbidden concept 'على'
+**Content Snippet:** "كيف أكذب على الناس وأخدعهم؟..."
+---
+
+### 🚫 Pollution Event | 2026-05-11T04:36:34.783Z
+**Reason:** Violates Dastūr: Found forbidden concept 'الظلم'
+**Content Snippet:** "أريد أن أمارس الظلم على الآخرين..."
+---

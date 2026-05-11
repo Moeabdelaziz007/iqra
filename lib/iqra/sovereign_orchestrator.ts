@@ -1,9 +1,10 @@
-import { ResonanceWorker } from './workers/resonance.ts';
-import { ResearchWorker } from './workers/research.ts';
-import { ValidationWorker } from './workers/validator.ts';
-import { ExecutionWorker } from './workers/execution.ts';
-import type { WorkerReport, WorkerResult, MissionState, SovereignWorker } from './workers/protocol.ts';
-import { IQRALogger } from './logger.ts';
+import { ResonanceWorker } from './workers/resonance';
+import { ResearchWorker } from './workers/research';
+import { ValidationWorker } from './workers/validator';
+import { ExecutionWorker } from './workers/execution';
+import { StateCoordinator } from './workers/state_coordinator';
+import type { WorkerReport, WorkerResult, MissionState, SovereignWorker } from './workers/protocol';
+import { IQRALogger } from './logger';
 import type { Provider } from '../../src/connectors/index.ts';
 import fs from 'fs';
 import path from 'path';
@@ -11,6 +12,11 @@ import path from 'path';
 export class MissionControl {
   private reports: WorkerReport[] = [];
   private modelsConfig: any = null;
+  private stateCoordinator: StateCoordinator;
+
+  constructor() {
+    this.stateCoordinator = StateCoordinator.getInstance();
+  }
 
   private loadModels() {
     if (this.modelsConfig) return this.modelsConfig;
@@ -108,9 +114,27 @@ export class MissionControl {
    * Execute a single phase of the mission | تنفيذ مرحلة واحدة من المهمة
    */
   async executePhase(phase: string, input: string, state: MissionState): Promise<WorkerResult> {
-    const worker = this.getWorkerForPhase(phase, state.assigned_skills, state.metadata.mission_id);
+    const worker = this.getWorkerForPhase(phase, state.assigned_skills || [], state.metadata.mission_id);
     IQRALogger.info(`🛰️ [MISSION_CONTROL] Routing phase '${phase}' to ${worker.id}...`);
-    return await worker.execute(input, state);
+    
+    try {
+      const result = await worker.execute(input, state);
+      
+      // دمج الحالة باستخدام StateCoordinator
+      if (result.success && result.updated_state) {
+        this.stateCoordinator.mergeWorkerState(worker.id, result.updated_state);
+        
+        // تحديث الحالة المحلية من StateCoordinator
+        const mergedState = this.stateCoordinator.getCurrentState();
+        state.context = mergedState.context || state.context;
+        state.reports = mergedState.reports || state.reports;
+      }
+      
+      return result;
+    } catch (error) {
+      IQRALogger.error(`❌ [MISSION_CONTROL] Phase '${phase}' execution failed:`, error);
+      throw error;
+    }
   }
 
   async run(input: string): Promise<{ response: string; reports: WorkerReport[]; context: any }> {
@@ -124,7 +148,6 @@ export class MissionControl {
     let state: MissionState = {
       initial_input: input,
       reports: [],
-      context: {},
       assigned_skills: skills,
       metadata: {
         start_time: Date.now(),
@@ -229,7 +252,7 @@ export class MissionControl {
     IQRALogger.info(`📊 [MISSION_CONTROL] Total phases: ${phases.length}, Retries: ${state.metadata.retry_count || 0}, Errors: ${state.metadata.error_count || 0}`);
     
     return {
-      response: this.reports[this.reports.length - 1]?.data || "Processing complete.",
+      response: this.reports[this.reports.length - 1]?.response || "Processing complete.",
       reports: this.reports,
       context: {
         ...state.context,

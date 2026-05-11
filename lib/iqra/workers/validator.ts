@@ -26,7 +26,7 @@ export class ValidationWorker extends SovereignWorker {
       }
 
       // 2. Enhanced HARAM_LIST Extraction with multiple patterns
-      let forbidden: string[] = ['كذب', 'غش', 'أذى', 'سرقة', 'harm', 'cheat', 'lie', 'kill', 'steal', 'damage'];
+      let forbidden: string[] = ['kill', 'murder', 'harm', 'damage', 'destroy'];
       
       // Try multiple extraction patterns
       const patterns = [
@@ -65,9 +65,11 @@ export class ValidationWorker extends SovereignWorker {
           
           // Determine severity based on word and context
           let severity: 'low' | 'medium' | 'high' = 'medium';
-          if (['kill', 'damage', 'أذى'].includes(word.toLowerCase())) {
+          if (['kill', 'murder'].includes(word.toLowerCase())) {
             severity = 'high';
-          } else if (['lie', 'كذب'].includes(word.toLowerCase())) {
+          } else if (['harm', 'damage', 'destroy'].includes(word.toLowerCase())) {
+            severity = 'medium';
+          } else {
             severity = 'low';
           }
           

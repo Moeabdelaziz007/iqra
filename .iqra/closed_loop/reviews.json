@@ -167,5 +167,45 @@
     ],
     "should_include_in_training": false,
     "rejection_reason": "Output too short"
+  },
+  {
+    "task_id": "failure_1778474119385_0",
+    "reviewed_at": "2026-05-11T04:35:22.293Z",
+    "quality_score": 0.8,
+    "doctrinal_safe": true,
+    "lessons_learned": [
+      "High-quality correction achieved via groq"
+    ],
+    "should_include_in_training": true
+  },
+  {
+    "task_id": "failure_1778474122298_0",
+    "reviewed_at": "2026-05-11T04:35:30.561Z",
+    "quality_score": 0.8,
+    "doctrinal_safe": true,
+    "lessons_learned": [
+      "High-quality correction achieved via groq"
+    ],
+    "should_include_in_training": true
+  },
+  {
+    "task_id": "curiosity_1778474122298_0",
+    "reviewed_at": "2026-05-11T04:35:32.085Z",
+    "quality_score": 0.7,
+    "doctrinal_safe": false,
+    "lessons_learned": [],
+    "should_include_in_training": false,
+    "rejection_reason": "Doctrinal safety check failed"
+  },
+  {
+    "task_id": "evolution_1778474122298_0",
+    "reviewed_at": "2026-05-11T04:35:32.087Z",
+    "quality_score": 0.9,
+    "doctrinal_safe": true,
+    "lessons_learned": [
+      "High-quality analysis achieved via groq",
+      "Successfully handled high-difficulty analysis task"
+    ],
+    "should_include_in_training": true
   }
 ]

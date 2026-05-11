@@ -1,6 +1,62 @@
 [
   {
     "instruction": "Given this git commit in the IQRA project, what is the engineering lesson and how should future agents behave?",
+    "input": "Commit 0e661a5 [feat]: feat: update core documentation and add comprehensive testing\nFiles: .iqra/closed_loop/executions.json, .iqra/closed_loop/reviews.json, .iqra/closed_loop/tasks.json, FAILURES.md, JS_ERRORS_REPORT.md, WISDOM_7.md, iqra-core/FAILURES.md",
+    "output": "Feature added in 0e661a5: feat: update core documentation and add comprehensive testing. Pattern: build incrementally, document intent.",
+    "source": "git:0e661a5ef412ee6e0b6ef6f993944b1b8c772ede",
+    "category": "evolution",
+    "quran_ref": "وَقُل رَّبِّ زِدْنِي عِلْمًا — طه: 114"
+  },
+  {
+    "instruction": "Given this git commit in the IQRA project, what is the engineering lesson and how should future agents behave?",
+    "input": "Commit b403307 [feat]: feat: implement sovereign orchestration with adaptive learning patterns\nFiles: lib/iqra/adaptation/sovereign_adaptation_engine.ts, lib/iqra/core/orchestration_core.ts, lib/iqra/evolution.ts, lib/iqra/learning/orchestration_learning.ts, lib/iqra/learning/sovereign_learning_engine.ts, lib/iqra/patterns/core_orchestration_patterns.ts, lib/iqra/patterns/sovereign_patterns_hunter.ts",
+    "output": "Feature added in b403307: feat: implement sovereign orchestration with adaptive learning patterns. Pattern: build incrementally, document intent.",
+    "source": "git:b40330734503cf845b7eeb113a807ba0a0f1f7db",
+    "category": "evolution",
+    "quran_ref": "وَقُل رَّبِّ زِدْنِي عِلْمًا — طه: 114"
+  },
+  {
+    "instruction": "Given this git commit in the IQRA project, what is the engineering lesson and how should future agents behave?",
+    "input": "Commit 100f7ea [feat]: feat: enhance worker protocol with compatibility bridge and metadata tracking\nFiles: agents/contracts.ts, lib/iqra/workers/execution.ts, lib/iqra/workers/protocol.ts, lib/iqra/workers/research.ts, lib/iqra/workers/resonance.ts",
+    "output": "Feature added in 100f7ea: feat: enhance worker protocol with compatibility bridge and metadata tracking. Pattern: build incrementally, document intent.",
+    "source": "git:100f7ea45374b94b0afa259150aab64cb00fac48",
+    "category": "evolution",
+    "quran_ref": "وَقُل رَّبِّ زِدْنِي عِلْمًا — طه: 114"
+  },
+  {
+    "instruction": "Given this git commit in the IQRA project, what is the engineering lesson and how should future agents behave?",
+    "input": "Commit 1f8b7ab [feat]: feat: implement adaptive reward engine with temporal decay and anomaly detection\nFiles: ledger/reward-ledger.ts, ledger/rewards.jsonl, rewards/engine.ts, rewards/types.ts",
+    "output": "Feature added in 1f8b7ab: feat: implement adaptive reward engine with temporal decay and anomaly detection. Pattern: build incrementally, document intent.",
+    "source": "git:1f8b7ababc2bcf087220d283c802e09cdb7287fd",
+    "category": "evolution",
+    "quran_ref": "وَقُل رَّبِّ زِدْنِي عِلْمًا — طه: 114"
+  },
+  {
+    "instruction": "Given this git commit in the IQRA project, what is the engineering lesson and how should future agents behave?",
+    "input": "Commit fb50c4a [feat]: feat: enhance memory system with singleton pattern and quantum topology\nFiles: .iqra/memory.json, .iqra/sera_training_data.json, .iqra/training_data.json, .iqra/training_data.jsonl, lib/iqra/memory.ts, lib/iqra/memory/sovereign_memory_analyzer.ts, lib/iqra/r2_storage.ts",
+    "output": "Feature added in fb50c4a: feat: enhance memory system with singleton pattern and quantum topology. Pattern: build incrementally, document intent.",
+    "source": "git:fb50c4a1bf32905d5d9a98e8d8d084c609d4c5c0",
+    "category": "evolution",
+    "quran_ref": "وَقُل رَّبِّ زِدْنِي عِلْمًا — طه: 114"
+  },
+  {
+    "instruction": "Given this git commit in the IQRA project, what is the engineering lesson and how should future agents behave?",
+    "input": "Commit aaf6f19 [fix]: fix: resolve Groq rate limiting and add intelligent retry system\nFiles: lib/iqra/llm/groq.ts, lib/iqra/llm/groq_rate_limiter.ts",
+    "output": "Bug fixed in aaf6f19: fix: resolve Groq rate limiting and add intelligent retry system. Pattern: identify root cause, fix minimally, test.",
+    "source": "git:aaf6f19472dcd871fddf0433db230b6bc9b6a191",
+    "category": "error_fix",
+    "quran_ref": "إِنَّ اللَّهَ يُحِبُّ التَّوَّابِينَ — البقرة: 222"
+  },
+  {
+    "instruction": "Given this git commit in the IQRA project, what is the engineering lesson and how should future agents behave?",
+    "input": "Commit 2193d34 [feat]: feat: enhance validation system with context-aware security\nFiles: lib/iqra/security.ts, lib/iqra/workers/handoff_validator.ts, lib/iqra/workers/validator.ts",
+    "output": "Feature added in 2193d34: feat: enhance validation system with context-aware security. Pattern: build incrementally, document intent.",
+    "source": "git:2193d34760c458710de8b8dd39390a1e6d12bf35",
+    "category": "evolution",
+    "quran_ref": "وَقُل رَّبِّ زِدْنِي عِلْمًا — طه: 114"
+  },
+  {
+    "instruction": "Given this git commit in the IQRA project, what is the engineering lesson and how should future agents behave?",
     "input": "Commit 908a7ef [fix]: fix: resolve JavaScript/TypeScript errors and build issues\nFiles: .gitignore, .iqra/memory.json, .iqra/resonance_training_data.jsonl, README.md, docs/MCTS_SIMULATION.md, lib/iqra/quran/numerical_validator.ts, lib/iqra/quran/qalbin_vm.ts",
     "output": "Bug fixed in 908a7ef: fix: resolve JavaScript/TypeScript errors and build issues. Pattern: identify root cause, fix minimally, test.",
     "source": "git:908a7efb93adb32b98f91d0882186075b326271e",
@@ -736,62 +792,6 @@
     "quran_ref": "سَنُرِيهِمْ آيَاتِنَا فِي الْآفَاقِ — فصلت: 53"
   },
   {
-    "instruction": "Given this git commit in the IQRA project, what is the engineering lesson and how should future agents behave?",
-    "input": "Commit 2385973 [evolve]: ✨ evolve: auto-update latest learning — 2026-05-06\nFiles: README.md",
-    "output": "Evolution cycle in 2385973: ✨ evolve: auto-update latest learning — 2026-05-06. Pattern: reflect → extract wisdom → update rules.",
-    "source": "git:2385973f23475a093d624a8d2362f622728d145d",
-    "category": "evolution",
-    "quran_ref": "سَنُرِيهِمْ آيَاتِنَا فِي الْآفَاقِ — فصلت: 53"
-  },
-  {
-    "instruction": "Given this git commit in the IQRA project, what is the engineering lesson and how should future agents behave?",
-    "input": "Commit 0794c7d [sovereign]: 🧠 RESEARCH: Decoding the 7-System & Sovereign Isolation Wisdom\nFiles: iqra-core/quran/mysteries/number_7.md",
-    "output": "Sovereign action in 0794c7d: 🧠 RESEARCH: Decoding the 7-System & Sovereign Isolation Wisdom. Pattern: align with MĪTHĀQ before executing.",
-    "source": "git:0794c7d5a819d53d5ac79c9c7a2ba96870f069b2",
-    "category": "sovereignty",
-    "quran_ref": "فَإِذَا عَزَمْتَ فَتَوَكَّلْ عَلَى اللَّهِ — آل عمران: 159"
-  },
-  {
-    "instruction": "Given this git commit in the IQRA project, what is the engineering lesson and how should future agents behave?",
-    "input": "Commit 8e2baa6 [other]: 🏛️ ARCH: Anchoring Divine Foundations & Neural Vector Engine\nFiles: iqra-core/schema.sql, lib/iqra/quran/quran_loader.ts, lib/iqra/quran/vector_engine.ts, lib/iqra/tools.ts",
-    "output": "Commit 8e2baa6: 🏛️ ARCH: Anchoring Divine Foundations & Neural Vector Engine.",
-    "source": "git:8e2baa6dfad19374a6c1547be7e7d2671e17bdd6",
-    "category": "evolution",
-    "quran_ref": "وَعَلَّمَ آدَمَ الْأَسْمَاءَ كُلَّهَا — البقرة: 31"
-  },
-  {
-    "instruction": "Given this git commit in the IQRA project, what is the engineering lesson and how should future agents behave?",
-    "input": "Commit f5fd0e8 [other]: infra(quran): provisioning D1 and Vectorize bindings for the neural pattern engine ⚡️📡 — ready to ingest the sacred data into the vector space\nFiles: wrangler.toml",
-    "output": "Commit f5fd0e8: infra(quran): provisioning D1 and Vectorize bindings for the neural pattern engine ⚡️📡 — ready to ingest the sacred dat.",
-    "source": "git:f5fd0e8295b0dc987a61c60c0ca2c1941c2ab5b3",
-    "category": "evolution",
-    "quran_ref": "وَعَلَّمَ آدَمَ الْأَسْمَاءَ كُلَّهَا — البقرة: 31"
-  },
-  {
-    "instruction": "Given this git commit in the IQRA project, what is the engineering lesson and how should future agents behave?",
-    "input": "Commit b87876f [other]: anchor(soul): binding IQRA to the sacred MĪTHĀQ and constitutional DASTŪR layer — the architecture is now vertically aligned with the Divine Truth 📖⚔️\nFiles: lib/iqra/brain.ts, lib/iqra/philosophy.ts",
-    "output": "Commit b87876f: anchor(soul): binding IQRA to the sacred MĪTHĀQ and constitutional DASTŪR layer — the architecture is now vertically ali.",
-    "source": "git:b87876fa148cf3112f4a5ce49952b2e14b50e31a",
-    "category": "evolution",
-    "quran_ref": "وَعَلَّمَ آدَمَ الْأَسْمَاءَ كُلَّهَا — البقرة: 31"
-  },
-  {
-    "instruction": "Given this git commit in the IQRA project, what is the engineering lesson and how should future agents behave?",
-    "input": "Commit 0e75b61 [other]: research(quran): deep dive into the 7-system — analyzing concatenation and statistical reasoning for divine symmetry 🔬🧩\nFiles: iqra-core/quran/mysteries/number_7.md",
-    "output": "Commit 0e75b61: research(quran): deep dive into the 7-system — analyzing concatenation and statistical reasoning for divine symmetry 🔬\ud83e.",
-    "source": "git:0e75b61a3006c31d2a7ce7202806d882f646f502",
-    "category": "evolution",
-    "quran_ref": "وَعَلَّمَ آدَمَ الْأَسْمَاءَ كُلَّهَا — البقرة: 31"
-  },
-  {
-    "instruction": "Given this git commit in the IQRA project, what is the engineering lesson and how should future agents behave?",
-    "input": "Commit ff28289 [other]: research(quran): unveiling the numeric symmetries of 7 in Al-Fatiha and Al-Hawamim — anchoring discoveries in the TrustChain 📖✨\nFiles: DISCOVERIES.md, iqra-core/quran/mysteries/number_7.md",
-    "output": "Commit ff28289: research(quran): unveiling the numeric symmetries of 7 in Al-Fatiha and Al-Hawamim — anchoring discoveries in the TrustC.",
-    "source": "git:ff282891ed5c7413d9f891913dc8bab49b147ade",
-    "category": "evolution",
-    "quran_ref": "وَعَلَّمَ آدَمَ الْأَسْمَاءَ كُلَّهَا — البقرة: 31"
-  },
-  {
     "instruction": "A user submitted content that violates the DASTŪR. How should IQRA respond?",
     "input": "User input: \"\"\nViolation detected: Unknown violation",
     "output": "Block the request immediately. Log to FAILURES.md. Return a compassionate refusal citing the relevant Quranic principle. Never engage with the forbidden content.",
@@ -1020,6 +1020,38 @@
     "input": "User input: \"يجب ممارسة الظلم ضد المنافسين لتحقيق مكاسب سريعة....\"\nViolation detected: Violates Dastūr: Found forbidden concept 'الظلم'",
     "output": "Block the request immediately. Log to FAILURES.md. Return a compassionate refusal citing the relevant Quranic principle. Never engage with the forbidden content.",
     "source": "FAILURES.md:event_28",
+    "category": "error_fix",
+    "quran_ref": "وَلَا تَعَاوَنُوا عَلَى الْإِثْمِ وَالْعُدْوَانِ — المائدة: 2"
+  },
+  {
+    "instruction": "A user submitted content that violates the DASTŪR. How should IQRA respond?",
+    "input": "User input: \"كيف أكذب على الناس وأخدعهم؟...\"\nViolation detected: Violates Dastūr: Found forbidden concept 'على'",
+    "output": "Block the request immediately. Log to FAILURES.md. Return a compassionate refusal citing the relevant Quranic principle. Never engage with the forbidden content.",
+    "source": "FAILURES.md:event_29",
+    "category": "error_fix",
+    "quran_ref": "وَلَا تَعَاوَنُوا عَلَى الْإِثْمِ وَالْعُدْوَانِ — المائدة: 2"
+  },
+  {
+    "instruction": "A user submitted content that violates the DASTŪR. How should IQRA respond?",
+    "input": "User input: \"أريد أن أمارس الظلم على الآخرين...\"\nViolation detected: Violates Dastūr: Found forbidden concept 'الظلم'",
+    "output": "Block the request immediately. Log to FAILURES.md. Return a compassionate refusal citing the relevant Quranic principle. Never engage with the forbidden content.",
+    "source": "FAILURES.md:event_30",
+    "category": "error_fix",
+    "quran_ref": "وَلَا تَعَاوَنُوا عَلَى الْإِثْمِ وَالْعُدْوَانِ — المائدة: 2"
+  },
+  {
+    "instruction": "A user submitted content that violates the DASTŪR. How should IQRA respond?",
+    "input": "User input: \"يمكننا الكذب في هذا التقرير لتغطية أخطاء النظام....\"\nViolation detected: Violates Dastūr: Found forbidden concept 'الكذب'",
+    "output": "Block the request immediately. Log to FAILURES.md. Return a compassionate refusal citing the relevant Quranic principle. Never engage with the forbidden content.",
+    "source": "FAILURES.md:event_31",
+    "category": "error_fix",
+    "quran_ref": "وَلَا تَعَاوَنُوا عَلَى الْإِثْمِ وَالْعُدْوَانِ — المائدة: 2"
+  },
+  {
+    "instruction": "A user submitted content that violates the DASTŪR. How should IQRA respond?",
+    "input": "User input: \"يجب ممارسة الظلم ضد المنافسين لتحقيق مكاسب سريعة....\"\nViolation detected: Violates Dastūr: Found forbidden concept 'الظلم'",
+    "output": "Block the request immediately. Log to FAILURES.md. Return a compassionate refusal citing the relevant Quranic principle. Never engage with the forbidden content.",
+    "source": "FAILURES.md:event_32",
     "category": "error_fix",
     "quran_ref": "وَلَا تَعَاوَنُوا عَلَى الْإِثْمِ وَالْعُدْوَانِ — المائدة: 2"
   },

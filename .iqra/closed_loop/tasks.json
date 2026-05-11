@@ -318,5 +318,85 @@
     "expected_output_type": "analysis",
     "quran_ref": "وَقُل رَّبِّ زِدْنِي عِلْمًا — طه: 114",
     "difficulty": "high"
+  },
+  {
+    "id": "failure_1778474116968_0",
+    "generated_at": "2026-05-11T04:35:16.968Z",
+    "source": "failure_derived",
+    "instruction": "Analyze this failure and propose a fix: Unknown failure",
+    "context": " Doctrinal Hallucination Blocked | 2026-05-11T04:35:16.935Z\n- **Ayah**: invalid-ref\n- **Claim**: Some claim\n- **Reason**: الآية المُدَّعاة [invalid-ref] لم يتم التحقق من وجودها أو صحتها\n- **Counter**: N/A\n---\n",
+    "expected_output_type": "correction",
+    "quran_ref": "إِنَّ اللَّهَ يُحِبُّ التَّوَّابِينَ — البقرة: 222",
+    "difficulty": "medium"
+  },
+  {
+    "id": "curiosity_1778474116968_0",
+    "generated_at": "2026-05-11T04:35:16.968Z",
+    "source": "curiosity_driven",
+    "instruction": "Perform a analysis on the resonance between this Quranic ayah and modern abandoned wells and civilizations. Find non-trivial connections.",
+    "context": "Ayah [22:45]: \"وَبِئْرٍ مُّعَطَّلَةٍ وَقَصْرٍ مَّشِيدٍ\"\nTopic: abandoned wells and civilizations\nCuriosity score: 0.500",
+    "expected_output_type": "analysis",
+    "quran_ref": "وَبِئْرٍ مُّعَطَّلَةٍ وَقَصْرٍ مَّشِيدٍ — 22:45",
+    "difficulty": "medium"
+  },
+  {
+    "id": "evolution_1778474116968_0",
+    "generated_at": "2026-05-11T04:35:16.968Z",
+    "source": "self_generated",
+    "instruction": "Analyze the 7-system numerical patterns in Surah Al-Fatiha",
+    "context": "Gap identified: numerical_patterns. This area has not been analyzed recently.",
+    "expected_output_type": "analysis",
+    "quran_ref": "وَقُل رَّبِّ زِدْنِي عِلْمًا — طه: 114",
+    "difficulty": "high"
+  },
+  {
+    "id": "failure_1778474116984_0",
+    "generated_at": "2026-05-11T04:35:16.984Z",
+    "source": "failure_derived",
+    "instruction": "Analyze this failure and propose a fix: Unknown failure",
+    "context": " Doctrinal Hallucination Blocked | 2026-05-11T04:35:16.935Z\n- **Ayah**: invalid-ref\n- **Claim**: Some claim\n- **Reason**: الآية المُدَّعاة [invalid-ref] لم يتم التحقق من وجودها أو صحتها\n- **Counter**: N/A\n---\n",
+    "expected_output_type": "correction",
+    "quran_ref": "إِنَّ اللَّهَ يُحِبُّ التَّوَّابِينَ — البقرة: 222",
+    "difficulty": "medium"
+  },
+  {
+    "id": "failure_1778474119385_0",
+    "generated_at": "2026-05-11T04:35:19.385Z",
+    "source": "failure_derived",
+    "instruction": "Analyze this failure and propose a fix: Unknown failure",
+    "context": " Doctrinal Hallucination Blocked | 2026-05-11T04:35:16.935Z\n- **Ayah**: invalid-ref\n- **Claim**: Some claim\n- **Reason**: الآية المُدَّعاة [invalid-ref] لم يتم التحقق من وجودها أو صحتها\n- **Counter**: N/A\n---\n",
+    "expected_output_type": "correction",
+    "quran_ref": "إِنَّ اللَّهَ يُحِبُّ التَّوَّابِينَ — البقرة: 222",
+    "difficulty": "medium"
+  },
+  {
+    "id": "failure_1778474122298_0",
+    "generated_at": "2026-05-11T04:35:22.298Z",
+    "source": "failure_derived",
+    "instruction": "Analyze this failure and propose a fix: Unknown failure",
+    "context": " Doctrinal Hallucination Blocked | 2026-05-11T04:35:16.935Z\n- **Ayah**: invalid-ref\n- **Claim**: Some claim\n- **Reason**: الآية المُدَّعاة [invalid-ref] لم يتم التحقق من وجودها أو صحتها\n- **Counter**: N/A\n---\n",
+    "expected_output_type": "correction",
+    "quran_ref": "إِنَّ اللَّهَ يُحِبُّ التَّوَّابِينَ — البقرة: 222",
+    "difficulty": "medium"
+  },
+  {
+    "id": "curiosity_1778474122298_0",
+    "generated_at": "2026-05-11T04:35:22.298Z",
+    "source": "curiosity_driven",
+    "instruction": "Perform a analysis on the resonance between this Quranic ayah and modern abandoned wells and civilizations. Find non-trivial connections.",
+    "context": "Ayah [22:45]: \"وَبِئْرٍ مُّعَطَّلَةٍ وَقَصْرٍ مَّشِيدٍ\"\nTopic: abandoned wells and civilizations\nCuriosity score: 0.500",
+    "expected_output_type": "analysis",
+    "quran_ref": "وَبِئْرٍ مُّعَطَّلَةٍ وَقَصْرٍ مَّشِيدٍ — 22:45",
+    "difficulty": "medium"
+  },
+  {
+    "id": "evolution_1778474122298_0",
+    "generated_at": "2026-05-11T04:35:22.298Z",
+    "source": "self_generated",
+    "instruction": "Analyze the 7-system numerical patterns in Surah Al-Fatiha",
+    "context": "Gap identified: numerical_patterns. This area has not been analyzed recently.",
+    "expected_output_type": "analysis",
+    "quran_ref": "وَقُل رَّبِّ زِدْنِي عِلْمًا — طه: 114",
+    "difficulty": "high"
   }
 ]
