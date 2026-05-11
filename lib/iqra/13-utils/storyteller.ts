@@ -1,5 +1,5 @@
-import { WorkerReport } from '#workers/protocol.js';
-import { GrokVoiceService } from '#iqra-core/voice/voice_service.js';
+import { WorkerReport } from '#workers/protocol'
+import { GrokVoiceService } from '#iqra-core/voice/voice_service'
 import { IQRALogger } from '#infra/logger';
 import fs from 'fs';
 import path from 'path';

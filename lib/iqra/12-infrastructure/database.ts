@@ -1,4 +1,4 @@
-import { IQRALogger } from '#infra/logger.js';
+import { IQRALogger } from '#infra/logger'
 
 let _supabase: any = null;
 

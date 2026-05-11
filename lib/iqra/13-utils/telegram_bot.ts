@@ -30,9 +30,9 @@
 import { IQRALogger } from '#infra/logger';
 import { appendToTrustChain } from '#security/security';
 import { IQRAMemory } from '#memory/memory';
-import { HeartbeatSystem, type SystemHealth } from '../12-infrastructure/heartbeat.js';
-import { Pulse369 } from '#memory/pulse_369.js';
-import { MemoryBridge } from '#memory/memory_bridge.js';
+import { HeartbeatSystem, type SystemHealth } from '../12-infrastructure/heartbeat'
+import { Pulse369 } from '#memory/pulse_369'
+import { MemoryBridge } from '#memory/memory_bridge'
 
 // ── grammY (lazy import — اختياري إذا لم يكن مثبتاً) ─────────────────────────
 let Bot: any = null;
@@ -347,7 +347,7 @@ export class IQRATelegramBot {
       await ctx.reply('🔍 جاري البحث في القرآن الكريم...');
 
       try {
-        const { iqraThink } = await import('./brain.ts');
+        const { iqraThink } = await import('#core/brain');
         const result = await iqraThink({ input: query });
         const response = typeof result === 'string' ? result : result.response;
         await ctx.reply(response.slice(0, 4096), { parse_mode: 'Markdown' });
@@ -439,7 +439,7 @@ export class IQRATelegramBot {
       await ctx.reply('🤔 IQRA يفكر...');
 
       try {
-        const { iqraThink } = await import('./brain.ts');
+        const { iqraThink } = await import('#core/brain');
         const result = await iqraThink({ input: question });
         const response = typeof result === 'string' ? result : result.response;
 
@@ -467,7 +467,7 @@ export class IQRATelegramBot {
       await ctx.reply('🤔 IQRA يفكر...');
 
       try {
-        const { iqraThink } = await import('./brain.ts');
+        const { iqraThink } = await import('#core/brain');
         const result = await iqraThink({ input: text });
         const response = typeof result === 'string' ? result : result.response;
         await ctx.reply(response.slice(0, 4096), { parse_mode: 'Markdown' });

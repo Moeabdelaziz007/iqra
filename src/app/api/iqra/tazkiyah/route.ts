@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { IQRAMemory } from '@/lib/iqra/memory';
+import { IQRAMemory } from '../../../../lib/iqra/03-memory/memory'; // [TC] reason: relative path to canonical lib/iqra | id: c1-taz2
 
 /**
  * 🧼 Tazkiyah (Purification) Endpoint

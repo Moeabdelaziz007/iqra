@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { iqraThink, IQRABrainMode } from '../../../../lib/iqra/brain';
-import { IQRAMemory } from '../../../../lib/iqra/memory';
+import { iqraThink, IQRABrainMode } from '../../../../../lib/iqra/01-core/brain'; // [TC] reason: relative path to canonical lib/iqra | id: c1-qbrain
+import { IQRAMemory } from '../../../../../lib/iqra/03-memory/memory'; // [TC] reason: relative path to canonical lib/iqra | id: c1-qmem
 
 export async function POST(req: NextRequest) {
   try {

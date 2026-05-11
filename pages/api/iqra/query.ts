@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { iqraThink, IQRABrainMode } from '../../../src/lib/iqra/01-core/brain';
-import { IQRAMemory } from '../../../src/lib/iqra/03-memory/memory';
+import { iqraThink, IQRABrainMode } from '../../lib/iqra/01-core/brain'; // [TC] reason: relative path to canonical lib/iqra | id: c1-brain
+import { IQRAMemory } from '../../lib/iqra/03-memory/memory'; // [TC] reason: relative path to canonical lib/iqra | id: c1-mem
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {

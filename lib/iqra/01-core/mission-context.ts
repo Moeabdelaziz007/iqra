@@ -41,12 +41,21 @@ export interface MissionScope {
 
 // ── MissionContext — يُمرَّر بين العمال ──────────────────────────────────────
 
+export interface CycleMetadata {
+  count: number;           // عدد الدورات الحالية
+  maxCycles: number;       // الحد الأقصى للدورات (default: 3)
+  history: string[];       // سجل الانتقالات بين العمال
+}
+
 export interface MissionContext {
   missionId: string;
   scope: MissionScope;
   workingDir: string;                     // temp dir for artifacts
   previousOutput: Record<string, any> | null;
   startTime: number;
+  
+  // 🔄 P0 Fix: Cycle counter to prevent infinite loops
+  cycles?: CycleMetadata;
 }
 
 // ── HandoffResult — ما يُعيده كل عامل ────────────────────────────────────────
@@ -141,4 +150,55 @@ export function validateProvider(
       `Add "dev_mode: true" to allow simulation in development only.`
     );
   }
+}
+
+// ── Cycle Management — إدارة الدورات ─────────────────────────────────────────
+
+const DEFAULT_MAX_CYCLES = 3;
+
+/**
+ * Initialize cycle metadata for a new mission
+ */
+export function initCycles(): CycleMetadata {
+  return {
+    count: 0,
+    maxCycles: DEFAULT_MAX_CYCLES,
+    history: []
+  };
+}
+
+/**
+ * Increment cycle count and check if max cycles reached
+ * @throws Error if max cycles exceeded (prevents infinite loops)
+ */
+export function incrementCycle(
+  cycles: CycleMetadata | undefined,
+  workerTransition: string
+): CycleMetadata {
+  const current = cycles ?? initCycles();
+  
+  const newCount = current.count + 1;
+  
+  if (newCount > current.maxCycles) {
+    throw new Error(
+      `MAX_CYCLES_REACHED: Mission exceeded maximum allowed cycles (${current.maxCycles}). ` +
+      `Transition attempted: ${workerTransition}. ` +
+      `History: ${current.history.join(' -> ')}. ` +
+      `This indicates a potential infinite loop in worker handoffs.`
+    );
+  }
+  
+  return {
+    ...current,
+    count: newCount,
+    history: [...current.history, workerTransition]
+  };
+}
+
+/**
+ * Check if max cycles would be exceeded (non-throwing version)
+ */
+export function wouldExceedMaxCycles(cycles: CycleMetadata | undefined): boolean {
+  const current = cycles ?? initCycles();
+  return current.count >= current.maxCycles;
 }

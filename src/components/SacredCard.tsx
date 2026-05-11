@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react';
-import { SacredGeometry } from '../../lib/iqra/13-utils/style';
+import { SacredGeometry } from '../../lib/iqra/13-utils/style'; // [TC] reason: relative path to canonical lib/iqra | id: c1-scard
 
 interface SacredCardProps {
   children: React.ReactNode;

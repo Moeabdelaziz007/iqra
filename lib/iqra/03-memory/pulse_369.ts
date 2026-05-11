@@ -275,9 +275,10 @@ export class Pulse369 {
 
       await IQRAMemory.set(archiveKey, JSON.stringify(compressed));
 
-      // حذف من Warm بعد الأرشفة
-      const ids = oldEntries.map(e => `'${e.id}'`).join(',');
-      db.prepare(`DELETE FROM experiences WHERE id IN (${ids})`).run();
+      // حذف من Warm بعد الأرشفة (parameterized query to prevent SQL injection)
+      const idList = oldEntries.map(e => e.id);
+      const placeholders = idList.map(() => '?').join(',');
+      db.prepare(`DELETE FROM experiences WHERE id IN (${placeholders})`).run(...idList);
 
       IQRALogger.info(
         `❄️ [PULSE_369] archiveWarmToCold: ${oldEntries.length} entries archived to cold`

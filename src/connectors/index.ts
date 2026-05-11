@@ -1,7 +1,7 @@
 import { BaseConnector } from './base';
 import { GoogleConnector } from './google';
 import { GroqConnector } from './groq';
-import { SovereignConnector } from '../../lib/iqra/quran/sovereign_connector';
+import { SovereignConnector } from '../../lib/iqra/04-quran/sovereign_connector'; // [TC] reason: relative path to canonical lib/iqra | id: c1-conn
 
 export type Provider = 'google' | 'groq' | 'sovereign';
 

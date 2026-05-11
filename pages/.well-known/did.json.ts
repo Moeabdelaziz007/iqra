@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { SovereignDID } from '../../src/lib/iqra/06-security/did';
+import { SovereignDID } from '../../lib/iqra/06-security/did'; // [TC] reason: relative path to canonical lib/iqra | id: c1-did
 
 function resolveDomain(req: NextApiRequest): string {
   const explicit = process.env.NEXT_PUBLIC_APP_DOMAIN?.trim();

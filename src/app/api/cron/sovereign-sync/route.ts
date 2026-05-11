@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { SovereignEngine } from '@/lib/iqra/sovereign';
+import { SovereignEngine } from '../../../../../lib/iqra/01-core/sovereign'; // [TC] reason: correct depth to canonical lib/iqra | id: c1-sov
 
 /**
  * Sovereign Sync Cycle

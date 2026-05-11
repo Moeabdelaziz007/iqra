@@ -3,11 +3,11 @@
 // سبحان الله وبحمده سبحان الله العظيم
 
 import { IQRAMemory } from '#memory/memory';
-import { SovereignEvolution } from '../09-evolution/evolution.js';
-import { SkillBank } from '../08-skills/skill_bank.js';
+import { SovereignEvolution } from '../09-evolution/evolution'
+import { SkillBank } from '../08-skills/skill_bank'
 import { IQRALogger } from '#infra/logger';
 import { appendToTrustChain } from '#security/security';
-import { Pulse369 } from '#memory/pulse_369.js';
+import { Pulse369 } from '#memory/pulse_369'
 import fs from 'fs';
 import path from 'path';
 
