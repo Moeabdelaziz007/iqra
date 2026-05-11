@@ -6,14 +6,14 @@
  */
 
 export interface R2Env {
-  IQRA_BUCKET: R2Bucket;
+  IQRA_BUCKET: any; // Cloudflare R2 Bucket type
 }
 
 export class IQRAStorage {
   /**
    * Upload discoveries or files to R2
    */
-  static async upload(env: R2Env, path: string, data: any, contentType: string = 'application/json') {
+  static async upload(env: R2Env, path: string, data: string | object | Buffer, contentType: string = 'application/json') {
     const body = typeof data === 'string' ? data : JSON.stringify(data);
     
     await env.IQRA_BUCKET.put(path, body, {

@@ -39,14 +39,50 @@ const LOCAL_MEMORY_PATH = path.join(process.cwd(), '.iqra', 'memory.json');
 const COLLECTION_NAME = 'iqra_wisdom';
 
 export class IQRAMemory {
-  private static _redis: any = null;
-  private static _supabase: any = null;
-  private static _qdrant: any = null;
-  private static _googleAI: any = null;
-  private static _errorCount = 0;
+  // [TC] reason: Encapsulated global static variables in instance properties for better memory management | id: TC-01-memo
+  private static _instance: IQRAMemory | null = null;
+  private _redis: any = null;
+  private _supabase: any = null;
+  private _qdrant: any = null;
+  private _googleAI: any = null;
+  private _errorCount = 0;
   private static readonly ERROR_THRESHOLD = 7;
 
-  private static async getRedis() {
+  // Singleton pattern for better resource management
+  static getInstance(): IQRAMemory {
+    if (!this._instance) {
+      this._instance = new IQRAMemory();
+    }
+    return this._instance;
+  }
+
+  /**
+   * Cleanup method to reset all connections
+   */
+  static async cleanup(): Promise<void> {
+    const instance = this.getInstance();
+    instance._redis = null;
+    instance._supabase = null;
+    instance._qdrant = null;
+    instance._googleAI = null;
+    instance._errorCount = 0;
+    IQRALogger.info('🧹 [MEMORY] All connections cleaned up');
+  }
+
+  /**
+   * Soft reset for error recovery
+   */
+  static async softReset(): Promise<void> {
+    const instance = this.getInstance();
+    instance._redis = null;
+    instance._supabase = null;
+    instance._qdrant = null;
+    instance._googleAI = null;
+    instance._errorCount = 0;
+    IQRALogger.info('🔄 [MEMORY] Soft reset completed');
+  }
+
+  private async getRedis() {
     if (this._redis) return this._redis;
     if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
       try {
@@ -66,7 +102,7 @@ export class IQRAMemory {
     return this._redis;
   }
 
-  private static async getSupabase() {
+  private async getSupabase() {
     if (this._supabase) return this._supabase;
     if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
       try {
@@ -79,7 +115,7 @@ export class IQRAMemory {
     return this._supabase;
   }
 
-  private static async getQdrant() {
+  private async getQdrant() {
     if (this._qdrant) return this._qdrant;
     if (process.env.QDRANT_URL && process.env.QDRANT_API_KEY) {
       try {
@@ -92,7 +128,7 @@ export class IQRAMemory {
     return this._qdrant;
   }
 
-  private static async getGoogleAI() {
+  private async getGoogleAI() {
     if (this._googleAI) return this._googleAI;
     if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
       try {
@@ -134,20 +170,21 @@ export class IQRAMemory {
 
   static async set(key: string, value: any) {
     try {
-      const redis = await this.getRedis();
+      const instance = this.getInstance();
+      const redis = await instance.getRedis();
       if (redis) {
         const result = await withTimeout(redis.set(`iqra:${key}`, value), IQRA_TIMEOUTS.REDIS, `Redis SET ${key}`);
-        this._errorCount = 0;
-        return result;
+        instance._errorCount = 0;
       }
-    } catch (error) {
-      this._errorCount++;
-      IQRALogger.warn(`⚠️ [MEMORY] Set error (${this._errorCount}/${this.ERROR_THRESHOLD}):`, error);
-      if (this._errorCount >= this.ERROR_THRESHOLD) {
-        await this.softReset();
+    } catch (e) {
+      const instance = this.getInstance();
+      instance._errorCount++;
+      IQRALogger.error(`❌ [MEMORY] Redis SET failed for key: ${key}`, e);
+      if (instance._errorCount >= this.ERROR_THRESHOLD) {
+        IQRALogger.error('🚫 [MEMORY] Error threshold reached. Falling back to local storage.');
+        await instance.fallbackToLocal(key, value);
       }
     }
-    
     const data = await this.getLocalData();
     data[key] = value;
     await this.saveLocalData(data);
@@ -252,7 +289,7 @@ export class IQRAMemory {
     IQRALogger.info(`✨ [REWARD] Curiosity boosted by ${amount}. New score: ${newScore.toFixed(4)}`);
   }
 
-  static async softReset() {
+  static async softResetExtended() {
     IQRALogger.warn('🔄 [MEMORY] Threshold reached. Executing Soft Reset (Tasbih)...');
     const redis = await this.getRedis();
     if (redis) {

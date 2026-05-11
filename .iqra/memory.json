@@ -823,10 +823,10 @@
     }
   },
   "qalbin_pulse_1": {
-    "content": "Qalbin Pulse 1: سورة الفاتحة آية 1:7",
+    "content": "Qalbin Pulse 1: [تم التحقق] بسم الله الرحمن الرحيم",
     "concept": "Qalbin_State",
-    "entropy": 3.7464393446710154,
-    "resonance": 0.51,
-    "state": "{\"entropy\":3.7464393446710154,\"resonance\":0.51,\"phase\":\"init\",\"pulseCount\":1,\"patterns\":[\"Arabic_Text\",\"Quranic_Reference\"]}"
+    "entropy": 3.617634357396307,
+    "resonance": 0.5900000000000001,
+    "state": "{\"resonance\":0.5900000000000001,\"entropy\":3.617634357396307,\"patterns\":[\"Term_الله\",\"Term_حق\",\"Arabic_Text\"],\"phase\":\"processing\",\"pulseCount\":1}"
   }
 }
