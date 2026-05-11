@@ -235,32 +235,25 @@ export class IQRAMemory {
     return data[listKey].length;
   }
 
-  static async getRecentList<T>(key: string, count: number): Promise<T[]> {
+  static async getAllKeys(): Promise<string[]> {
     const redis = await this.getRedis();
     if (redis) {
-      const total = await withTimeout(redis.llen(`iqra:list:${key}`), IQRA_TIMEOUTS.REDIS, `Redis LLEN ${key}`);
-      const start = Math.max(0, total - count);
-      const result = await withTimeout(redis.lrange(`iqra:list:${key}`, start, total - 1), IQRA_TIMEOUTS.REDIS, `Redis LRANGE (recent) ${key}`);
-      return (result || []) as T[];
+      try {
+        const keys = await withTimeout(redis.keys('iqra:*'), IQRA_TIMEOUTS.REDIS, 'Redis KEYS');
+        return (keys as string[]).map(key => key.replace('iqra:', ''));
+      } catch (error) {
+        IQRALogger.warn('Failed to get Redis keys:', error);
+      }
     }
-    
-    const data = await this.getLocalData();
-    const list = (data[`list:${key}`] || []) as T[];
-    return list.slice(-count);
-  }
 
-  static async saveCuriosity(score: number) {
-    const redis = await this.getRedis();
-    if (!redis) {
-      const data = await this.getLocalData();
-      data['curiosity_score'] = score;
-      if (!data['curiosity_history']) data['curiosity_history'] = [];
-      data['curiosity_history'].push({ timestamp: Date.now(), score });
-      await this.saveLocalData(data);
-      return;
+    // Fallback to local storage
+    try {
+      const data = await this.getLocalStorage();
+      return Object.keys(data);
+    } catch (error) {
+      IQRALogger.warn('Failed to get local storage keys:', error);
+      return [];
     }
-    await redis.set('iqra:curiosity_score', score);
-    await redis.rpush('iqra:curiosity_history', { timestamp: Date.now(), score });
   }
 
   static async setCuriosity(key: string, value: any) {
@@ -431,19 +424,166 @@ export class IQRAMemory {
   }
 
   static async computeNovelty(embedding: number[], count: number = 10): Promise<number> {
-    const recent = await this.getRecentList<any>('embeddings_history', count);
-    if (!recent || recent.length === 0) return 1.0;
+    try {
+      const recent = await this.getRecentList<any>('embeddings_history', count);
+      if (!recent || recent.length === 0) return 1.0;
 
-    let maxSimilarity = 0;
-    for (const item of recent) {
-      const pastVector = typeof item === 'string' ? JSON.parse(item).vector : item.vector;
-      if (!pastVector) continue;
+      let maxSimilarity = 0;
+      let totalSimilarity = 0;
+      let validComparisons = 0;
       
-      const sim = this.cosineSimilarity(embedding, pastVector);
-      if (sim > maxSimilarity) maxSimilarity = sim;
-    }
+      for (const item of recent) {
+        const pastVector = typeof item === 'string' ? JSON.parse(item).vector : item.vector;
+        if (!pastVector || !Array.isArray(pastVector)) continue;
+        
+        const sim = this.cosineSimilarity(embedding, pastVector);
+        if (sim > maxSimilarity) maxSimilarity = sim;
+        totalSimilarity += sim;
+        validComparisons++;
+      }
 
-    return 1.0 - maxSimilarity;
+      // Enhanced novelty calculation with temporal decay
+      const baseNovelty = 1.0 - maxSimilarity;
+      
+      // Apply temporal weighting - newer embeddings matter more
+      const temporalWeight = Math.min(1.0, validComparisons / count);
+      
+      // Calculate average similarity for additional context
+      const avgSimilarity = validComparisons > 0 ? totalSimilarity / validComparisons : 0;
+      
+      // Final novelty score with multiple factors
+      let noveltyScore = baseNovelty * 0.7 + (1.0 - avgSimilarity) * 0.3;
+      noveltyScore *= temporalWeight;
+      
+      // Ensure bounds
+      noveltyScore = Math.max(0.0, Math.min(1.0, noveltyScore));
+      
+      // Store novelty metrics for analysis
+      await this.set(`novelty_metrics:${Date.now()}`, {
+        score: noveltyScore,
+        max_similarity: maxSimilarity,
+        avg_similarity: avgSimilarity,
+        comparisons: validComparisons,
+        temporal_weight: temporalWeight
+      });
+      
+      return noveltyScore;
+    } catch (error) {
+      IQRALogger.error('Error computing novelty:', error);
+      return 0.5; // Fallback to medium novelty
+    }
+  }
+
+  static async getCuriosityMetrics(): Promise<{
+    current_score: number;
+    trend: 'increasing' | 'decreasing' | 'stable';
+    momentum: number;
+    last_updated: number;
+  }> {
+    try {
+      const current = await this.getCuriosity();
+      const history = await this.getRecentList('curiosity_history', 20);
+      
+      if (!history || history.length < 3) {
+        return {
+          current_score: current,
+          trend: 'stable',
+          momentum: 0,
+          last_updated: Date.now()
+        };
+      }
+      
+      // Calculate trend
+      const recent = history.slice(-5);
+      const older = history.slice(-10, -5);
+      
+      const recentAvg = recent.reduce((sum: number, val: any) => sum + (typeof val === 'number' ? val : val.score), 0) / recent.length;
+      const olderAvg = older.length > 0 ? older.reduce((sum: number, val: any) => sum + (typeof val === 'number' ? val : val.score), 0) / older.length : recentAvg;
+      
+      let trend: 'increasing' | 'decreasing' | 'stable' = 'stable';
+      if (recentAvg > olderAvg + 0.05) trend = 'increasing';
+      else if (recentAvg < olderAvg - 0.05) trend = 'decreasing';
+      
+      // Calculate momentum (rate of change)
+      const momentum = recent.length >= 2 ? 
+        (recent[recent.length - 1] - recent[0]) / recent.length : 0;
+      
+      return {
+        current_score: current,
+        trend,
+        momentum,
+        last_updated: Date.now()
+      };
+    } catch (error) {
+      IQRALogger.error('Error getting curiosity metrics:', error);
+      return {
+        current_score: 0.5,
+        trend: 'stable',
+        momentum: 0,
+        last_updated: Date.now()
+      };
+    }
+  }
+
+  static async boostCuriosity(reason: string, amount: number = 0.1): Promise<void> {
+    try {
+      const current = await this.getCuriosity();
+      const metrics = await this.getCuriosityMetrics();
+      
+      // Dynamic boost based on current trend
+      let boostAmount = amount;
+      if (metrics.trend === 'decreasing') {
+        boostAmount *= 1.5; // Extra boost for declining curiosity
+      } else if (metrics.trend === 'increasing' && current > 0.8) {
+        boostAmount *= 0.5; // Reduce boost if already high and increasing
+      }
+      
+      const newScore = Math.min(1.0, Math.max(0.0, current + boostAmount));
+      
+      await this.set('curiosity_score', newScore);
+      
+      // Log the boost for analysis
+      await this.appendList('curiosity_boosts', {
+        timestamp: Date.now(),
+        reason,
+        amount: boostAmount,
+        old_score: current,
+        new_score: newScore,
+        trend_before: metrics.trend
+      });
+      
+      IQRALogger.info(`🧠 [MEMORY] Curiosity boosted: ${current.toFixed(3)} → ${newScore.toFixed(3)} (${reason})`);
+    } catch (error) {
+      IQRALogger.error('Error boosting curiosity:', error);
+    }
+  }
+
+  static async trackNoveltyPattern(content: string, noveltyScore: number): Promise<void> {
+    try {
+      const pattern = {
+        content_hash: crypto.createHash('md5').update(content).digest('hex'),
+        novelty_score: noveltyScore,
+        timestamp: Date.now(),
+        content_length: content.length,
+        word_count: content.split(/\s+/).length
+      };
+      
+      await this.appendList('novelty_patterns', pattern);
+      
+      // Detect patterns in novelty scores
+      const recentPatterns = await this.getRecentList('novelty_patterns', 50);
+      if (recentPatterns.length >= 10) {
+        const scores = recentPatterns.map((p: any) => p.novelty_score);
+        const avgScore = scores.reduce((sum: number, score: number) => sum + score, 0) / scores.length;
+        
+        // Auto-boost curiosity if novelty is consistently low
+        if (avgScore < 0.3) {
+          await this.boostCuriosity('Low novelty pattern detected', 0.05);
+        }
+      }
+    } catch (error) {
+      IQRALogger.error('Error tracking novelty pattern:', error);
+    }
   }
 
   static cosineSimilarity(v1: number[], v2: number[]): number {
