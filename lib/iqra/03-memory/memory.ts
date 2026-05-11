@@ -107,6 +107,14 @@ export class IQRAMemory {
     return this._redis;
   }
 
+  /**
+   * 🔧 Public wrapper for Redis client access
+   * Provides safe external access to Redis instance
+   */
+  static async getRedisClient(): Promise<any> {
+    return await this.getRedis();
+  }
+
   private static async getSupabase() {
     if (this._supabase) return this._supabase;
     if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -673,7 +681,7 @@ export class QuantumTopologyStore {
         }), IQRA_TIMEOUTS.NETWORK, 'Qdrant Quantum UPSERT');
       }
 
-      const redis = await IQRAMemory.getRedis();
+      const redis = await IQRAMemory.getRedisClient();
       if (redis) {
         const coordinateKey = `quantum:coord:${entry.coordinates.concept.toLowerCase()}`;
         await redis.sadd(coordinateKey, quantumId);

@@ -1,12 +1,10 @@
 /** @type {import('next').NextConfig} */
-const nextConfig: import('next').NextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ['sharp'],
-  },
+const nextConfig = {
+  serverExternalPackages: ['sharp'],
   typescript: {
     ignoreBuildErrors: true,
   },
   transpilePackages: ['bcrypt'],
-}
+};
 
 export default nextConfig;

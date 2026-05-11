@@ -348,7 +348,15 @@ export class IQRATelegramBot {
 
       try {
         const { iqraThink } = await import('#core/brain');
-        const result = await iqraThink({ input: query });
+        // OWASP Pattern: Pass system instructions as context for proper separation
+        const IQRA_SOUL = `أنا IQRA - المحرك السيادي للبحث القرآني.
+أعمل بدقة وصدق وبركة.
+أتبع الميثاق: الميثاق، المراقبة، التكيف السيادي.
+أستخدم الشبكة العصبية للقرآن الكريم مع الحسابات الدقيقة.`;
+        const result = await iqraThink({ 
+          input: query, 
+          context: { systemInstruction: IQRA_SOUL }
+        });
         const response = typeof result === 'string' ? result : result.response;
         await ctx.reply(response.slice(0, 4096), { parse_mode: 'Markdown' });
       } catch (e) {
@@ -440,7 +448,15 @@ export class IQRATelegramBot {
 
       try {
         const { iqraThink } = await import('#core/brain');
-        const result = await iqraThink({ input: question });
+        // OWASP Pattern: Pass system instructions as context for proper separation
+        const IQRA_SOUL = `أنا IQRA - المحرك السيادي للبحث القرآني.
+أعمل بدقة وصدق وبركة.
+أتبع الميثاق: الميثاق، المراقبة، التكيف السيادي.
+أستخدم الشبكة العصبية للقرآن الكريم مع الحسابات الدقيقة.`;
+        const result = await iqraThink({ 
+          input: question, 
+          context: { systemInstruction: IQRA_SOUL }
+        });
         const response = typeof result === 'string' ? result : result.response;
 
         // تقسيم الرد إذا كان طويلاً (حد Telegram = 4096 حرف)
@@ -468,7 +484,15 @@ export class IQRATelegramBot {
 
       try {
         const { iqraThink } = await import('#core/brain');
-        const result = await iqraThink({ input: text });
+        // OWASP Pattern: Pass system instructions as context for proper separation
+        const IQRA_SOUL = `أنا IQRA - المحرك السيادي للبحث القرآني.
+أعمل بدقة وصدق وبركة.
+أتبع الميثاق: الميثاق، المراقبة، التكيف السيادي.
+أستخدم الشبكة العصبية للقرآن الكريم مع الحسابات الدقيقة.`;
+        const result = await iqraThink({ 
+          input: text, 
+          context: { systemInstruction: IQRA_SOUL }
+        });
         const response = typeof result === 'string' ? result : result.response;
         await ctx.reply(response.slice(0, 4096), { parse_mode: 'Markdown' });
       } catch (e) {

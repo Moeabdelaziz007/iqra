@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { handleTelegramWebhook } from '../../../lib/iqra/13-utils/telegram_bot'; // [TC] reason: relative path to canonical lib/iqra | id: c1-tele
+import { handleTelegramWebhook } from '#utils/telegram_bot';
 
 export async function POST(request: NextRequest) {
   const env = {

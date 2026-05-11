@@ -517,7 +517,7 @@ export class Pulse369 {
   private static async _incrementCounter(): Promise<number> {
     try {
       const { IQRAMemory } = await import('../03-memory/memory.js');
-      const redis = await (IQRAMemory as any).getRedis();
+      const redis = await IQRAMemory.getRedisClient();
       if (redis) {
         const val = await redis.incr(`iqra:${COUNTER_KEY}`);
         return val as number;

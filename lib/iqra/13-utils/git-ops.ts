@@ -144,7 +144,7 @@ export async function sovereignSync() {
   console.log('🕋 [أخوَّة] | Commencing Sovereign Pulse...');
 
   // Principle of Seven (7) - Sab'iyyah Stabilization
-  const { sabiyyahWisdom } = await import('./security');
+  const { sabiyyahWisdom } = await import('#security/security');
   await sabiyyahWisdom();
 
   // 1. Commit what we have

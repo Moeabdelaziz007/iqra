@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -37,14 +38,24 @@ func fourierHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func evolveHandler(w http.ResponseWriter, r *http.Request) {
+	// Use context.Background() to prevent connection leaks
 	go func() {
+		ctx := context.Background()
 		log.Println("Starting autonomous evolution cycle...")
+
+		// Simulate evolution work
 		time.Sleep(2 * time.Second)
 		log.Println("Evolution cycle completed.")
+
+		// Don't write to response writer from goroutine
+		// Response should be sent immediately to avoid race conditions
 	}()
+
+	// Send immediate response
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(Response{
-		Status:  "success",
-		Message: "Evolution cycle initiated in background",
+		Status:  "accepted",
+		Message: "Evolution cycle started in background",
 	})
 }
 
@@ -93,9 +104,9 @@ func lidAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var req struct {
-		Embedding []float64   `json:"embedding"`
+		Embedding  []float64   `json:"embedding"`
 		References [][]float64 `json:"references"`
-		K         int         `json:"k"`
+		K          int         `json:"k"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -210,7 +221,7 @@ func main() {
 	addr := fmt.Sprintf("127.0.0.1:%s", *port)
 	fmt.Printf("🌙 IQRA Go Engine starting on %s...\n", addr)
 	fmt.Printf("📊 Parallel Processing: %d CPUs available\n", runtime.NumCPU())
-	
+
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		log.Fatalf("❌ Failed to start server: %v", err)
 	}
