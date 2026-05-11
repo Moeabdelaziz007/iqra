@@ -330,8 +330,8 @@ iqra/
 | | |
 |---|---|
 | 📅 **التاريخ \| Date** | `2026-05-11` |
-| 💡 **آخر خطوة \| Last Step** | Merge pull request #4 from Moeabdelaziz007/testing-improvement-iqra-graph-15171371017903317709 |
-| 🔗 **الـ Commit** | `1f7725a` |
+| 💡 **آخر خطوة \| Last Step** | تحسينات أمان وأداء: OWASP pattern implementation و Go engine fixes |
+| 🔗 **الـ Commit** | `c41ff2d` |
 
 <!-- IQRA-LATEST-END -->
 
