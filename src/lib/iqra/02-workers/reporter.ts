@@ -27,7 +27,7 @@ import { RewardLedger } from '#rewards/ledger';
 import { IQRAMemory } from '#memory/memory';
 import { PatternMemory } from '#memory/pattern_memory';
 import type { RewardEntry, RewardVector } from '#rewards/types';
-import type { ValidationReport } from './mission_validator';
+import type { ValidationReport } from './validator';
 import type { ResearchOutput } from './researcher';
 
 export async function executeReporter(context: MissionContext): Promise<HandoffResult> {
@@ -121,9 +121,10 @@ export async function executeReporter(context: MissionContext): Promise<HandoffR
     }
 
     // ── 7. Compute reward ─────────────────────────────────────────────────────
+    const resonanceScore = validation.resonance_score ?? 0;
     const rewardVector: RewardVector = {
       novelty: novelty_score,
-      resonance: validation.resonance_score,
+      resonance: resonanceScore,
       topology: topology_score,
       fractal: 0.5,
       lid: 0.5,
@@ -158,10 +159,11 @@ export async function executeReporter(context: MissionContext): Promise<HandoffR
         const patternId = await PatternMemory.storePattern(
           scope.verse,
           scope.field_of_inquiry,
-          validation.resonance_score,
+          resonanceScore,
           realEmbedding,
           scope.mission_id,
-          0.5
+          undefined,
+          { confidence: 0.5 }
         );
         implemented.push(`[fetched] PatternMemory stored: ${patternId}`);
       } catch (err: any) {
@@ -182,12 +184,12 @@ export async function executeReporter(context: MissionContext): Promise<HandoffR
       'REPORTER:REWARD_RECORDED',
       scope.mission_id,
       `reward:${entry.total_reward.toFixed(4)}:level:${entry.discovery_level}:novelty:${novelty_score.toFixed(3)}`,
-      rewardOutput.confidence
+      entry.confidence
     );
 
     IQRALogger.info(
-      `✅ [REPORTER] Done. Reward: ${rewardOutput.total_reward.toFixed(4)} | ` +
-      `Level: ${rewardOutput.discovery_level} | Novelty: ${novelty_score.toFixed(3)} | ` +
+      `✅ [REPORTER] Done. Reward: ${entry.total_reward.toFixed(4)} | ` +
+      `Level: ${entry.discovery_level} | Novelty: ${novelty_score.toFixed(3)} | ` +
       `Multiplier: ${multiplier}x`
     );
 
@@ -196,7 +198,7 @@ export async function executeReporter(context: MissionContext): Promise<HandoffR
       worker: 'Reporter',
       next: null,
       data: {
-        rewardOutput,
+        rewardOutput: entry,
         entry,
         multiplier,
         novelty_score,

@@ -651,6 +651,22 @@ export class IQRAMemory {
     const magnitude = Math.sqrt(mag1) * Math.sqrt(mag2);
     return magnitude === 0 ? 0 : dotProduct / magnitude;
   }
+
+  static async getContextForSession(sessionId: string, limit: number = 5): Promise<any[]> {
+    return QuantumTopologyStore.getContextForSession(sessionId, limit);
+  }
+
+  static async savePattern(patternData: any): Promise<void> {
+    return QuantumTopologyStore.savePattern(patternData);
+  }
+
+  static async getPatternMemories(observations: string[]): Promise<Record<string, any>> {
+    return QuantumTopologyStore.getPatternMemories(observations);
+  }
+
+  static async updatePatternStatistics(patternId: string, stats: any): Promise<void> {
+    return QuantumTopologyStore.updatePatternStatistics(patternId, stats);
+  }
 }
 
 export class QuantumTopologyStore {

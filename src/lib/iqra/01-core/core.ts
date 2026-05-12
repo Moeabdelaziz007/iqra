@@ -2,14 +2,12 @@ import { IQRAMemory } from '#memory/memory';
 import { iqraThink, IQRABrainMode } from '#core/brain';
 import { applyIQRAStyle } from '#utils/style';
 import { DASTUR, MURAQABAH } from '#core/constants';
-import { GrokVoiceService } from '#iqra-core/voice/voice_service';
+import { IQRAVoice } from '#utils/voice';
 import { ShuraProtocol } from '#core/shura';
 import { IQRAFilter } from '#security/filter';
 import { TAWBAH } from '#core/tawbah';
 
 export class AgentCore {
-  private static voice = new GrokVoiceService();
-
   /**
    * Pre-execution hooks (Islamic Triangulation)
    */
@@ -67,10 +65,9 @@ export class AgentCore {
 
     // VOICE (Optional/Async)
     if (mode === IQRABrainMode.FAST_RESPONSE) {
-      this.voice.speak(styledResponse).catch(err => console.error('Voice failed:', err));
+      IQRAVoice.speak(styledResponse).catch(err => console.error('Voice failed:', err));
     }
 
     return styledResponse;
   }
 }
-

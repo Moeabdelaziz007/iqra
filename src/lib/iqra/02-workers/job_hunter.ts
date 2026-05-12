@@ -53,8 +53,8 @@ export class JobHunter {
     IQRALogger.info(`💰 [JOB_HUNTER] Searching for opportunities: ${query}`);
     
     try {
-      const { result } = await executeWithSkill('opportunity_hunter', query);
-      const data = result as { opportunities: any[] };
+      const { response } = await executeWithSkill('opportunity_hunter', query);
+      const data = JSON.parse(response) as { opportunities: any[] };
       
       const jobs: JobOpportunity[] = data.opportunities.map((opt, i) => ({
         id: `opt_${Date.now()}_${i}`,

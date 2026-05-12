@@ -78,9 +78,15 @@ export class ResearchWorker extends SovereignWorker {
         from_worker: this.id,
         to_worker: 'ValidationWorker',
         timestamp: Date.now(),
+        intent: 'Validate synthesized research context',
+        context_snapshot: {
+          resonance_score: resonance?.coherence ?? 0,
+          novelty_score: 0,
+        },
         artifacts: [],
         pending_tasks: ['Dastur compliance check'],
         known_issues: this.report.issues_discovered,
+        validation_gates: ['Dastur compliance check'],
         validation_rules: ['HARAM_LIST compliance'],
         context_data: updatedContext
       };

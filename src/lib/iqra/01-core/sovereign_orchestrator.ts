@@ -148,6 +148,9 @@ export class MissionControl {
           implemented: [`Mocked ${phase}`],
           undone: [],
           issues_discovered: [],
+          skills_used: [],
+          source_attestations: [],
+          no_mock_verified: false,
           procedures_followed: true,
         },
       };
@@ -281,10 +284,10 @@ export class MissionControl {
     state.context.evolution = {
       winner: evolutionWinner.vector,
       score: evolutionWinner.score,
-      simulation: evolutionWinner.simulationResult
+      simulation: evolutionWinner.vector
     };
 
-    const leagueVerdict = await LeagueManager.adjudicate(evolutionWinner.simulationResult);
+    const leagueVerdict = await LeagueManager.adjudicate(evolutionWinner.vector);
     if (!leagueVerdict.isStable) {
       return { response: "Mission Aborted: League Stability Failure.", reports: [], provider: 'local', context: state.context };
     }

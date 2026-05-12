@@ -126,12 +126,13 @@ export class ReasonActLoop {
       IQRALogger.info(`✅ [REASON_ACT] Cycle completed for session ${sessionId} | Trust: ${result.trustScore.toFixed(3)}`);
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       IQRALogger.error(`❌ [REASON_ACT] Cycle failed for session ${sessionId}:`, error);
       result.success = false;
       result.execution = {
         action: 'ERROR',
         result: error,
-        error: error.message
+        error: errorMessage
       };
     }
 
@@ -329,7 +330,7 @@ export class ReasonActLoop {
       return {
         action: 'ERROR',
         result: null,
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       };
     }
   }

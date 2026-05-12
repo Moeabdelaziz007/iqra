@@ -36,6 +36,7 @@ export interface MissionPlan {
   historical_context?: {
     identified_risks: string[];
     previous_failures: string[];
+    available_skills: string[];
   };
 }
 

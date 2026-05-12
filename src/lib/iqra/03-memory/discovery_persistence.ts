@@ -201,11 +201,12 @@ export class DiscoveryPersistence {
     // 2. إذا لم نجد كفاية، ابحث في Warm (PatternMemory)
     if (results.length < limit) {
       try {
-        const warmResults = await PatternMemory.getSimilarPatterns(query, limit - results.length);
+        const queryEmbedding = await IQRAMemory.generateEmbedding(query);
+        const warmResults = await PatternMemory.getSimilarPatterns(queryEmbedding, limit - results.length);
         
         for (const pattern of warmResults) {
-          if (pattern.metadata?.discovery_id) {
-            const discovery = await this.getDiscoveryById(pattern.metadata.discovery_id);
+          if (pattern.record.metadata?.discovery_id) {
+            const discovery = await this.getDiscoveryById(pattern.record.metadata.discovery_id);
             if (discovery && !results.find(r => r.id === discovery.id)) {
               results.push(discovery);
             }
@@ -255,11 +256,15 @@ export class DiscoveryPersistence {
       // 2. Warm Cache (PatternMemory)
       if (discovery.embedding) {
         await PatternMemory.storePattern(
-          discovery.embedding,
-          discovery.content,
+          discovery.verse,
+          discovery.field,
           discovery.resonance,
+          discovery.embedding,
+          discovery.mission_id,
+          discovery.id,
           { 
             discovery_id: discovery.id,
+            content: discovery.content,
             verse: discovery.verse,
             field: discovery.field,
             type: 'discovery'

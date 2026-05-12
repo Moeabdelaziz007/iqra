@@ -109,7 +109,7 @@ export class LanceDBPlugin {
 
       return `
 [RECALLED_DEEP_MEMORIES]
-${memories.map((m, i) => `${i+1}. [${new Date(m.timestamp).toLocaleDateString()}] ${m.content}`).join('\n')}
+${memories.map((m: MemoryEntry, i: number) => `${i+1}. [${new Date(m.timestamp).toLocaleDateString()}] ${m.content}`).join('\n')}
 `.trim();
     } catch {
       return "";

@@ -1,6 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import path from 'path';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 const NodeSchema = z.object({
@@ -74,17 +74,15 @@ function toGraphML(
 </graphml>`;
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+export async function POST(req: NextRequest) {
+  const body = await req.json().catch(() => null);
+  const parsed = RequestSchema.safeParse(body || {});
 
-  const parsed = RequestSchema.safeParse(req.body || {});
   if (!parsed.success) {
-    return res.status(400).json({
-      error: 'Invalid topology payload',
-      details: parsed.error.flatten(),
-    });
+    return NextResponse.json(
+      { error: 'Invalid topology payload', details: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   try {
@@ -142,21 +140,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
 
     if (data.exportFormat === 'csv') {
-      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-      return res.status(200).send(toCsv(payload.hiddenLayerIds, payload.hiddenPatterns));
+      return new NextResponse(toCsv(payload.hiddenLayerIds, payload.hiddenPatterns), {
+        headers: { 'Content-Type': 'text/csv; charset=utf-8' },
+      });
     }
 
     if (data.exportFormat === 'graphml') {
-      res.setHeader('Content-Type', 'application/graphml+xml; charset=utf-8');
-      return res.status(200).send(toGraphML(data, hiddenLayerIds, hiddenNodeIds));
+      return new NextResponse(toGraphML(data, hiddenLayerIds, hiddenNodeIds), {
+        headers: { 'Content-Type': 'application/graphml+xml; charset=utf-8' },
+      });
     }
 
-    return res.status(200).json(payload);
+    return NextResponse.json(payload);
   } catch (error: any) {
-    return res.status(500).json({
-      error: 'Failed to parse or analyze hidden topology layers',
-      details: error?.message || 'unknown error',
-      timestamp: new Date().toISOString(),
-    });
+    return NextResponse.json(
+      {
+        error: 'Failed to parse or analyze hidden topology layers',
+        details: error?.message || 'unknown error',
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 },
+    );
   }
 }

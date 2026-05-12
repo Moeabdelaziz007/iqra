@@ -74,7 +74,7 @@ export class QalbinVM {
     return {
       nodes: Array.from(this.nodes.values()),
       edges: Array.from(this.edges.entries()).flatMap(([from, edges]) => 
-        edges.map(edge => ({ from, ...edge }))
+        edges.map(edge => ({ ...edge, from }))
       ),
       dimension: this.currentDimension,
       integrity: this.calculateIntegrity()

@@ -17,7 +17,7 @@
 import fs from 'fs';
 import path from 'path';
 import { SovereignWorker, WorkerResult, MissionState } from './protocol';
-import type { MissionHandoff } from '#core/mission-context';
+import type { MissionHandoff } from '#agents/contracts';
 import { appendToTrustChain } from '#security/security';
 import { IQRALogger } from '#infra/logger';
 import { goEngine } from '#quran/go_engine_client';
@@ -86,9 +86,15 @@ export class ResonanceWorker extends SovereignWorker {
         from_worker: this.id,
         to_worker: 'ResearchWorker',
         timestamp: Date.now(),
+        intent: 'Research high-fidelity resonance patterns',
+        context_snapshot: {
+          resonance_score: topological_score,
+          novelty_score: 0,
+        },
         artifacts: [],
         pending_tasks: ['Deep research into resonance patterns'],
         known_issues: this.report.issues_discovered,
+        validation_gates: ['High-fidelity verification'],
         validation_rules: ['High-fidelity verification'],
         context_data: updatedContext
       };

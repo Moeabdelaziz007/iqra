@@ -1,5 +1,6 @@
 import { WorkerReport } from '#workers/protocol'
-import { GrokVoiceService } from '#iqra-core/voice/voice_service'
+import { iqraThink, IQRABrainMode } from '#core/brain';
+import { IQRAVoice } from '#utils/voice';
 import { IQRALogger } from '#infra/logger';
 import fs from 'fs';
 import path from 'path';
@@ -11,12 +12,6 @@ import path from 'path';
  * and converts them to speech.
  */
 export class IQRAStoryteller {
-  private voiceService: GrokVoiceService;
-
-  constructor() {
-    this.voiceService = new GrokVoiceService();
-  }
-
   /**
    * Summarize Mission | تلخيص المهمة
    */
@@ -36,7 +31,11 @@ export class IQRAStoryteller {
     `;
 
     try {
-      return await this.voiceService.generateMessage(summaryPrompt);
+      const result = await iqraThink({
+        input: summaryPrompt,
+        mode: IQRABrainMode.FAST_RESPONSE,
+      });
+      return result.response;
     } catch (error) {
       IQRALogger.error('Failed to generate mission story.');
       return 'Mission completed with excellence. تم إنجاز المهمة بإتقان.';
@@ -48,7 +47,10 @@ export class IQRAStoryteller {
    */
   async speakStory(text: string, missionId: string): Promise<string> {
     try {
-      const audioBuffer = await this.voiceService.speak(text);
+      const audioBuffer = await IQRAVoice.speak(text);
+      if (!audioBuffer) {
+        return '';
+      }
       const filename = `story_${missionId}_${Date.now()}.mp3`;
       const outputPath = path.join(process.cwd(), 'artifacts/voice', filename);
       
@@ -84,7 +86,11 @@ export class IQRAStoryteller {
     `;
 
     try {
-      return await this.voiceService.generateMessage(prompt);
+      const result = await iqraThink({
+        input: prompt,
+        mode: IQRABrainMode.FAST_RESPONSE,
+      });
+      return result.response;
     } catch (error) {
       return '🌙 IQRA Update: Evolution continues.';
     }

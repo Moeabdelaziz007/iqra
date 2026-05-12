@@ -439,8 +439,10 @@ export class SovereignEngine {
         const errorParts = insight.split(':');
         throw new SovereignError(
           SovereignErrorCode.INTEGRITY_ERR,
-          `Discovery loop failed: ${errorParts[1].trim()}`,
-          { logsCount: recentLogs.length }
+          {
+            reason: `Discovery loop failed: ${(errorParts[1] || insight).trim()}`,
+            diagnostics: { logsCount: recentLogs.length },
+          }
         );
       } else if (insight.includes('[DISCOVERY]')) {
         const cleanInsight = insight.split('[DISCOVERY]')[1].trim();
@@ -454,8 +456,10 @@ export class SovereignEngine {
     } catch (err: any) {
       throw new SovereignError(
         SovereignErrorCode.INTEGRITY_ERR,
-        `Discovery loop failed: ${err.message}`,
-        { logsCount: recentLogs.length }
+        {
+          reason: `Discovery loop failed: ${err.message}`,
+          diagnostics: { logsCount: recentLogs.length },
+        }
       );
     }
   }

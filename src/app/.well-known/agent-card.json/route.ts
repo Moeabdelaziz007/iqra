@@ -1,21 +1,18 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 
-function resolveBaseUrl(req: NextApiRequest): string {
+function resolveBaseUrl(req: NextRequest): string {
   const explicit = process.env.NEXT_PUBLIC_APP_URL?.trim();
   if (explicit) return explicit.replace(/\/$/, '');
 
-  const host = req.headers.host || 'localhost:3000';
+  const host = req.headers.get('host') || 'localhost:3000';
   const proto = host.includes('localhost') ? 'http' : 'https';
   return `${proto}://${host}`;
 }
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
+export function GET(req: NextRequest) {
   const baseUrl = resolveBaseUrl(req);
-  return res.status(200).json({
+
+  return NextResponse.json({
     name: 'iqra-sovereign',
     version: '1.0.0',
     protocol: 'axiom-a2a-v1',

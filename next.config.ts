@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ['sharp'],
+  serverExternalPackages: ['@lancedb/lancedb', 'sharp'],
   typescript: {
     // ignoreBuildErrors: true,
   },

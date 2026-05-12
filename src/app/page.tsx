@@ -124,7 +124,9 @@ export default function Home() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
             {echoes.map((echo, i) => (
               <div key={i} className="glass-surface iqra-padding" style={{ fontSize: '0.9rem' }}>
-                <p style={{ opacity: 0.8, fontStyle: 'italic' }}>"{echo.content.substring(0, 150)}..."</p>
+                <p style={{ opacity: 0.8, fontStyle: 'italic' }}>
+                  &quot;{echo.content.substring(0, 150)}...&quot;
+                </p>
                 <div style={{ marginTop: '1rem', fontSize: '0.7rem', color: 'var(--iqra-neon)' }}>
                   RELEVANCE: {(echo.score || 0.8).toFixed(2)}
                 </div>

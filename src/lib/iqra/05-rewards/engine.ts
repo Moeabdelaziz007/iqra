@@ -95,7 +95,8 @@ export class RewardEngine {
       novelty: reports.some(r => r.no_mock_verified) ? 0.5 : 0.1,
       topology: reports.length > 2 ? 0.3 : 0.1,
       fractal: 0.2,
-      lid: 0.1
+      lid: 0.1,
+      penalty: 0
     };
 
     // Use the first worker as the primary for the record, or 'orchestrator'

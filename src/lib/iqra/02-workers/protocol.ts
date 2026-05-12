@@ -68,6 +68,8 @@ export abstract class SovereignWorker {
       procedures_followed: true,
       status: 'PASS',
       exit_code: 0,
+      source_attestations: [],
+      no_mock_verified: true,
       timestamp: Date.now()
     };
   }

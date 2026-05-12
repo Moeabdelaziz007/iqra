@@ -125,7 +125,7 @@ function isLocalMode(): boolean {
  * - context contains system instructions (SYSTEM_INSTRUCTIONS)
  * - input contains user data (USER_DATA_TO_PROCESS)
  */
-async function executeWithSkill(skill: string, input: string, context?: any): Promise<{ response: string; provider: string }> {
+export async function executeWithSkill(skill: string, input: string, context?: any): Promise<{ response: string; provider: string }> {
   IQRALogger.info(`🎯 [BRAIN] Skill detected: ${skill} ${context ? '| with context' : ''}`);
   
   // Log context if provided for debugging
@@ -142,6 +142,8 @@ async function executeWithSkill(skill: string, input: string, context?: any): Pr
       return { response: '🔍 وضع البحث مفعل', provider: 'local' };
     case 'calculation':
       return { response: '🧮 وضع الحساب مفعل', provider: 'local' };
+    case 'opportunity_hunter':
+      return { response: JSON.stringify({ opportunities: [] }), provider: 'local' };
     default:
       return { response: '⚠️ مهارة غير معروفة', provider: 'local' };
   }
@@ -246,4 +248,3 @@ export async function iqraThink({
   console.log('🏁 [DEBUG] iqraThink finished with response length:', finalResult.response.length);
   return finalResult;
 }
-
