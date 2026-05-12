@@ -235,7 +235,7 @@ async function executeIQRATool(
       if (!intention) return { error: 'intention required' };
 
       try {
-        const { DamirConscience } = await import('#security/damir_conscience.ts');
+        const { DamirConscience } = await import('#security/damir_conscience');
         const damir = new DamirConscience();
         const action = {
           id: `tool_check_${Date.now()}`,

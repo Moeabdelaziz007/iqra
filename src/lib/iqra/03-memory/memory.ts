@@ -231,7 +231,7 @@ export class IQRAMemory {
     try {
       const redis = await this.getRedis();
       if (redis) {
-        const val = await withTimeout(redis.get<T>(`iqra:${key}`), IQRA_TIMEOUTS.REDIS, `Redis GET ${key}`);
+        const val = await withTimeout(redis.get(`iqra:${key}`), IQRA_TIMEOUTS.REDIS, `Redis GET ${key}`) as T | null;
         this._errorCount = 0;
         return val;
       }
@@ -308,7 +308,7 @@ export class IQRAMemory {
       return await this.get(`curiosity:${key}`);
     }
     const redis = await this.getRedis();
-    if (redis) return (await redis.get<number>('iqra:curiosity_score')) || 0.5;
+    if (redis) return (await redis.get('iqra:curiosity_score') as number) || 0.5;
     const data = await this.getLocalData();
     return data['curiosity_score'] || 0.5;
   }
@@ -359,7 +359,7 @@ export class IQRAMemory {
   static async getCycleCounter(): Promise<number> {
     const redis = await this.getRedis();
     if (!redis) return 0;
-    return (await redis.get<number>('iqra:cycle_counter')) || 0;
+    return (await redis.get('iqra:cycle_counter') as number) || 0;
   }
 
   /**
@@ -433,7 +433,7 @@ export class IQRAMemory {
   static async getSuccessCounter(): Promise<number> {
     const redis = await this.getRedis();
     if (!redis) return 0;
-    return (await redis.get<number>('iqra:success_counter')) || 0;
+    return (await redis.get('iqra:success_counter') as number) || 0;
   }
 
   private static async muraqabahCheck(content: string, type: string): Promise<boolean> {

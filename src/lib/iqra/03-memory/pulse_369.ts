@@ -238,7 +238,7 @@ export class Pulse369 {
    */
   static async archiveWarmToCold(): Promise<number> {
     try {
-      const { MicroMemory } = await import('./micro_memory.ts');
+      const { MicroMemory } = await import('./micro_memory');
       await MicroMemory.init();
 
       // استرجاع التجارب القديمة ذات الجودة المنخفضة
@@ -301,7 +301,7 @@ export class Pulse369 {
    */
   static async purgeExpiredCold(): Promise<number> {
     try {
-      const { MicroMemory } = await import('./micro_memory.ts');
+      const { MicroMemory } = await import('./micro_memory');
       await MicroMemory.init();
 
       // تطبيق Ebbinghaus forgetting على التجارب القديمة
@@ -353,7 +353,7 @@ export class Pulse369 {
     IQRALogger.info(`🌀 [PULSE_369] Deep Analysis Pipeline — tick ${counter}`);
 
     try {
-      const { MicroMemory } = await import('./micro_memory.ts');
+      const { MicroMemory } = await import('./micro_memory');
       await MicroMemory.init();
 
       // ① جلب أحدث الأنماط (آخر 7 — من DASTŪR)
@@ -435,7 +435,7 @@ export class Pulse369 {
       if (!analysisResult) return;
 
       // ③ تخزين في MemoryTopology
-      const { MemoryTopology } = await import('./memory_topology.ts');
+      const { MemoryTopology } = await import('./memory_topology');
       await MemoryTopology.storePattern({
         verse_ref: pattern.verse,
         pattern_type: analysisResult.analysis?.numerical?.pattern ? 'numerical' : 'semantic',

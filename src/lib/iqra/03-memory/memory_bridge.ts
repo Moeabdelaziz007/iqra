@@ -234,7 +234,7 @@ export class MemoryBridge {
     text?: string
   ): Promise<string> {
     // كتابة في الطبقة الدافئة (SQLite)
-    const { MicroMemory } = await import('./micro_memory.ts');
+    const { MicroMemory } = await import('./micro_memory');
 
     // تأكد من التهيئة
     try {
@@ -267,7 +267,7 @@ export class MemoryBridge {
     topK: number = 7,
     minResonance: number = 0.0
   ) {
-    const { MicroMemory } = await import('./micro_memory.ts');
+    const { MicroMemory } = await import('./micro_memory');
     try {
       await MicroMemory.init();
     } catch { /* already initialized */ }
@@ -288,7 +288,7 @@ export class MemoryBridge {
     skillsUsed: string[],
     lessons: string[]
   ): Promise<string> {
-    const { MicroMemory } = await import('./micro_memory.ts');
+    const { MicroMemory } = await import('./micro_memory');
     try {
       await MicroMemory.init();
     } catch { /* already initialized */ }
@@ -386,7 +386,7 @@ export class MemoryBridge {
   /** يكتب في الطبقة الدافئة (SQLite عبر MicroMemory) */
   private static async _writeWarm(key: string, value: any, ttl_ms: number): Promise<void> {
     try {
-      const { MicroMemory } = await import('./micro_memory.ts');
+      const { MicroMemory } = await import('./micro_memory');
       await MicroMemory.init();
       // نستخدم reward_ledger كـ generic KV store للطبقة الدافئة
       // في المستقبل يمكن إضافة جدول kv_store مخصص
