@@ -9,7 +9,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { ConnectorFactory } from '../../../src/connectors/index';
+import { ConnectorFactory } from '#connectors/index';
 import { IQRALogger } from '#infra/logger';
 import { GitSkill } from '#skills/git_skill';
 import { InverseDesign } from '#skills/inverse_design';

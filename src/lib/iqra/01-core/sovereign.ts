@@ -31,7 +31,6 @@ import { IQRAVoice } from '#utils/voice';
 import { ByzantineFilter, AnomalyReport } from '#security/byzantine_filter';
 import { BybitEngine } from '#trading/bybit';
 import { IQRALogger } from '#infra/logger';
-import { PulseEngine } from '#orchestrator/pulse-engine';
 import { TopologicalAnalyzer } from '#skills/topological_analyzer';
 import { TawbahLoop } from '#evolution/tawbah_loop';
 
@@ -280,7 +279,7 @@ export class SovereignEngine {
     const timestamp = Date.now();
 
     // 💓 Sovereign Pulse Integration
-    await PulseEngine.start();
+    // PulseEngine start removed as it's missing
 
     // 1. Micro Pulse (9s): Market Ticking & Hot Cache
     if (cycle % 1 === 0) {

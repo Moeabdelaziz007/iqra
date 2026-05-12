@@ -9,6 +9,7 @@
 // Core personality and utils
 export { 
   IQRA_PERSONALITY,
+  IQRA_PERSONALITY as IQRA_COMPACT_PROMPT,
   GREETINGS,
   THINKING_PHRASES,
   FAREWELLS,
@@ -26,7 +27,6 @@ export {
 // Prompts and Soul
 export {
   FULL_SYSTEM_PROMPT as IQRA_SYSTEM_PROMPT,
-  IQRA_PERSONALITY as IQRA_COMPACT_PROMPT,
   IQRA_SOUL
 } from './lib/iqra/13-utils/prompts';
 
