@@ -11,7 +11,7 @@
  * ══════════════════════════════════════════════════════════════
  */
 
-import { SovereignError, SovereignErrorCode } from '#errors/sovereign_error';
+export { SovereignError, SovereignErrorCode } from '#errors/sovereign_error';
 
 
 // import { z } from 'zod'; // Sovereign fallback handled below

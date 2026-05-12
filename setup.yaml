@@ -168,6 +168,23 @@ quranic_constants:
     secondary: 27 # 27 seconds (3×9)
     tertiary: 81 # 81 seconds (9×9)
     deep_analysis: 369 # 369 seconds (~6 minutes)
+    
+  # ────────────────────────────────────────────────────────────────────────────
+  # 🥧 Pi Network & Agentic Marketplace Identity
+  # ────────────────────────────────────────────────────────────────────────────
+  pi_network:
+    enabled: false
+    app_id: "PLACEHOLDER_PI_APP_ID" # "Check pi and ID" request
+    project_id: "PLACEHOLDER_PI_PROJECT_ID"
+    environment: "sandbox" # "waiting to finish then we can claim it"
+    api_key: "${PI_API_KEY}"
+
+  wallet_config:
+    enabled: false
+    provider: "pi_wallet"
+    network: "pi_testnet"
+    security_level: "HIGH"
+    shura_consensus: true
   memory_layers:
     - name: "hot"
       ttl_ms: 3600000 # 1 hour

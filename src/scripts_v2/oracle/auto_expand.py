@@ -11,9 +11,9 @@ def auto_expand_oracle(iterations=1):
     """
     Generate truth pairs from sacred sources and verify them.
     """
-    google_key = os.getenv("GOOGLE_GENERATIVE_AI_API_KEY")
+    google_key = os.getenv("GOOGLE_GENERATIVE_AI_API_KEY") or os.getenv("XAI_API_KEY")
     if not google_key:
-        print("❌ [ORACLE] Missing GOOGLE_GENERATIVE_AI_API_KEY. Sovereignty violated.")
+        print("❌ [ORACLE] Missing API KEY (GOOGLE or XAI). Sovereignty violated.")
         return
 
     genai.configure(api_key=google_key)

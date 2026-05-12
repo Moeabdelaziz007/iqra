@@ -71,7 +71,7 @@ export class DamirKernel {
         message: `[7-Loops] Resonance: ${simulationScore.toFixed(3)}. Status: ${decision}.`,
         lessons: [...this.lessons]
       };
-    } catch (e) {
+    } catch (e: any) {
       // Store failures in Qdrant as well for future experience replay
       await storeReflectionInQdrant(`Failure in DamirKernel: ${e.message}`, {
         type: 'FAILURE',

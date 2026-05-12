@@ -53,6 +53,7 @@ export interface IQRAExchange {
   context_snapshot: ContextSnapshot;
   artifacts: string[];
   issues_discovered: string[]; // Merged known_issues and issues_discovered
+  known_issues?: string[];    // Alias for transition compatibility
 }
 
 // ── Worker Report ─────────────────────────────────────────────────────────────

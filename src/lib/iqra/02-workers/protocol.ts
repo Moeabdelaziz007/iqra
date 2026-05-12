@@ -60,6 +60,10 @@ export abstract class SovereignWorker {
     this.report = {
       mission_id: '',
       worker_id: '',
+      timestamp: Date.now(),
+      intent: '',
+      context_snapshot: { resonance_score: 1.0, novelty_score: 0.0 },
+      artifacts: [],
       implemented: [],
       undone: [],
       commands_run: [],
@@ -70,7 +74,6 @@ export abstract class SovereignWorker {
       exit_code: 0,
       source_attestations: [],
       no_mock_verified: true,
-      timestamp: Date.now()
     };
   }
 

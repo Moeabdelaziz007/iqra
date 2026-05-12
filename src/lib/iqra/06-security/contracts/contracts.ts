@@ -14,114 +14,29 @@
  * ══════════════════════════════════════════════════════════════
  */
 
-// ── Worker Roles ──────────────────────────────────────────────────────────────
-// التسلسل الصارم: PLANNER → RESEARCHER → BUILDER → VALIDATOR → REPORTER
-export type WorkerRole =
-  | 'PLANNER'        // Conceptual: Thinker
-  | 'RESEARCHER'     // Conceptual: Searcher
-  | 'PATTERN_HUNTER' // Conceptual: Pattern Discovery
-  | 'BUILDER'        // Execution: Developer
-  | 'VALIDATOR'      // Execution: Tester
-  | 'SAFETY_AGENT'   // Execution: Security & Ethics
-  | 'REPORTER'       // Integrity: Documentation
-  | 'ECONOMIST'      // Integrity: Resource Management
-  | 'RESONANCE_AGENT'; // Integrity: Harmony & Soul check
+import type { 
+  WorkerRole, 
+  SourceTag, 
+  SourceAttestation, 
+  ContextSnapshot, 
+  CommandLog, 
+  WorkerReport, 
+  MissionHandoff,
+  IQRAExchange
+} from '#agents/contracts';
 
-// ── Source Attestation ────────────────────────────────────────────────────────
-// كل مصدر معلومة في WorkerReport يجب أن يحمل وسم مصدر.
-export type SourceTag =
-  | '[read]'           // قُرئ من ملف في المستودع هذه الجلسة
-  | '[fetched]'        // جُلب من مصدر حي (API / web) هذه الجلسة
-  | '[prior-training]' // من تدريب سابق — قد يكون قديماً، يحتاج تحقق
+export type { 
+  WorkerRole, 
+  SourceTag, 
+  SourceAttestation, 
+  ContextSnapshot, 
+  CommandLog, 
+  WorkerReport, 
+  MissionHandoff,
+  IQRAExchange
+};
 
-export interface SourceAttestation {
-  claim: string;       // الادعاء أو الحقيقة المُعلنة
-  tag: SourceTag;      // وسم المصدر
-  source?: string;     // URL أو مسار الملف أو اسم النموذج
-}
-
-// ── Context Snapshot ──────────────────────────────────────────────────────────
-// لقطة من حالة النظام تُنقل مع كل handoff لضمان استمرارية السياق
-export interface ContextSnapshot {
-  resonance_score: number;   // درجة الرنين الحالية [0,1]
-  novelty_score: number;     // درجة الجدة الحالية [0,1]
-  curiosity_score?: number;  // درجة الفضول [0,1]
-  topology_state?: string;   // حالة الطوبولوجيا الحالية
-}
-
-// ── Command Log ───────────────────────────────────────────────────────────────
-export interface CommandLog {
-  command: string;
-  exit_code: number;
-  output?: string;
-}
-
-// ── Worker Report ─────────────────────────────────────────────────────────────
-export interface WorkerReport {
-  mission_id: string;
-  worker_id: string;
-  implemented: string[];
-  undone: string[];
-  commands_run: CommandLog[];
-  issues_discovered: string[];
-  skills_used: string[];
-  procedures_followed: boolean;
-  status: 'PASS' | 'FAIL';
-  exit_code: number;
-
-  // ── Source Attestation (القاعدة ٣) ──────────────────────────────────────
-  // كل ادعاء في التقرير يجب أن يحمل وسم مصدره.
-  source_attestations: SourceAttestation[];
-
-  // ── No-Mock Verification (القاعدة ٢) ────────────────────────────────────
-  // true = تم التحقق من أن provider ليس simulated في بيئة الإنتاج.
-  no_mock_verified: boolean;
-
-  serendipity?: { found: boolean; note: string };
-  model_metadata?: {
-    provider: string;
-    model: string;
-    temperature?: number;
-    latency_ms?: number;
-  };
-  timestamp: number;
-}
-
-// ── Mission Handoff ───────────────────────────────────────────────────────────
-export interface MissionHandoff {
-  mission_id: string;
-  from_worker: WorkerRole | string;  // WorkerRole preferred; string for legacy compat
-  to_worker: WorkerRole | string;
-  timestamp: number;
-
-  // ── النية (Niyyah) — مطلوبة في كل تسليم ─────────────────────────────────
-  // "إنما الأعمال بالنيات" — كل تسليم يبدأ بنية صريحة
-  intent: string;
-
-  // ── لقطة السياق — تضمن استمرارية الرنين بين الوكلاء ─────────────────────
-  context_snapshot: ContextSnapshot;
-
-  // ── الملفات والبيانات المنقولة ────────────────────────────────────────────
-  artifacts: string[];
-
-  // ── المهام المتبقية ───────────────────────────────────────────────────────
-  pending_tasks: string[];
-
-  // ── المشاكل المعروفة ──────────────────────────────────────────────────────
-  known_issues: string[];
-
-  // ── بوابات التحقق — يجب اجتيازها قبل البدء ──────────────────────────────
-  validation_gates: string[];
-
-  // ── قواعد التحقق (legacy compat) ─────────────────────────────────────────
-  validation_rules: string[];
-
-  // ── بيانات السياق الإضافية ───────────────────────────────────────────────
-  context_data: Record<string, any>;
-
-  // 🧠 سجل التفكير والاستنتاج (Thinker Log)
-  reasoning_log?: string;
-}
+// Interfaces are now imported from #agents/contracts
 
 /**
  * Structural Rules — القيود الهيكلية:
@@ -163,6 +78,10 @@ export function makeWorkerReport(
   return {
     mission_id,
     worker_id,
+    timestamp: Date.now(),
+    intent: '',
+    context_snapshot: { resonance_score: 1.0, novelty_score: 0.0 },
+    artifacts: [],
     implemented: [],
     undone: [],
     commands_run: [],
@@ -173,7 +92,6 @@ export function makeWorkerReport(
     exit_code: 0,
     source_attestations: [],
     no_mock_verified: provider !== 'simulated',
-    timestamp: Date.now(),
   };
 }
 

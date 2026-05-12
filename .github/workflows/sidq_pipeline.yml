@@ -41,22 +41,37 @@ jobs:
       - name: 🧬 IQRA Evolution (Python Cognitive Node)
         env:
           XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.XAI_API_KEY }}
         run: |
           # فقط إذا نجحت كافة الاختبارات السابقة
           python3 src/scripts_v2/oracle/auto_expand.py || echo "⚠️ Evolution skipped"
+
+      - name: 🌀 Run Self-Play Resonance Simulation (Fast Mode)
+        run: |
+          # توليد بيانات رنين جديدة لتقوية "الروح"
+          npx tsx src/scripts_v2/self_play_simulation.ts --iterations 19
 
       - name: 🕋 Update Sidq Dashboard & Index
         run: |
           # تحديث التقارير بناءً على النتائج الحقيقية
           python3 src/scripts_v2/dashboard/generate_report.py
 
+      - name: 🎨 Generate AI Soul Digest
+        id: soul_digest
+        run: |
+          MESSAGE=$(npx tsx src/scripts_v2/oracle/soul_digest.ts)
+          echo "COMMIT_MSG<<EOF" >> $GITHUB_ENV
+          echo "$MESSAGE" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
       - name: 🔒 Secure Commit & Push
         if: success()
         run: |
           git config --local user.email "iqra@sovereign.ai"
           git config --local user.name "IQRA Sovereign Agent"
-          git add src/ docs/ SOVEREIGN_CODEBASE_INDEX.md
-          git commit -m "🧬 IQRA Evolution: [VERIFIED] All systems Green. Atlas updated." || echo "No changes to commit"
+          git add src/ .iqra/ docs-out/ SOVEREIGN_ROADMAP.md SOVEREIGN_CODEBASE_INDEX.md
+          git commit -m "$COMMIT_MSG" || echo "No changes to commit"
           git push origin main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMIT_MSG: ${{ env.COMMIT_MSG }}
