@@ -60,6 +60,9 @@
     "#trading/*": "./src/lib/iqra/11-trading/*",
     "#infra/*": "./src/lib/iqra/12-infrastructure/*",
     "#utils/*": "./src/lib/iqra/13-utils/*",
+    "#agents/*": "./src/lib/iqra/01-core/agents/*",
+    "#runtime/*": "./src/lib/iqra/12-infrastructure/*",
+    "#tests/*": "./src/tests/*",
     "#sovereign_orchestrator": "./src/lib/iqra/01-core/sovereign_orchestrator"
   },
   "dependencies": {

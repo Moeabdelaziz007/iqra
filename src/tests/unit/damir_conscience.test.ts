@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { DamirConscience, type Resource, type Action } from '#damir_conscience';
+import { DamirConscience, type Resource, type Action } from '#security/damir_conscience';
 import crypto from 'crypto';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

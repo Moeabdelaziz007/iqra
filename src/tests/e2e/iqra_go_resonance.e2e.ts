@@ -1,5 +1,5 @@
 import { it, expect, describe, beforeAll, afterAll } from 'vitest';
-import { iqraThink, IQRABrainMode } from '#brain';
+import { iqraThink, IQRABrainMode } from '#core/brain';
 import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
 

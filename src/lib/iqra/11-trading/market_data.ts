@@ -59,7 +59,7 @@ export class MarketData {
    */
   async getRecentState(symbol: string, lookback: number = 50): Promise<number[][]> {
     const key = `market:candles:${symbol}`;
-    const data = await this.redis.get<string>(key);
+    const data = await this.redis.get(key) as string | null;
     if (!data) return [];
     
     const allCandles = typeof data === 'string' ? JSON.parse(data) : data;

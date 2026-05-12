@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { iqraThink, IQRABrainMode } from '#brain';
+import { iqraThink, IQRABrainMode } from '#core/brain';
 import * as fs from 'fs';
 import * as path from 'path';
 

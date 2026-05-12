@@ -84,6 +84,14 @@ export class IQRAMemory {
   }
 
   /**
+   * 🔍 Search Quantum Memory
+   * Performs a resonant search across topological coordinates.
+   */
+  static async searchQuantum(query: string, targetConcept?: string) {
+    return await QuantumTopologyStore.searchQuantum(query, targetConcept);
+  }
+
+  /**
    * 🧠 Search Semantic Memory
    * Finds wisdom points preserved in Qdrant.
    */
@@ -274,7 +282,7 @@ export class IQRAMemory {
   static async getRecentList<T>(key: string, count: number): Promise<T[]> {
     const redis = await this.getRedis();
     if (redis) {
-      const total = await withTimeout(redis.llen(`iqra:list:${key}`), IQRA_TIMEOUTS.REDIS, `Redis LLEN ${key}`);
+      const total = await withTimeout(redis.llen(`iqra:list:${key}`), IQRA_TIMEOUTS.REDIS, `Redis LLEN ${key}`) as number;
       const start = Math.max(0, total - count);
       const result = await withTimeout(redis.lrange(`iqra:list:${key}`, start, total - 1), IQRA_TIMEOUTS.REDIS, `Redis LRANGE (recent) ${key}`);
       return (result || []) as T[];
@@ -373,9 +381,11 @@ export class IQRAMemory {
     // ❌ لا قيم افتراضية — إما بيانات حقيقية أو خطأ سيادي
     if (!history || history.length === 0) {
       throw new SovereignError(
-        'NO_MOCK: Cannot compute Fithrah centroid without valid embedding history',
         SovereignErrorCode.MISSING_DATA,
-        { severity: 'HIGH', recovery_strategy: 'HALT' }
+        { 
+          reason: 'NO_MOCK: Cannot compute Fithrah centroid without valid embedding history',
+          diagnostics: { severity: 'HIGH', recovery_strategy: 'HALT' }
+        }
       );
     }
 
@@ -432,8 +442,37 @@ export class IQRAMemory {
 
   static async getSuccessCounter(): Promise<number> {
     const redis = await this.getRedis();
-    if (!redis) return 0;
-    return (await redis.get('iqra:success_counter') as number) || 0;
+    if (redis) {
+      const val = await redis.get('iqra:success_counter');
+      return typeof val === 'number' ? val : (parseInt(val as string) || 0);
+    }
+    return 0;
+  }
+
+  /**
+   * 📉 getErrorCount — تتبع الأخطاء (بروتوكول التوبة)
+   */
+  static async getErrorCount(): Promise<number> {
+    const redis = await this.getRedis();
+    if (redis) {
+      const val = await redis.get('iqra:error_count');
+      return typeof val === 'number' ? val : (parseInt(val as string) || 0);
+    }
+    const data = await this.getLocalData();
+    return data['error_count'] || 0;
+  }
+
+  /**
+   * 📈 incrementErrorCounter — زيادة عداد الأخطاء
+   */
+  static async incrementErrorCounter(): Promise<number> {
+    const redis = await this.getRedis();
+    if (redis) return await redis.incr('iqra:error_count');
+    
+    const data = await this.getLocalData();
+    data['error_count'] = (data['error_count'] || 0) + 1;
+    await this.saveLocalData(data);
+    return data['error_count'];
   }
 
   private static async muraqabahCheck(content: string, type: string): Promise<boolean> {

@@ -14,8 +14,8 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { DamirConscience } from '#damir_conscience';
-import { ResourceFactory } from '#conscience/resource_factory';
+import { DamirConscience } from '#security/damir_conscience';
+import { ResourceFactory } from '#security/conscience/resource_factory';
 
 // ── Test Suite ────────────────────────────────────────────────────────────────
 

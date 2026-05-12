@@ -43,14 +43,24 @@ export interface CommandLog {
   output?: string;
 }
 
-// ── Worker Report ─────────────────────────────────────────────────────────────
-export interface WorkerReport {
+/**
+ * 🛰️ IQRA Unified Protocol Payload — حمولة البروتوكول الموحد
+ */
+export interface IQRAExchange {
   mission_id: string;
+  timestamp: number;
+  intent: string;
+  context_snapshot: ContextSnapshot;
+  artifacts: string[];
+  issues_discovered: string[]; // Merged known_issues and issues_discovered
+}
+
+// ── Worker Report ─────────────────────────────────────────────────────────────
+export interface WorkerReport extends IQRAExchange {
   worker_id: string;
   implemented: string[];
   undone: string[];
   commands_run: CommandLog[];
-  issues_discovered: string[];
   skills_used: string[];
   procedures_followed: boolean;
   status: 'PASS' | 'FAIL';
@@ -64,20 +74,13 @@ export interface WorkerReport {
     temperature?: number;
     latency_ms?: number;
   };
-  timestamp: number;
 }
 
 // ── Mission Handoff ───────────────────────────────────────────────────────────
-export interface MissionHandoff {
-  mission_id: string;
+export interface MissionHandoff extends IQRAExchange {
   from_worker: WorkerRole | string;
   to_worker: WorkerRole | string;
-  timestamp: number;
-  intent: string;
-  context_snapshot: ContextSnapshot;
-  artifacts: string[];
   pending_tasks: string[];
-  known_issues: string[];
   validation_gates: string[];
   validation_rules: string[];
   context_data: Record<string, any>;
@@ -91,6 +94,8 @@ export function makeWorkerReport(
 ): WorkerReport {
   return {
     mission_id,
+    timestamp: Date.now(),
+    intent: '',
     worker_id,
     implemented: [],
     undone: [],
@@ -102,7 +107,8 @@ export function makeWorkerReport(
     exit_code: 0,
     source_attestations: [],
     no_mock_verified: provider !== 'simulated',
-    timestamp: Date.now(),
+    artifacts: [],
+    context_snapshot: { resonance_score: 1.0, novelty_score: 0.0 }
   };
 }
 
@@ -116,14 +122,14 @@ export function makeHandoff(
 ): MissionHandoff {
   return {
     mission_id,
+    timestamp: Date.now(),
     from_worker,
     to_worker,
-    timestamp: Date.now(),
     intent,
     context_snapshot,
     artifacts: [],
     pending_tasks: [],
-    known_issues: [],
+    issues_discovered: [],
     validation_gates: [],
     validation_rules: [],
     context_data: {},
