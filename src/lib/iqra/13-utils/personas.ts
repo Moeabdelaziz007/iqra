@@ -71,3 +71,11 @@ export const PERSONA_REGISTRY: Record<string, Persona> = {
 export function getPersona(id: string): Persona {
   return PERSONA_REGISTRY[id] || PERSONA_REGISTRY["iqra-core"];
 }
+
+/**
+ * Gets the system prompt for a specific persona.
+ */
+export function getPersonaSystemPrompt(id: string): string {
+  const persona = getPersona(id);
+  return persona.personalityOverride || IQRA_PERSONALITY;
+}

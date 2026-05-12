@@ -72,6 +72,7 @@ export class IQRAMemory {
   private static _supabase: any = null;
   private static _qdrant: any = null;
   private static _googleAI: any = null;
+  private static readonly ERROR_THRESHOLD: number = 7;
   private static _errorCount: number = 0;
 
   /**
@@ -131,7 +132,7 @@ export class IQRAMemory {
     return this._supabase;
   }
 
-  private static async getQdrant() {
+  public static async getQdrant() {
     if (this._qdrant) return this._qdrant;
     if (process.env.QDRANT_URL && process.env.QDRANT_API_KEY) {
       try {
@@ -474,7 +475,7 @@ export class IQRAMemory {
 
     try {
       const model = googleAI.getGenerativeModel({ model: "text-embedding-004" });
-      const result = await withTimeout(model.embedContent(text), IQRA_TIMEOUTS.LLM, 'Google AI Embedding');
+      const result = await withTimeout(model.embedContent(text), IQRA_TIMEOUTS.LLM, 'Google AI Embedding') as any;
       const embedding = result.embedding.values;
 
       await withTimeout(qdrant.upsert(COLLECTION_NAME, {
@@ -538,7 +539,7 @@ export class IQRAMemory {
       const googleAI = await this.getGoogleAI();
       if (!googleAI) throw new Error('OFFLINE');
       const model = googleAI.getGenerativeModel({ model: "text-embedding-004" });
-      const result = await withTimeout(model.embedContent(text), IQRA_TIMEOUTS.LLM, 'Google AI Embedding');
+      const result = await withTimeout(model.embedContent(text), IQRA_TIMEOUTS.LLM, 'Google AI Embedding') as any;
       return result.embedding.values;
     } catch (error) {
       IQRALogger.warn('⚠️ [MEMORY] Network unavailable or Google AI failed. Using Sovereign Local Embedding Fallback.');
@@ -654,6 +655,7 @@ export class IQRAMemory {
 
 export class QuantumTopologyStore {
   private static readonly QUANTUM_COLLECTION = 'iqra_quantum_topology';
+  private static readonly REDIS_TTL = 604800; // 7 days in seconds
 
   static async storeQuantum(entry: Omit<QuantumMemoryEntry, 'id' | 'timestamp' | 'vector'>) {
     try {
@@ -713,7 +715,7 @@ export class QuantumTopologyStore {
         const queryEmbedding = await this.generateEmbedding(query);
         
         const results = Object.values(localData).map((payload: any) => {
-          const sim = this.cosineSimilarity(queryEmbedding, payload.vector || []);
+          const sim = IQRAMemory.cosineSimilarity(queryEmbedding, payload.vector || []);
           let resonance = sim;
           if (targetConcept && payload.coordinates?.concept?.toLowerCase() === targetConcept.toLowerCase()) {
             resonance += 0.2;
@@ -737,7 +739,7 @@ export class QuantumTopologyStore {
         with_payload: true
       });
 
-      const results = semanticHits.map(hit => {
+      const results = semanticHits.map((hit: any) => {
         const payload = hit.payload as any;
         const baseScore = hit.score;
         let resonance = baseScore;
@@ -756,7 +758,7 @@ export class QuantumTopologyStore {
         } as QuantumMemoryEntry;
       });
 
-      return results.sort((a, b) => (b.coordinates.resonance || 0) - (a.coordinates.resonance || 0));
+      return results.sort((a: any, b: any) => (b.coordinates.resonance || 0) - (a.coordinates.resonance || 0));
     } catch (error) {
       IQRALogger.error('❌ [QUANTUM] Search Failure:', error);
       return [];
@@ -773,7 +775,7 @@ export class QuantumTopologyStore {
     static async getContextForSession(sessionId: string, limit: number = 5): Promise<any[]> {
         try {
             const contextKey = `session:${sessionId}:context`;
-            const redis = await this.getRedis();
+            const redis = await IQRAMemory.getRedisClient();
             
             if (!redis) {
                 return [];
@@ -803,16 +805,16 @@ export class QuantumTopologyStore {
     static async savePattern(patternData: any): Promise<void> {
         try {
             const patternKey = `pattern:${patternData.patternId}`;
-            const redis = await this.getRedis();
+            const redis = await IQRAMemory.getRedisClient();
             
             if (!redis) {
                 // Fallback to local storage
-                const localPatterns = await this.get<any>('local_patterns') || {};
+                const localPatterns = await IQRAMemory.get<any>('local_patterns') || {};
                 localPatterns[patternData.patternId] = {
                     ...patternData,
                     savedAt: Date.now()
                 };
-                await this.set('local_patterns', localPatterns);
+                await IQRAMemory.set('local_patterns', localPatterns);
                 return;
             }
 
@@ -848,7 +850,7 @@ export class QuantumTopologyStore {
      */
     static async getPatternMemories(observations: string[]): Promise<Record<string, any>> {
         try {
-            const redis = await this.getRedis();
+            const redis = await IQRAMemory.getRedisClient();
             
             if (!redis) {
                 return {};
@@ -885,17 +887,17 @@ export class QuantumTopologyStore {
     static async updatePatternStatistics(patternId: string, stats: any): Promise<void> {
         try {
             const statsKey = `pattern:${patternId}:stats`;
-            const redis = await this.getRedis();
+            const redis = await IQRAMemory.getRedisClient();
             
             if (!redis) {
                 // Fallback to local storage
-                const localStats = await this.get<any>('pattern_stats') || {};
+                const localStats = await IQRAMemory.get<any>('pattern_stats') || {};
                 localStats[patternId] = {
                     ...localStats[patternId],
                     ...stats,
                     lastUpdated: Date.now()
                 };
-                await this.set('pattern_stats', localStats);
+                await IQRAMemory.set('pattern_stats', localStats);
                 return;
             }
 
