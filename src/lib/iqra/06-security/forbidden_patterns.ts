@@ -219,16 +219,19 @@ export class ForbiddenPatternsValidator {
         : 'Security/ethical violation detected';
 
     const error = new SovereignError(
-      criticalViolations.length > 0 ? 'CRITICAL_VIOLATION' : 'SECURITY_VIOLATION',
+      criticalViolations.length > 0 ? SovereignErrorCode.CRITICAL_VIOLATION : SovereignErrorCode.SECURITY_VIOLATION,
       {
-        violations: violations.map(v => ({
-          id: v.id,
-          category: v.category,
-          description: v.description
-        })),
-        input: input.slice(0, 500),
-        context: context.slice(0, 200),
-        timestamp: new Date().toISOString()
+        reason: message,
+        diagnostics: {
+          violations: violations.map(v => ({
+            id: v.id,
+            category: v.category,
+            description: v.description
+          })),
+          input: input.slice(0, 500),
+          context: context.slice(0, 200),
+          timestamp: new Date().toISOString()
+        }
       }
     );
 

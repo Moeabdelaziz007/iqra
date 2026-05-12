@@ -6,7 +6,7 @@
  */
 
 import { QalbinNode, QalbinKind, Modality } from './qalbin_node';
-import { SovereignError } from '#security/security';
+import { SovereignError, SovereignErrorCode } from '#security/security';
 
 export class Qalbin_VM {
   private nodes: Map<number, QalbinNode> = new Map();
@@ -53,7 +53,10 @@ export class Qalbin_VM {
       steps++;
 
       if (steps > 1000) {
-        throw new SovereignError(`QALBIN_OVERFLOW: Interaction limit exceeded (${steps}). Possible infinite loop in topology.`, "HALT", "CRITICAL");
+        throw new SovereignError(
+          SovereignErrorCode.QALBIN_OVERFLOW,
+          { reason: `Interaction limit exceeded (${steps}). Possible infinite loop in topology.` }
+        );
       }
     }
 
@@ -86,14 +89,20 @@ export class Qalbin_VM {
     // 1. Protection against high-risk interactions (Hidayah Filter)
     if ((a.modality === Modality.AMAN || b.modality === Modality.AMAN) && 
         (a.metadata['risk_score'] > 0.9 || b.metadata['risk_score'] > 0.9)) {
-      throw new SovereignError("AMAN_VIOLATION: High-risk interaction blocked by Hidayah filter.", "TAWBAH", "CRITICAL");
+      throw new SovereignError(
+        SovereignErrorCode.AMAN_VIOLATION,
+        { reason: "High-risk interaction blocked by Hidayah filter." }
+      );
     }
 
     // 2. AMAN Sovereignty: Security tokens are "Indivisible" and "Non-Clonable"
     // In Interaction Combinators, cloning happens during Commute (kind mismatch)
     if (a.kind !== b.kind) {
       if (a.modality === Modality.AMAN || b.modality === Modality.AMAN) {
-        throw new SovereignError("AMAN_SOVEREIGNTY: Security protocols cannot be fragmented or replicated during interaction.", "TAWBAH", "HALT");
+        throw new SovereignError(
+          SovereignErrorCode.AMAN_SOVEREIGNTY,
+          { reason: "Security protocols cannot be fragmented or replicated during interaction." }
+        );
       }
     }
     

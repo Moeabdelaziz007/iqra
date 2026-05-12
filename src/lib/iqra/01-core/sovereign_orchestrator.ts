@@ -225,6 +225,17 @@ export class MissionControl {
     this.reports = [];
     const missionId = `mission_${Date.now()}`;
     IQRALogger.info(`🛰️ [MISSION_CONTROL] Starting mission ${missionId}: "${input}"`);
+
+    // 0. 🛑 Halting Check (Tawbah)
+    const isHalted = await this.checkIfHalted();
+    if (isHalted) {
+      return { 
+        response: "🛑 System Halted: Too many uncorrected errors in TAWBAH.md. Self-correction required.", 
+        reports: [], 
+        provider: 'local', 
+        context: { halted: true } 
+      };
+    }
     
     const skills = this.classifyMission(input);
     let state: MissionState = {
@@ -358,6 +369,17 @@ export class MissionControl {
         path_key: pathKey,
       },
     };
+  }
+
+  private async checkIfHalted(): Promise<boolean> {
+    const tawbahPath = path.join(process.cwd(), 'TAWBAH.md');
+    if (!fs.existsSync(tawbahPath)) return false;
+
+    const content = fs.readFileSync(tawbahPath, 'utf8');
+    const uncorrectedCount = (content.match(/🛑/g) || []).length - (content.match(/✅ \[CORRECTED\]/g) || []).length;
+    
+    // Halt if more than 7 uncorrected errors (Sovereign limit)
+    return uncorrectedCount > 7;
   }
 
   static formatWorkerReports(reports: WorkerReport[]): string {

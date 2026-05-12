@@ -7,7 +7,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { SovereignError } from '#security/security';
+import { SovereignError, SovereignErrorCode } from '#security/security';
 import { IQRALogger } from '#infra/logger';
 import { Qalbin_VM } from '#quran/qalbin/qalbin_vm';
 import { findSeed } from '#quran/qalbin/quran_seeds';
@@ -89,7 +89,10 @@ export class DamirKernel {
           lessons: [...this.lessons]
         };
       }
-      throw new SovereignError(`Kernel Failure: ${e.message}`, 'KERNEL_CRASH', 'FATAL');
+      throw new SovereignError(
+        SovereignErrorCode.KERNEL_CRASH,
+        { reason: `Kernel Failure: ${e.message}` }
+      );
     }
   }
 
@@ -213,9 +216,8 @@ export class DamirKernel {
 
     if (count >= 3) { // Stricter limit for PoC
       throw new SovereignError(
-        `TAWBAH: Action [${action}] halted after ${count} failures.`,
-        'TAWBAH_HALT',
-        'CRITICAL'
+        SovereignErrorCode.TAWBAH_HALT,
+        { reason: `TAWBAH: Action [${action}] halted after ${count} failures.` }
       );
     }
   }

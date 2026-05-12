@@ -12,7 +12,7 @@
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
@@ -43,6 +43,7 @@
       "#tests/*": ["./src/tests/*"],
       "#services/*": ["./src/services/*"],
       "#schema/*": ["./src/schema/*"],
+      "#sovereign_orchestrator": ["./src/lib/iqra/01-core/sovereign_orchestrator.ts"],
       "@/*": ["./src/*"]
     },
     "forceConsistentCasingInFileNames": true,

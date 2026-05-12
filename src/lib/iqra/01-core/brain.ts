@@ -9,9 +9,7 @@ import { IQRAMemory, QuantumTopologyStore, SpiritualCoordinate } from '#memory/m
 import { withTimeout, IQRA_TIMEOUTS } from '#utils/timeout';
 import { CavemanSkill } from '#skills/caveman_skill';
 
-function isLocalMode() {
-  return process.env.IQRA_LOCAL_MODE === 'true';
-}
+
 
 // Brain Mode Enumeration
 export enum IQRABrainMode {
@@ -169,8 +167,9 @@ export async function iqraThink({
   console.log('🛠️ [DEBUG] options:', JSON.stringify(options));
   
   // 0. Linguistic Compression (Caveman Protocol)
-  const compressedInput = CavemanSkill.compressPrompt(input);
-  IQRALogger.info(`🦴 [CAVEMAN] Original: ${input.length} chars | Compressed: ${compressedInput.length} chars`);
+  const cavemanMode = isLocalMode() ? 'ultra' : 'basic';
+  const compressedInput = CavemanSkill.compressPrompt(input, cavemanMode);
+  IQRALogger.info(`🦴 [CAVEMAN] Mode: ${cavemanMode} | Original: ${input.length} chars | Compressed: ${compressedInput.length} chars`);
   
   // 1. Soul Injection Validation
   if (!validateSoulInjection(FULL_SYSTEM_PROMPT)) {
@@ -198,7 +197,11 @@ export async function iqraThink({
     const detectedSkill = detectSkill(input);
     if (detectedSkill) {
       // Pass context to skill for proper system instruction handling (OWASP pattern)
-      return await executeWithSkill(detectedSkill, input, context);
+      const skillResult = await executeWithSkill(detectedSkill, input, context);
+      return {
+        ...skillResult,
+        response: CavemanSkill.deterministicShield(skillResult.response)
+      };
     }
     
     // Default local processing
@@ -231,7 +234,7 @@ export async function iqraThink({
   }
 
   const finalResult = {
-    response: result?.response || "Processing complete (fallback).",
+    response: CavemanSkill.deterministicShield(result?.response || "Processing complete (fallback)."),
     provider: result?.provider || "orchestrator",
     reports: result?.reports || []
   };
@@ -243,3 +246,4 @@ export async function iqraThink({
   console.log('🏁 [DEBUG] iqraThink finished with response length:', finalResult.response.length);
   return finalResult;
 }
+
