@@ -494,7 +494,7 @@ export class IQRAMemory {
     const content = typeof data === 'string' ? data : JSON.stringify(data);
     if (!await this.muraqabahCheck(content, 'long-term')) return;
 
-    const { error } = await withTimeout(supabase.from(table).insert([data]), IQRA_TIMEOUTS.NETWORK, `Supabase INSERT ${table}`);
+    const { error } = await withTimeout(supabase.from(table).insert([data]), IQRA_TIMEOUTS.NETWORK, `Supabase INSERT ${table}`) as { error: any };
     if (error) IQRALogger.error(`❌ Long-term memory error (${table}):`, error);
 
     // 🏺 [LANCEDB] Also archive in deep storage
@@ -558,7 +558,7 @@ export class IQRAMemory {
         with_payload: true,
         params: { hnsw_ef: 128 }
       });
-      return searchResult.map(hit => ({
+      return (searchResult as any[]).map(hit => ({
         content: hit.payload?.content,
         score: hit.score,
         metadata: hit.payload
