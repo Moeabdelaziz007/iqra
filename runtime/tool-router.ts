@@ -4,9 +4,10 @@
  * Routes execution to the appropriate skill or tool based on the Gatekeeper's validation.
  */
 
-import { IQRALogger } from '#infra/logger';
-import { GitSkill } from '#skills/git_skill';
+import { IQRALogger } from '../src/lib/iqra/12-infrastructure/logger';
+import { GitSkill } from '../src/lib/iqra/08-skills/git_skill';
 import { GhostSearch } from './ghost-search';
+import { ToolsRegistry } from '../src/lib/iqra/12-infrastructure/tools_registry';
 
 export class ToolRouter {
   private ghostSearch: GhostSearch;
@@ -20,6 +21,15 @@ export class ToolRouter {
    */
   public async route(skillName: string, action: string, params: any): Promise<any> {
     IQRALogger.info(`🛠️ [TOOL_ROUTER] Routing '${action}' to skill '${skillName}'`);
+
+    // 1. Try routing via the centralized ToolsRegistry (handles all new tools)
+    if (ToolsRegistry.get(skillName)) {
+      return await ToolsRegistry.call(skillName, params);
+    }
+    
+    if (ToolsRegistry.get(action)) {
+      return await ToolsRegistry.call(action, params);
+    }
 
     switch (skillName) {
       case 'GitSovereign':
