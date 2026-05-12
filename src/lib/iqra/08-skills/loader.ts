@@ -9,8 +9,8 @@ export interface SkillManifest {
 }
 
 export class SkillLoader {
-  // Default path assumes aix-agent-skills is cloned inside the iqra directory
-  private static readonly SKILLS_REPO_PATH = path.join(process.cwd(), 'aix-agent-skills');
+  // Skills repository located as a sibling in /Applications
+  private static readonly SKILLS_REPO_PATH = path.join(process.cwd(), '..', 'aix-agent-skills');
   private static readonly SKILLS_JSON_PATH = path.join(SkillLoader.SKILLS_REPO_PATH, 'skills.json');
 
   /**

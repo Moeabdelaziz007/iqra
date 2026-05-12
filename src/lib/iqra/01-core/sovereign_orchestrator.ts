@@ -15,7 +15,7 @@ import { TopologicalAnalyzer } from '#skills/topological_analyzer';
 import { Search369 } from '#evolution/search_369';
 import { LeagueManager } from '#evolution/league_manager';
 import { TawbahLoop } from '#evolution/tawbah_loop';
-import { SkillBank } from '#skills/skill_bank';
+import { SkillLoader } from '#skills/loader';
 import { FithrahBaseline } from '#security/audit/fithrah_baseline';
 import { IQRAMemory } from '#memory/memory';
 import { SovereignCognitiveOrchestrator } from '#cognitive/engine';
@@ -256,7 +256,7 @@ export class MissionControl {
     };
 
     for (const skill of skills) {
-      const content = SkillBank.getSkillContent(skill);
+      const content = SkillLoader.getSkillContent(skill);
       if (content) {
         state.context[`skill_${skill}`] = content;
         IQRALogger.info(`🛠️ [MISSION_CONTROL] Skill context loaded: ${skill}`);
