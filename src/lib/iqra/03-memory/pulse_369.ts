@@ -28,9 +28,9 @@
  * ══════════════════════════════════════════════════════════════
  */
 
-import { IQRALogger } from '#infra/logger';
-import { appendToTrustChain } from '#security/security';
-import { MemoryBridge, type BridgeEntry } from '#memory/memory_bridge';
+import { IQRALogger } from '../12-infrastructure/logger';
+import { appendToTrustChain } from '../06-security/security';
+import { MemoryBridge, type BridgeEntry } from './memory_bridge';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -78,6 +78,10 @@ export interface PulseStats {
 export class Pulse369 {
   /** عداد محلي (fallback إذا Redis غير متاح) */
   private static _localCounter = 0;
+
+  /** ⚡ LIF: الجهد المتراكم (Potential) */
+  private static _potential = 0;
+  private static _lastTick = Date.now();
 
   /** إحصائيات النبض */
   private static _stats: PulseStats = {
@@ -403,7 +407,7 @@ export class Pulse369 {
   ): Promise<void> {
     try {
       // ② تحليل عبر Groq (مع مهارة quran_deep_analysis)
-      const { SkillBank } = await import('../08-skills/skill_bank.js');
+      const { SkillBank } = await import('../08-skills/skill_bank');
       const skillContent = SkillBank.getSkillContent('quran_deep_analysis');
       if (!skillContent) return;
 
@@ -446,14 +450,10 @@ export class Pulse369 {
         discovery_level: analysisResult.discovery_level ?? 'branch',
       });
 
-      // ④ كتابة في Obsidian (اختياري)
-      if (process.env.IQRA_OBSIDIAN === 'true') {
-        // ObsidianBridge غير متاح حالياً
-        console.log('⚠️ ObsidianBridge not available - skipping Obsidian write');
-      }
+      // Obsidian write removed
 
       // ⑥ تسجيل في Causal Graph
-      const { MicroMemory } = await import('#memory/micro_memory');
+      const { MicroMemory } = await import('./micro_memory');
       MicroMemory.recordCausalEdge({
         cause_id: pattern.id,
         cause_type: 'pattern',
@@ -516,7 +516,7 @@ export class Pulse369 {
    */
   private static async _incrementCounter(): Promise<number> {
     try {
-      const { IQRAMemory } = await import('../03-memory/memory.js');
+      const { IQRAMemory } = await import('./memory');
       const redis = await IQRAMemory.getRedisClient();
       if (redis) {
         const val = await redis.incr(`iqra:${COUNTER_KEY}`);
@@ -534,7 +534,7 @@ export class Pulse369 {
    */
   static async getCounter(): Promise<number> {
     try {
-      const { IQRAMemory } = await import('../03-memory/memory.js');
+      const { IQRAMemory } = await import('./memory');
       const redis = await (IQRAMemory as any).getRedis();
       if (redis) {
         const val = await redis.get(`iqra:${COUNTER_KEY}`);

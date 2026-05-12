@@ -23,7 +23,7 @@ jobs:
       - run: npm install
       
       - name: 📖 IQRA Daily Quran Learning
-        run: npx tsx lib/iqra/quran/daily_learning.ts
+        run: npx tsx src/lib/iqra/04-quran/daily_learning.ts
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}

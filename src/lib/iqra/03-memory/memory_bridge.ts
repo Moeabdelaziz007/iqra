@@ -27,8 +27,8 @@
  */
 
 import crypto from 'crypto';
-import { IQRALogger } from '#infra/logger';
-import { appendToTrustChain } from '#security/security';
+import { IQRALogger } from '../12-infrastructure/logger';
+import { appendToTrustChain } from '../06-security/security';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -406,7 +406,7 @@ export class MemoryBridge {
   /** يكتب في الطبقة الباردة (IQRAMemory) */
   private static async _writeCold(key: string, value: any): Promise<void> {
     try {
-      const { IQRAMemory } = await import('../03-memory/memory.js');
+      const { IQRAMemory } = await import('./memory');
       await IQRAMemory.set(key, value);
     } catch (e) {
       IQRALogger.warn(`⚠️ [BRIDGE] Cold write failed for "${key}": ${(e as Error).message}`);
@@ -416,7 +416,7 @@ export class MemoryBridge {
   /** يقرأ من الطبقة الباردة */
   private static async _readCold<T>(key: string): Promise<T | null> {
     try {
-      const { IQRAMemory } = await import('../03-memory/memory.js');
+      const { IQRAMemory } = await import('./memory');
       return await IQRAMemory.get<T>(key);
     } catch {
       return null;

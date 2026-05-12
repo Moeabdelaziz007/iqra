@@ -36,26 +36,26 @@ jobs:
         run: npx tsc --noEmit
 
       - name: 📜 Verify Atlas against Reality
-        run: npx tsx scripts/verify_atlas.ts
+        run: npx tsx src/scripts_v2/verify_atlas.ts
 
       - name: 🧬 IQRA Evolution (Python Cognitive Node)
         env:
           XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
         run: |
           # فقط إذا نجحت كافة الاختبارات السابقة
-          python3 scripts/oracle/auto_expand.py || echo "⚠️ Evolution skipped"
+          python3 src/scripts_v2/oracle/auto_expand.py || echo "⚠️ Evolution skipped"
 
       - name: 🕋 Update Sidq Dashboard & Index
         run: |
           # تحديث التقارير بناءً على النتائج الحقيقية
-          python3 scripts/dashboard/generate_report.py
+          python3 src/scripts_v2/dashboard/generate_report.py
 
       - name: 🔒 Secure Commit & Push
         if: success()
         run: |
           git config --local user.email "iqra@sovereign.ai"
           git config --local user.name "IQRA Sovereign Agent"
-          git add iqra-core/ docs/ SOVEREIGN_CODEBASE_INDEX.md
+          git add src/ docs/ SOVEREIGN_CODEBASE_INDEX.md
           git commit -m "🧬 IQRA Evolution: [VERIFIED] All systems Green. Atlas updated." || echo "No changes to commit"
           git push origin main
         env:

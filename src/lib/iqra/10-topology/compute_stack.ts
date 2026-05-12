@@ -22,7 +22,7 @@
  * ══════════════════════════════════════════════════════════════
  */
 
-import { IQRALogger } from '#infra/logger';
+import { IQRALogger } from '../12-infrastructure/logger';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -32,7 +32,7 @@ export type ComputeProvider =
   | 'gemini_gpu'
   | 'ollama_cpu'
   | 'qiskit_quantum'
-  | 'obsidian_graph';
+  | 'qiskit_quantum';
 
 export interface ComputeTask {
   type: 'reasoning' | 'search' | 'analysis' | 'quantum' | 'graph' | 'generation';
@@ -94,8 +94,7 @@ export class ComputeStack {
     // ١. مهام الكم
     if (task.type === 'quantum') return 'qiskit_quantum';
 
-    // ٢. مهام الرسم البياني
-    if (task.type === 'graph') return 'obsidian_graph';
+    // ٢. مهام الرسم البياني (Obsidian removed)
 
     // ٣. بدون إنترنت
     if (task.offline_ok && !process.env.GROQ_API_KEY) return 'ollama_cpu';
@@ -160,8 +159,7 @@ export class ComputeStack {
       case 'qiskit_quantum':
         return this._callQiskit(prompt, start);
 
-      case 'obsidian_graph':
-        return this._callObsidian(prompt, start);
+      // obsidian_graph removed
 
       default:
         return this._callGroq(prompt, systemPrompt, start);
@@ -341,25 +339,7 @@ export class ComputeStack {
     };
   }
 
-  private static async _callObsidian(
-    prompt: string,
-    start: number
-  ): Promise<ComputeResult> {
-    const { ObsidianBridge } = await import('./obsidian_bridge');
-    const results = await ObsidianBridge.searchDiscoveries(prompt, 7);
-
-    const response = results.length > 0
-      ? `وجدت ${results.length} اكتشافات مشابهة:\n${results.map(r => `- ${r}`).join('\n')}`
-      : `لم أجد اكتشافات مشابهة لـ: "${prompt.slice(0, 50)}"`;
-
-    return {
-      provider: 'obsidian_graph',
-      model: 'local_vault',
-      response,
-      tokens_used: 0,
-      latency_ms: Date.now() - start,
-    };
-  }
+  // _callObsidian removed
 
   // ── Stats ─────────────────────────────────────────────────────────────────
 

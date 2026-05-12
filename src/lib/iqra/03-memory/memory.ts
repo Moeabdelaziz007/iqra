@@ -19,22 +19,22 @@
 // TTL للذاكرة العاملة في Upstash Redis: 7 أيام بالثواني
 const REDIS_TTL_SECONDS = 7 * 24 * 60 * 60; // 604800
 
-import { IQRALogger } from '#infra/logger';
-import { IQRAFilter } from '#security/filter';
-import { IQRAConsciousness } from '#core/consciousness';
-import { SovereignError, SovereignErrorCode } from '#errors/sovereign_error';
-import { LanceDBPlugin } from '#memory/lancedb_plugin';
+import { IQRALogger } from '../12-infrastructure/logger';
+import { IQRAFilter } from '../06-security/filter';
+import { IQRAConsciousness } from '../01-core/consciousness';
+import { SovereignError, SovereignErrorCode } from '../01-core/sovereign_error';
+import { LanceDBPlugin } from './lancedb_plugin';
 import path from 'path';
 import crypto from 'crypto';
 import fs from 'fs';
 import { promises as fsPromises } from 'fs';
-import { withTimeout, IQRA_TIMEOUTS } from '#utils/timeout';
+import { withTimeout, IQRA_TIMEOUTS } from '../13-utils/timeout';
 
 // ── Bridge (lazy import لتجنب circular deps) ──────────────────────────────────
-let _bridge: typeof import('#memory/memory_bridge').MemoryBridge | null = null;
+let _bridge: typeof import('./memory_bridge').MemoryBridge | null = null;
 async function getBridge() {
   if (!_bridge) {
-    const mod = await import('#memory/memory_bridge');
+    const mod = await import('./memory_bridge');
     _bridge = mod.MemoryBridge;
   }
   return _bridge;

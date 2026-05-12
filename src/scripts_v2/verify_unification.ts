@@ -1,5 +1,5 @@
-import type { WorkerReport as P } from './lib/iqra/workers/protocol';
-import type { WorkerReport as C } from './agents/contracts';
+import type { WorkerReport as P } from '#workers/protocol';
+import type { WorkerReport as C } from '#agents/contracts';
 
 const p: P = {} as any;
 const c: C = {} as any;

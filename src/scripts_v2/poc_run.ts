@@ -4,7 +4,7 @@
  * WHY: To demonstrate the Tadabbur Loop in action.
  */
 
-import { TadabburLoop } from './lib/iqra/quran/discovery_loop';
+import { TadabburLoop } from '#quran/discovery_loop';
 import { IQRALogger } from '#infra/logger';
 import * as dotenv from 'dotenv';
 

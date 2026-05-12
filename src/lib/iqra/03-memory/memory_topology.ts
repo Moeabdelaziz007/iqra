@@ -24,10 +24,10 @@
  * ══════════════════════════════════════════════════════════════
  */
 
-import { IQRALogger } from '#infra/logger';
-import { appendToTrustChain } from '#security/security';
+import { IQRALogger } from '../12-infrastructure/logger';
+import { appendToTrustChain } from '../06-security/security';
 import { MicroMemory } from './micro_memory';
-import { MemoryBridge } from '#memory/memory_bridge';
+import { MemoryBridge } from './memory_bridge';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -190,24 +190,7 @@ export class MemoryTopology {
     // تخزين في Working Memory للوصول السريع
     this.working.set(key, pattern, 60 * 60 * 1000); // ساعة
 
-    // كتابة في Obsidian إذا كان الاكتشاف مهماً
-    if (pattern.strength >= 0.7 || pattern.discovery_level === 'resonance') {
-      try {
-        const { ObsidianBridge } = await import('#topology/obsidian_bridge');
-        await ObsidianBridge.writeDiscovery({
-          title: `نمط ${pattern.pattern_type} في ${pattern.verse_ref}`,
-          verse_ref: pattern.verse_ref,
-          arabic: '',
-          field: pattern.pattern_type,
-          resonance: pattern.strength,
-          links: pattern.related_verses,
-          insights: [pattern.description],
-          mission_id: `pattern_${Date.now()}`,
-          timestamp: Date.now(),
-          shannon_hel: pattern.shannon_hel,
-        });
-      } catch { /* Obsidian اختياري */ }
-    }
+    // Obsidian write removed (ObsidianBridge deleted)
 
     IQRALogger.info(
       `🌀 [MEMORY_TOPO] Pattern stored: ${pattern.verse_ref} ` +
@@ -266,7 +249,7 @@ export class MemoryTopology {
         case 'topological': {
           // بحث في MicroMemory
           await MicroMemory.init();
-          const { IQRAMemory } = await import('../03-memory/memory.js');
+          const { IQRAMemory } = await import('./memory');
           const embedding = await IQRAMemory.generateEmbedding(query.text);
           const patterns = MicroMemory.getSimilarPatterns(embedding, query.topK ?? 7);
 
@@ -295,19 +278,8 @@ export class MemoryTopology {
         }
 
         case 'graph': {
-          // بحث في Obsidian
-          try {
-            const { ObsidianBridge } = await import('#topology/obsidian_bridge');
-            const files = await ObsidianBridge.searchDiscoveries(query.text, query.topK ?? 7);
-            return files.map(f => ({
-              type: 'graph' as MemoryType,
-              content: { file: f },
-              relevance: 0.7,
-              source: 'obsidian_vault',
-            }));
-          } catch {
-            return [];
-          }
+          // Graph memory search via Obsidian removed
+          return [];
         }
 
         default:
