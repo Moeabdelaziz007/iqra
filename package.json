@@ -41,6 +41,26 @@
     "url": "https://github.com/Moeabdelaziz007/iqra/issues"
   },
   "homepage": "https://github.com/Moeabdelaziz007/iqra#readme",
+  "imports": {
+    "#manifest/*": "./src/lib/iqra/00-manifest/*.ts",
+    "#core/*": "./src/lib/iqra/01-core/*.ts",
+    "#iqra-core/*": "./src/lib/iqra/01-core/*.ts",
+    "#errors/*": "./src/lib/iqra/01-core/*.ts",
+    "#orchestrator/*": "./src/lib/iqra/01-core/*.ts",
+    "#workers/*": "./src/lib/iqra/02-workers/*.ts",
+    "#memory/*": "./src/lib/iqra/03-memory/*.ts",
+    "#quran/*": "./src/lib/iqra/04-quran/*.ts",
+    "#rewards/*": "./src/lib/iqra/05-rewards/*.ts",
+    "#security/*": "./src/lib/iqra/06-security/*.ts",
+    "#llm/*": "./src/lib/iqra/07-llm/*.ts",
+    "#skills/*": "./src/lib/iqra/08-skills/*.ts",
+    "#cognitive/*": "./src/lib/iqra/08-cognitive/*.ts",
+    "#evolution/*": "./src/lib/iqra/09-evolution/*.ts",
+    "#topology/*": "./src/lib/iqra/10-topology/*.ts",
+    "#trading/*": "./src/lib/iqra/11-trading/*.ts",
+    "#infra/*": "./src/lib/iqra/12-infrastructure/*.ts",
+    "#utils/*": "./src/lib/iqra/13-utils/*.ts"
+  },
   "dependencies": {
     "@google/adk": "^1.1.0",
     "@google/adk-devtools": "^1.1.0",

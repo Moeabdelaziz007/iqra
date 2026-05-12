@@ -31,6 +31,7 @@
       "#security/*": ["./src/lib/iqra/06-security/*"],
       "#llm/*": ["./src/lib/iqra/07-llm/*"],
       "#skills/*": ["./src/lib/iqra/08-skills/*"],
+      "#cognitive/*": ["./src/lib/iqra/08-cognitive/*"],
       "#evolution/*": ["./src/lib/iqra/09-evolution/*"],
       "#topology/*": ["./src/lib/iqra/10-topology/*"],
       "#trading/*": ["./src/lib/iqra/11-trading/*"],

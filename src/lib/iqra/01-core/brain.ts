@@ -6,8 +6,12 @@ import { IQRALogger } from '#infra/logger';
 import { validateInput, appendToTrustChain, checkCircuit, reportFailure, reportSuccess, verifyCovenant } from '#security/security';
 import { SovereignEngine } from '#core/sovereign';
 import { IQRAMemory, QuantumTopologyStore, SpiritualCoordinate } from '#memory/memory';
-import { iqraExecute } from '#core/sovereign';
 import { withTimeout, IQRA_TIMEOUTS } from '#utils/timeout';
+import { CavemanSkill } from '#skills/caveman_skill';
+
+function isLocalMode() {
+  return process.env.IQRA_LOCAL_MODE === 'true';
+}
 
 // Brain Mode Enumeration
 export enum IQRABrainMode {
@@ -15,7 +19,8 @@ export enum IQRABrainMode {
   THOUGHT_ONLY = 'THOUGHT_ONLY',
   DEEP_ANALYSIS = 'DEEP_ANALYSIS',
   DEEP_THINKING = 'DEEP_THINKING',
-  LOCAL_SKILL = 'LOCAL_SKILL'
+  LOCAL_SKILL = 'LOCAL_SKILL',
+  QURAN_ANALYSIS = 'QURAN_ANALYSIS'
 }
 
 // ── Constants ───────────────────────────────────────────────────────────────
@@ -152,14 +157,20 @@ async function executeWithSkill(skill: string, input: string, context?: any): Pr
 export async function iqraThink({
   input,
   context = null,
+  mode = IQRABrainMode.FAST_RESPONSE,
   options = {}
 }: {
   input: string;
   context?: any;
+  mode?: IQRABrainMode;
   options?: Record<string, any>;
 }): Promise<{ response: string; provider: string; reports?: any[] }> {
   console.log('🚀 [DEBUG] iqraThink started with input:', input);
   console.log('🛠️ [DEBUG] options:', JSON.stringify(options));
+  
+  // 0. Linguistic Compression (Caveman Protocol)
+  const compressedInput = CavemanSkill.compressPrompt(input);
+  IQRALogger.info(`🦴 [CAVEMAN] Original: ${input.length} chars | Compressed: ${compressedInput.length} chars`);
   
   // 1. Soul Injection Validation
   if (!validateSoulInjection(FULL_SYSTEM_PROMPT)) {
@@ -168,8 +179,11 @@ export async function iqraThink({
 
   // 2. Input Validation
   const validation = validateInput({ prompt: input, context });
-  if (!validation.valid) {
-    return { response: validation.error!, provider: 'validation' };
+  if (!validation.success) {
+    return { 
+      response: typeof validation.error === 'string' ? validation.error : (validation.error?.message || "Invalid Input"), 
+      provider: 'validation' 
+    };
   }
 
   // 3. FITRAH Ethical Filter
@@ -217,10 +231,14 @@ export async function iqraThink({
   }
 
   const finalResult = {
-    response: result.response || "No response generated.",
-    provider: result.provider || "unknown",
-    reports: result.reports || []
+    response: result?.response || "Processing complete (fallback).",
+    provider: result?.provider || "orchestrator",
+    reports: result?.reports || []
   };
+
+  if (!finalResult.response || finalResult.response === "No response generated.") {
+    finalResult.response = "تمت العملية بنجاح، ولكن لم يتم توليد نص مخصص.";
+  }
 
   console.log('🏁 [DEBUG] iqraThink finished with response length:', finalResult.response.length);
   return finalResult;

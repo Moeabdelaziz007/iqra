@@ -32,10 +32,10 @@ export class ConformableConvolution {
         metadata: {
           kernel_size: kernel.length,
           input_length: input.length,
-          topological_dimension: result.dimension
+          topological_dimension: result.length
         }
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         resonance: 0,

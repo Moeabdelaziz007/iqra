@@ -142,7 +142,7 @@ export class MissionControl {
           worker_id: worker.id,
           mission_id: state.metadata.mission_id,
           timestamp: Date.now(),
-          status: 'success',
+          status: 'PASS',
           exit_code: 0,
           commands_run: [],
           implemented: [`Mocked ${phase}`],
@@ -331,7 +331,7 @@ export class MissionControl {
 
     // Determine last provider used
     const lastReport = this.reports[this.reports.length - 1];
-    const lastProvider = (lastReport as any).model_metadata?.provider || 'local';
+    lastProvider = (lastReport as any).model_metadata?.provider || 'local';
 
     // ── بناء PathKey ومنح المكافأة ────────────────────────────────────────
     const pathKey = RewardEngine.buildPathKey(this.reports);

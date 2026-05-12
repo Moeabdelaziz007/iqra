@@ -29,6 +29,7 @@ import { RewardLedger } from '#rewards/ledger';
 import { MicroMemory } from '#memory/micro_memory';
 import { IQRALogger } from '#infra/logger';
 import { appendToTrustChain } from '#security/security';
+import { CavemanSkill } from '#skills/caveman_skill';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -368,7 +369,10 @@ export class Gemma4Local {
       throw new Error('OLLAMA_ERR: No model available. Run: ollama pull gemma4:4b');
     }
 
-    let currentMessages = [...messages];
+    let currentMessages = messages.map(msg => ({
+      ...msg,
+      content: msg.role === 'user' ? CavemanSkill.compressPrompt(msg.content) : msg.content
+    }));
     let toolCallCount = 0;
 
     while (toolCallCount < maxToolCalls) {
@@ -428,7 +432,7 @@ export class Gemma4Local {
     if (systemPrompt) {
       messages.push({ role: 'system', content: systemPrompt });
     }
-    messages.push({ role: 'user', content: prompt });
+    messages.push({ role: 'user', content: CavemanSkill.compressPrompt(prompt) });
     return this.call(messages, []); // بدون أدوات
   }
 
