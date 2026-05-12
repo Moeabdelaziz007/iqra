@@ -14,7 +14,6 @@ export async function ingestQuran(env: any) {
   console.log("Starting Quran ingestion...");
 
   // 1. Fetch Quran Data (Simple Arabic + English)
-  // Note: In a real production, we'd use a local asset or a very reliable CDN.
   const response = await fetch('https://api.alquran.cloud/v1/quran/en.asad');
   const data: any = await response.json();
 
@@ -23,6 +22,34 @@ export async function ingestQuran(env: any) {
   }
 
   const surahs = data.data.surahs;
+  const BATCH_SIZE = 50;
+  let vectorBatch: { id: string; text: string; metadata: any }[] = [];
+  let d1Batch: any[] = [];
+
+  const flush = async () => {
+    if (vectorBatch.length === 0) return;
+
+    try {
+      // A. Save to D1 in batch if supported, else sequential
+      if (db.batch) {
+        await db.batch(d1Batch);
+      } else {
+        for (const stmt of d1Batch) {
+          await stmt.run();
+        }
+      }
+
+      // B. Save to Vectorize in batch
+      await vectorEngine.upsertAyahs(vectorBatch);
+
+      // Reset batches
+      vectorBatch = [];
+      d1Batch = [];
+    } catch (err) {
+      console.error("❌ Batch flush failed:", err);
+      // We could throw here or continue depending on desired robustness
+    }
+  };
 
   for (const surah of surahs) {
     console.log(`Processing Surah ${surah.number}: ${surah.name}`);
@@ -30,20 +57,22 @@ export async function ingestQuran(env: any) {
     for (const ayah of surah.ayahs) {
       const globalId = `${surah.number}:${ayah.numberInSurah}`;
       
-      // A. Save to D1
-      await db.prepare(`
-        INSERT OR REPLACE INTO ayahs (surah_id, ayah_id, text, text_simple, translation_en)
-        VALUES (?, ?, ?, ?, ?)
-      `).bind(
-        surah.number,
-        ayah.numberInSurah,
-        ayah.text, // Arabic (if we fetch dual)
-        ayah.text, // Simple
-        ayah.text  // English (using Asad translation here)
-      ).run();
+      // Prepare for D1 batch
+      d1Batch.push(
+        db.prepare(`
+          INSERT OR REPLACE INTO ayahs (surah_id, ayah_id, text, text_simple, translation_en)
+          VALUES (?, ?, ?, ?, ?)
+        `).bind(
+          surah.number,
+          ayah.numberInSurah,
+          ayah.text,
+          ayah.text,
+          ayah.text
+        )
+      );
 
-      // B. Save to Vectorize (Batching is better, but doing one for simplicity now)
-      await vectorEngine.upsertAyahs([{
+      // Prepare for Vectorize batch
+      vectorBatch.push({
         id: globalId,
         text: ayah.text,
         metadata: {
@@ -51,9 +80,16 @@ export async function ingestQuran(env: any) {
           ayah: ayah.numberInSurah,
           reference: globalId
         }
-      }]);
+      });
+
+      if (vectorBatch.length >= BATCH_SIZE) {
+        await flush();
+      }
     }
   }
+
+  // Final flush for remaining items
+  await flush();
 
   console.log("Quran ingestion complete! ✨");
 }

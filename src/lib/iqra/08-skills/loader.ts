@@ -2,10 +2,17 @@ import fs from 'fs';
 import path from 'path';
 import { IQRALogger } from '#infra/logger';
 
+export interface SkillEntry {
+  name: string;
+  description?: string;
+  file: string;
+}
+
 export interface SkillManifest {
-  version: string;
-  marketplace_url: string;
-  skills: Record<string, string>;
+  name?: string;
+  version?: string;
+  marketplace_url?: string;
+  skills: Record<string, string> | SkillEntry[];
 }
 
 export class SkillLoader {
@@ -31,16 +38,35 @@ export class SkillLoader {
   }
 
   /**
+   * Get the mapping of skill name to its file path
+   */
+  private static getSkillsMap(): Record<string, string> {
+    const manifest = this.loadManifest();
+    if (!manifest) return {};
+
+    if (Array.isArray(manifest.skills)) {
+      // Convert Array format to Record format
+      const map: Record<string, string> = {};
+      manifest.skills.forEach(skill => {
+        map[skill.name] = skill.file;
+      });
+      return map;
+    }
+    
+    return manifest.skills;
+  }
+
+  /**
    * Get the markdown content of a specific skill
    */
   public static getSkillContent(skillName: string): string | null {
-    const manifest = this.loadManifest();
-    if (!manifest || !manifest.skills[skillName]) {
+    const skillsMap = this.getSkillsMap();
+    if (!skillsMap[skillName]) {
       IQRALogger.warn(`⚠️ [SKILL_LOADER] Skill "${skillName}" not found in manifest.`);
       return null;
     }
 
-    const relativePath = manifest.skills[skillName];
+    const relativePath = skillsMap[skillName];
     const skillPath = path.join(this.SKILLS_REPO_PATH, relativePath);
 
     try {
@@ -59,8 +85,6 @@ export class SkillLoader {
    * List all available skills registered in the marketplace manifest
    */
   public static listSkills(): string[] {
-    const manifest = this.loadManifest();
-    if (!manifest) return [];
-    return Object.keys(manifest.skills);
+    return Object.keys(this.getSkillsMap());
   }
 }

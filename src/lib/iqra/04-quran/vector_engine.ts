@@ -52,30 +52,31 @@ export class VectorEngine {
   }
 
   /**
-   * Insert or update embeddings for ayahs
+   * Insert or update embeddings for ayahs in batch
+   * "وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَىٰ" — المائدة: 2
    */
   async upsertAyahs(ayahs: { id: string; text: string; metadata: any }[]) {
+    if (ayahs.length === 0) return;
+
     try {
-      // 1. Generate embeddings in parallel batches
-      const embeddingPromises = ayahs.map(async (ayah) => {
-        const { data } = await this.env.AI.run(VectorEngine.EMBEDDING_MODEL, {
-          text: [ayah.text],
-        });
-        return {
-          id: ayah.id,
-          values: data[0],
-          metadata: ayah.metadata,
-        };
+      // 1. Generate embeddings for all texts in a single call
+      const texts = ayahs.map(a => a.text);
+      const { data: embeddings } = await this.env.AI.run(VectorEngine.EMBEDDING_MODEL, {
+        text: texts,
       });
 
-      const vectors = await Promise.all(embeddingPromises);
+      // 2. Prepare vectors for Vectorize
+      const vectors = ayahs.map((ayah, i) => ({
+        id: ayah.id,
+        values: embeddings[i],
+        metadata: ayah.metadata,
+      }));
 
-      // 2. Upsert to Vectorize
-      if (vectors.length > 0) {
-        await this.env.VECTORIZE.upsert(vectors);
-      }
+      // 3. Single upsert call to Vectorize
+      await this.env.VECTORIZE.upsert(vectors);
+      console.log(`✅ Batched ${ayahs.length} vectors to Vectorize.`);
     } catch (e) {
-      console.error("Vector Upsert Error:", e);
+      console.error("❌ Vector Batch Upsert Error:", e);
     }
   }
 }

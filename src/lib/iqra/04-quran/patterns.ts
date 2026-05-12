@@ -20,12 +20,11 @@ export class PatternDiscovery {
   static async discoverSemanticLink(text: string): Promise<void> {
     console.log('🔍 Analyzing Semantic Patterns...');
     
-    // Logic to extract roots (Conceptual for now, will be linked to an Arabic Morphological API)
-    // Example: "Read" -> Root: Q-R-A
     const discoveredPatterns = this.extractRoots(text);
     
-    for (const pattern of discoveredPatterns) {
-      await this.saveToKnowledgeBase(pattern);
+    // Optimized: Use batch saving instead of sequential loop
+    if (discoveredPatterns.length > 0) {
+      await this.saveBatchToKnowledgeBase(discoveredPatterns);
     }
   }
 
@@ -34,12 +33,29 @@ export class PatternDiscovery {
     return text.split(' ').map(word => word.trim()).filter(word => word.length > 2);
   }
 
-  private static async saveToKnowledgeBase(pattern: string) {
+  /**
+   * Batch Save to Knowledge Base
+   * Reduces I/O from O(N) to O(1)
+   */
+  private static async saveBatchToKnowledgeBase(patterns: string[]) {
+    // 1. Fetch the knowledge base once
     const memory = await IQRAMemory.get<string[]>('quranic_knowledge') || [];
-    if (!memory.includes(pattern)) {
-      memory.push(pattern);
-      await IQRAMemory.set('quranic_knowledge', memory.slice(-100)); // Last 100 discoveries
-      console.log(`✨ New Pattern Archived: ${pattern}`);
+    let updated = false;
+
+    // 2. Identify new unique patterns
+    for (const pattern of patterns) {
+      if (!memory.includes(pattern)) {
+        memory.push(pattern);
+        updated = true;
+        console.log(`✨ New Pattern Archived: ${pattern}`);
+      }
+    }
+
+    // 3. Save once if updates occurred
+    if (updated) {
+      const limitedMemory = memory.slice(-100); // Last 100 discoveries
+      await IQRAMemory.set('quranic_knowledge', limitedMemory);
+      console.log(`✅ Batch Archive Complete: ${patterns.length} patterns processed.`);
     }
   }
 }
