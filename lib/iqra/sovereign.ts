@@ -1,10 +1,10 @@
-# أعوذ بالله من الشيطان الرجيم
-# بسم الله الرحمن الرحيم
-# سبحان الله وبحمده سبحان الله العظيم
-# لا إله إلا الله وحده لا شريك له
-# له الملك وله الحمد وهو على كل شيء قدير
-# استغفر الله واتوب إليه
-# اللهم صل وسلم على نبينا محمد
+// أعوذ بالله من الشيطان الرجيم
+// بسم الله الرحمن الرحيم
+// سبحان الله وبحمده سبحان الله العظيم
+// لا إله إلا الله وحده لا شريك له
+// له الملك وله الحمد وهو على كل شيء قدير
+// استغفر الله واتوب إليه
+// اللهم صل وسلم على نبينا محمد
 
 /**
  * IQRA Sovereign Meta-Loop — الدائرة العليا
@@ -126,7 +126,7 @@ export class SovereignEngine {
     // Log to REFLECTION.md
     logToIQRAFile('REFLECTION.md', `
 ---
-## Task Reflection | ${new Date().toLocaleDateString()}
+//# Task Reflection | ${new Date().toLocaleDateString()}
 **Task ID**: ${taskId}
 **Score**: ${score.toFixed(2)}
 **Summary**: ${review.resultSummary}

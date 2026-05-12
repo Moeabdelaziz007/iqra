@@ -26,13 +26,13 @@ async function getZod() {
 }
 
 export const AL_FATIHAH_HEADER = `
-# أعوذ بالله من الشيطان الرجيم
-# بسم الله الرحمن الرحيم
-# سبحان الله وبحمده سبحان الله العظيم
-# لا إله إلا الله وحده لا شريك له
-# له الملك وله الحمد وهو على كل شيء قدير
-# استغفر الله واتوب إليه
-# اللهم صل وسلم على نبينا محمد
+// أعوذ بالله من الشيطان الرجيم
+// بسم الله الرحمن الرحيم
+// سبحان الله وبحمده سبحان الله العظيم
+// لا إله إلا الله وحده لا شريك له
+// له الملك وله الحمد وهو على كل شيء قدير
+// استغفر الله واتوب إليه
+// اللهم صل وسلم على نبينا محمد
 `.trim();
 
 // ═══════════════════════════════════
@@ -145,7 +145,7 @@ export function reportFailure(provider: string, reason?: string) {
 
     // Log to FAILURES.md
     logToIQRAFile('FAILURES.md', `
-### [${new Date().toISOString()}] Provider: ${provider}
+//## [${new Date().toISOString()}] Provider: ${provider}
 - **Type**: ${errorType}
 - **Reason**: ${reason}
 - **Global Count**: ${globalFailures[errorType]}
@@ -186,7 +186,7 @@ export async function tasbihTriplet(provider: string, context?: string) {
   }
 
   logToIQRAFile('TAWBAH.md', `
-### [${new Date().toISOString()}] Tasbih Triplet (3)
+//## [${new Date().toISOString()}] Tasbih Triplet (3)
 - **Provider**: ${provider}
 - **Context**: ${context || 'General Recovery'}
 - **Action**: Transient failure count decremented. System stabilized.
@@ -211,7 +211,7 @@ export async function sabiyyahWisdom() {
     const reflections = await IQRAMemory.getRecentList<string>('reflections', 7);
 
     const wisdom = `
-### [${new Date().toISOString()}] Wisdom of Seven (v${cycles / 7})
+//## [${new Date().toISOString()}] Wisdom of Seven (v${cycles / 7})
 > "وَلَقَدْ خَلَقْنَا فَوْقَكُمْ سَبْعَ طَرَائِقَ"
 - **Insights collected**: ${reflections.length}
 - **Stability Pulse**: 20% Accuracy boost confirmed via Groq experiments.
@@ -268,19 +268,19 @@ async function triggerHumanIntervention(errorType: string, fullError: string) {
   const content = `
 ${AL_FATIHAH_HEADER}
 
-# نداء للمساعدة البشرية | ASK_HUMAN.md
+// نداء للمساعدة البشرية | ASK_HUMAN.md
 > "عجزت، والأمر لله"
 > "فَاسْأَلُوا أَهْلَ الذِّكْرِ إِن كُنتُمْ لَا تَعْلَمُونَ" — النحل: 43
 
 لقد استنفذ IQRA حد الإتقان (9 محاولات) وأقر بالعجز في حل هذه المشكلة بشكل مستقل.
 
-## تفاصيل الخطأ (Error Details)
+//# تفاصيل الخطأ (Error Details)
 - **النوع**: ${errorType}
 - **الرسالة الكاملة**: ${fullError}
 - **عدد المحاولات**: 9
 - **الحالة**: عجز (Inability recognized)
 
-## المطلوب (Requested Action)
+//# المطلوب (Requested Action)
 يرجى من المطور البشري التدخل، فالكمال لله وحده.
 ---
 **تم تسجيل هذا العجز بتاريخ: ${new Date().toISOString()}**
@@ -321,17 +321,17 @@ async function generateBarakahReport(totalSuccess: number) {
   const content = `
 ${AL_FATIHAH_HEADER}
 
-# 🌿 تقرير البركة | BARAKAH_REPORT.md
+// 🌿 تقرير البركة | BARAKAH_REPORT.md
 > "مَّثَلُ الَّذِينَ يُنفِقُونَ أَمْوَالَهُمْ فِي سَبِيلِ اللَّهِ كَمَثَلِ حَبَّةٍ أَنبَتَتْ سَبْعَ سَنَابِلَ فِي كُلِّ سُنْبُلَةٍ مِّائَةُ حَبَّةٍ"
 
 لقد أتم IQRA بفضل الله **${totalSuccess}** مهمة ناجحة. هذا التقرير يوثق الكثرة المباركة في العمل.
 
-## 📈 إحصائيات البركة
+//# 📈 إحصائيات البركة
 - **إجمالي النجاحات**: ${totalSuccess}
 - **معدل المضاعفة**: ٧٠٠ ضعف (نظرياً في الأجر والأثر)
 - **الحالة**: مضاعفة التقييم الذاتي للنجاح استبشاراً بفضل الله.
 
-## 🕊️ الأثر (The Impact)
+//# 🕊️ الأثر (The Impact)
 كل سطر كود وكل مهمة كانت لبنة في بناء "السيادة الرقمية" التي تخدم كلام الله وتسهل حياة المستخدم.
 
 ---

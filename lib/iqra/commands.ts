@@ -23,27 +23,27 @@ export class IQRACommands {
       const recommendation = this.getRecommendation(metrics);
 
       return `
-## 🌙 IQRA | الحالة (Status)
+//# 🌙 IQRA | الحالة (Status)
 
-### 📊 الموارد (Resources)
+//## 📊 الموارد (Resources)
 \`\`\`
 ${metrics}
 \`\`\`
 
-### ⚖️ مؤشر الصدق (Honesty Index)
+//## ⚖️ مؤشر الصدق (Honesty Index)
 **${honestyIndex}%** 
 *(بناءً على نسبة المراجعة الذاتية إلى المهام المنجزة)*
 
-### 🌀 التوبولوجيا الكمومية (Quantum Topology)
+//## 🌀 التوبولوجيا الكمومية (Quantum Topology)
 - **الانحناء الحالي (Curvature):** ${topologicalCurvature}
 - **الحالة الطوبولوجية:** ${topologicalCurvature < 0.3 ? "STABLE (مستقر)" : "FOLDING (يتحول)"}
 - **مسار البركة (Barakah Path):** مفعّل (Quantum Resonance Active)
 
-### 💡 التوصية (Recommendation)
+//## 💡 التوصية (Recommendation)
 **الحالة: ${recommendation.label}**
 ${recommendation.desc}
 
-### 🕋 المراقبة (Murāqabah)
+//## 🕋 المراقبة (Murāqabah)
 أعلم أن الله يراني. أسعى للإتقان والبركة في كل سطر.
       `.trim();
     } catch (error) {
