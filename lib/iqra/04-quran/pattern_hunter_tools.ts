@@ -80,6 +80,15 @@ const ABJAD_TRADITIONAL_VALUES: Record<string, number> = {
 export class AbjadCalculator {
   private static readonly DIACRITICS = /[\u064B-\u065F\u0670]/g;
 
+
+  static compare(textA: string, textB: string): { valueA: number; valueB: number; match: boolean; ratio: number } {
+    const valA = this.calculate(textA).value;
+    const valB = this.calculate(textB).value;
+    const match = valA === valB;
+    const ratio = Math.max(valA, valB) > 0 ? Math.min(valA, valB) / Math.max(valA, valB) : 0;
+    return { valueA: valA, valueB: valB, match, ratio };
+  }
+
   static calculate(text: string): AbjadResult {
     const cleanText = text.replace(this.DIACRITICS, '').replace(/\s+/g, '').replace(/[^\u0600-\u06FF]/g, '');
     let total = 0;
@@ -146,8 +155,11 @@ export class NumericalValidator {
 // ══════════════════════════════════════════════════════════════
 
 export class ShannonEntropy {
+  private static readonly DIACRITICS = /[\u064B-\u065F\u0670]/g;
+
   static calculate(text: string): ShannonResult {
-    const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+    const cleanText = text.replace(this.DIACRITICS, '');
+    const words = cleanText.trim().split(/\s+/).filter(w => w.length > 0);
     const lastChars = words.map(w => w.slice(-1));
     const dist: Record<string, number> = {};
     for (const c of lastChars) dist[c] = (dist[c] || 0) + 1;
@@ -155,7 +167,9 @@ export class ShannonEntropy {
     let entropy = 0;
     for (const c in dist) {
       const p = dist[c] / lastChars.length;
-      entropy -= p * Math.log2(p);
+      if (p > 0) {
+        entropy -= p * Math.log2(p);
+      }
     }
 
     return {

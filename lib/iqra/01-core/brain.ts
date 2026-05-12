@@ -8,8 +8,8 @@
  * Every thought passes through FITRAH filter first.
  */
 
-import { ConnectorFactory, Provider } from '#connectors/index';
-import { SovereignError, SovereignErrorCode } from '#errors/sovereign_error';
+import { ConnectorFactory, Provider } from '../../../src/connectors/index.ts';
+import { SovereignError, SovereignErrorCode } from '#core/sovereign_error.ts';
 import { validateInput, appendToTrustChain, checkCircuit, reportFailure, reportSuccess, verifyCovenant } from '#security/security';
 import { SovereignEngine } from '#core/sovereign';
 import { IQRAMemory, QuantumTopologyStore, SpiritualCoordinate } from '#memory/memory';

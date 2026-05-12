@@ -8,7 +8,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
-import { RewardLedger } from '../../ledger/reward-ledger';
+import { RewardLedger } from '../../lib/iqra/05-rewards/ledger';
 import type { RewardEntry } from '../../lib/iqra/05-rewards/types';
 
 // ── Test helpers ──────────────────────────────────────────────────────────────

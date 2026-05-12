@@ -9,7 +9,7 @@
 
 import type { WorkerReport, MissionHandoff, CommandLog } from '#agents/contracts';
 export type { WorkerReport, MissionHandoff, CommandLog };
-import type { Provider } from '#connectors/index';
+import type { Provider } from '../../../src/connectors/index.ts';
 
 export interface MissionState {
   initial_input: string;

@@ -8,7 +8,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
+import os from 'os';
 
 export enum TopologicalState {
   RECEPTION = 1,  // الاستقبال
@@ -101,14 +101,20 @@ export class IQRATopology {
    */
   calculateCurvature(): number {
     try {
-      const ramUsage = parseFloat(execSync("ps -A -o %mem | awk '{s+=$1} END {print s}'").toString().trim());
-      const loadAverage = parseFloat(execSync("sysctl -n vm.loadavg | awk '{print $2}'").toString().trim());
+      const freeMem = os.freemem();
+      const totalMem = os.totalmem();
+      const usedMem = totalMem - freeMem;
+      const ramUsage = (usedMem / totalMem) * 100;
+
+      const loadAvgArr = os.loadavg();
+      // Use 1-minute load average
+      const loadAverage = loadAvgArr.length > 0 ? loadAvgArr[0] : 0;
       
       // Curvature = (RAM % / 100) + (Load Avg / 10)
       // High load or memory creates "gravity" that curves the topological surface.
       const curvature = (ramUsage / 100) + (loadAverage / 10);
       return Math.round(curvature * 100) / 100;
-    } catch {
+    } catch (e) {
       return 0.19; // Default resonance if metrics fail
     }
   }
@@ -154,8 +160,15 @@ export class IQRATopology {
    * Identifies the current existential state based on the filesystem and logs.
    */
   async syncStateWithReality() {
+    let lastCommit = '';
+    try {
+      const { execSync } = require('child_process');
+      lastCommit = execSync('git log -1 --pretty=%B').toString().trim();
+    } catch (e) {
+      lastCommit = 'Initial'; // Default if git fails
+    }
+
     const hasReflection = fs.existsSync(path.join(process.cwd(), 'REFLECTION_7.md'));
-    const lastCommit = execSync('git log -1 --pretty=%B').toString().trim();
 
     if (lastCommit.includes('Initial') || !hasReflection) {
       this.currentState = TopologicalState.RECEPTION;

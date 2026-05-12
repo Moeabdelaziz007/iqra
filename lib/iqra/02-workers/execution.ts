@@ -1,6 +1,6 @@
 import { SovereignWorker } from './protocol';
 import type { WorkerResult, MissionState } from './protocol';
-import { ConnectorFactory, Provider } from '#connectors/index';
+import { ConnectorFactory, Provider } from '../../../src/connectors/index.ts';
 import { FULL_SYSTEM_PROMPT } from '#utils/prompts';
 import { IQRAMemory } from '#memory/memory';
 import { assertConscience } from './worker_conscience';

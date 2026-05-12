@@ -7,7 +7,7 @@
  * then designs the "Binder" (The Solution) to fit perfectly.
  */
 
-import { ConnectorFactory } from '#connectors/index';
+import { ConnectorFactory } from '../../../src/connectors/index.ts';
 import { IQRALogger } from '#infra/logger';
 
 export class InverseDesign {

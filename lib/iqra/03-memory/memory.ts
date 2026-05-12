@@ -22,7 +22,7 @@ const REDIS_TTL_SECONDS = 7 * 24 * 60 * 60; // 604800
 import { IQRALogger } from '#infra/logger';
 import { IQRAFilter } from '#security/filter';
 import { IQRAConsciousness } from '#core/consciousness';
-import { SovereignError, SovereignErrorCode } from '#errors/sovereign_error';
+import { SovereignError, SovereignErrorCode } from '#core/sovereign_error.ts';
 import { LanceDBPlugin } from '#memory/lancedb_plugin';
 import path from 'path';
 import crypto from 'crypto';

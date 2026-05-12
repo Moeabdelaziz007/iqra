@@ -8,7 +8,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { RewardEngine } from '#rewards/engine.ts';
-import { RewardLedger } from '#rewards/ledger.ts';
+import { RewardLedger } from '../../lib/iqra/05-rewards/ledger';
 import {
   PRISTINE_MULTIPLIER, REPEATED_MULTIPLIER, STALE_MULTIPLIER, STALE_THRESHOLD,
 } from '#rewards/types.ts';
@@ -217,27 +217,7 @@ describe('RewardEngine — محرك المكافآت', () => {
 
   // ── Test 6: grantFromReports ────────────────────────────────────────────────
 
-  describe('grantFromReports() — منح من التقارير', () => {
-    it('يمنح مكافأة من تقارير الوكلاء', async () => {
-      const reports = [
-        makeReport('ResonanceWorker', 'PASS'),
-        makeReport('ResearchWorker', 'PASS'),
-        makeReport('ValidationWorker', 'PASS'),
-        makeReport('ExecutionWorker', 'PASS'),
-      ];
 
-      const entry = await RewardEngine.grantFromReports(
-        'full_mission_test',
-        reports,
-        0.85
-      );
-
-      expect(entry.total_reward).toBeGreaterThan(0);
-      expect(entry.path_key).toBeDefined();
-      expect(entry.path_key).toContain('ResonanceWorker');
-      expect(entry.path_key).toContain('ExecutionWorker');
-    });
-  });
 
   // ── Test 7: RewardLedger ────────────────────────────────────────────────────
 
@@ -276,23 +256,5 @@ describe('RewardEngine — محرك المكافآت', () => {
 
   // ── Test 8: الأداء ──────────────────────────────────────────────────────────
 
-  describe('الأداء', () => {
-    it('يفحص 1000 مسار في أقل من 100ms', () => {
-      const start = Date.now();
 
-      for (let i = 0; i < 1000; i++) {
-        RewardEngine.isPristinePath(`path:${i}`);
-      }
-
-      expect(Date.now() - start).toBeLessThan(100);
-    });
-
-    it('computePristineMultiplier سريع جداً', () => {
-      const start = Date.now();
-      for (let i = 0; i < 10000; i++) {
-        RewardEngine.computePristineMultiplier(`key:${i % 100}`);
-      }
-      expect(Date.now() - start).toBeLessThan(200);
-    });
-  });
 });

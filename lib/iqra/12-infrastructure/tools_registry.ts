@@ -199,7 +199,7 @@ export class ToolsRegistry {
       category: 'QURAN',
       inputSchema: z.object({ text: z.string().min(1) }),
       handler: async ({ text }) => {
-        const { NumericalValidator } = await import('../quran/numerical_validator.js');
+        const { NumericalValidator } = await import('../04-quran/numerical_validator.js');
         return NumericalValidator.validate(text);
       },
     });
@@ -238,7 +238,7 @@ export class ToolsRegistry {
         mission_id: z.string().optional(),
       }),
       handler: async (input) => {
-        const { PatternHunter } = await import('../quran/pattern_hunter.js');
+        const { PatternHunter } = await import('../04-quran/pattern_hunter.js');
         return await PatternHunter.hunt(input);
       },
       circuit_breaker: 'pattern_hunter',
@@ -258,7 +258,7 @@ export class ToolsRegistry {
         mission_id: z.string().optional(),
       }),
       handler: async (input) => {
-        const { PatternHunter } = await import('../quran/pattern_hunter.js');
+        const { PatternHunter } = await import('../04-quran/pattern_hunter.js');
         return await PatternHunter.batchHunt(input);
       },
       circuit_breaker: 'pattern_hunter',
@@ -271,7 +271,7 @@ export class ToolsRegistry {
       category: 'QURAN',
       inputSchema: z.object({}),
       handler: async () => {
-        const { PatternHunter } = await import('../quran/pattern_hunter.js');
+        const { PatternHunter } = await import('../04-quran/pattern_hunter.js');
         return await PatternHunter.learnFromHistory();
       },
     });
@@ -283,7 +283,7 @@ export class ToolsRegistry {
       category: 'QURAN',
       inputSchema: z.object({}),
       handler: async () => {
-        const { PatternHunter } = await import('../quran/pattern_hunter.js');
+        const { PatternHunter } = await import('../04-quran/pattern_hunter.js');
         return await PatternHunter.getStats();
       },
     });

@@ -22,7 +22,7 @@ import { PatternHunter } from '#quran/pattern_hunter.ts';
 import { NumericalValidator } from '#quran/numerical_validator.ts';
 import { AbjadCalculator, ShannonEntropy, FractalAnalyzer, TopologicalAnalyzer } from '#quran/pattern_hunter_tools.ts';
 import { MicroMemory } from '#memory/micro_memory.ts';
-import { ToolsRegistry } from '#12-infrastructure/tools_registry.js';
+import { ToolsRegistry } from '../../lib/iqra/12-infrastructure/tools_registry.ts';
 
 // ── Setup ─────────────────────────────────────────────────────────────────────
 

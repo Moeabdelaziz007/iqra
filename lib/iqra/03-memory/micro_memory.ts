@@ -652,28 +652,21 @@ export class MicroMemory {
    * @returns إنتروبي الحرف الأخير (بت)
    */
   static computeShannonHEL(text: string): number {
-    if (!text || text.trim().length === 0) return 1.0;
+    const cleanText = text.replace(/[\u064B-\u065F\u0670]/g, '');
+    const words = cleanText.trim().split(/\s+/).filter(w => w.length > 0);
+    if (words.length === 0) return 0;
 
-    // استخراج الحروف الأخيرة من كل كلمة
-    const words = text.trim().split(/\s+/).filter(w => w.length > 0);
-    if (words.length === 0) return 1.0;
+    const lastChars = words.map(w => w.slice(-1));
+    const dist: Record<string, number> = {};
+    for (const c of lastChars) dist[c] = (dist[c] || 0) + 1;
 
-    const lastChars = words.map(w => w[w.length - 1]);
-
-    // حساب التوزيع
-    const freq = new Map<string, number>();
-    for (const c of lastChars) {
-      freq.set(c, (freq.get(c) ?? 0) + 1);
-    }
-
-    // H = -Σ p(c) × log2(p(c))
     let entropy = 0;
-    const n = lastChars.length;
-    for (const count of freq.values()) {
-      const p = count / n;
-      entropy -= p * Math.log2(p);
+    for (const c in dist) {
+      const p = dist[c] / lastChars.length;
+      if (p > 0) {
+        entropy -= p * Math.log2(p);
+      }
     }
-
     return entropy;
   }
 
