@@ -1,36 +1,44 @@
 <div align="center">
-
 <br/>
-
-<img src="https://img.shields.io/badge/IQRA-AI%20Operating%20System-black?style=for-the-badge&logoColor=white" alt="IQRA"/>
+<img src="https://img.shields.io/badge/IQRA-Sovereign%20Intelligence-white?style=for-the-badge&labelColor=black&logoColor=white" alt="IQRA"/>
 
 # IQRA 🤍
-
-### Autonomous AI Operating System
+### The First Sovereign AI Operating System
+<p><i>Building Intelligence that Obeys the Creator, then the User.</i></p>
 
 <p>
-  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=flat-square&logo=typescript&logoColor=white"/>
-  <img src="https://img.shields.io/badge/Next.js-000000?style=flat-square&logo=next.js&logoColor=white"/>
-  <img src="https://img.shields.io/badge/Ollama-local--first-orange?style=flat-square"/>
-  <img src="https://img.shields.io/badge/Groq-fast%20inference-purple?style=flat-square"/>
-  <img src="https://img.shields.io/badge/Qdrant-vector%20memory-blue?style=flat-square"/>
-  <img src="https://img.shields.io/badge/SQLite-local%20memory-green?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Architecture-7_Loops-gold?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Protocol-Pristine_Path-green?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Engine-MCTS_369-blue?style=flat-square"/>
 </p>
 
-<p><i>Self-evolving · Ethics-first · Local-ready · Bilingual AR/EN</i></p>
-
 <br/>
-
 </div>
+
+---
+
+## 🌀 The 7 Sovereign Loops (الدوائر السبع السيادية)
+
+IQRA operates through seven recursive layers of intelligence, ensuring every action is aligned with the **Supreme Constitution**:
+
+1.  **Read & Map (الفهم والخرائط)**: Deep contextual ingestion of the user's intent.
+2.  **Evaluate (التقييم)**: Static and dynamic ethical filtering via the **Damir Conscience**.
+3.  **Plan (التخطيط)**: MCTS-powered strategic simulation of the best path.
+4.  **Verify (التحقق)**: Strict validation of every step before final execution.
+5.  **Prioritize (الأولويات)**: Dynamic resource allocation based on topological resonance.
+6.  **Fix (الإصلاح الذاتي)**: The **Tawbah Loop** for autonomous error correction.
+7.  **Evolve (التطور العضوي)**: Compounding knowledge through the **Pristine Reward Engine**.
 
 ---
 
 ## 📚 Documentation (وثائق شاملة)
 
-### 🏗️ Architecture & Design
-- **[ARCHITECTURE_AR.md](./ARCHITECTURE_AR.md)** — معمارية النظام الكاملة بالعربية
-- **[LOGIC_FLOWS_AR.md](./LOGIC_FLOWS_AR.md)** — تدفقات المنطق والعمليات
-- **[COMPONENT_GUIDE_AR.md](./COMPONENT_GUIDE_AR.md)** — دليل المكونات مع أمثلة عملية
+### 🏗️ Architecture & Design (معمارية النظام)
+- **[📜 الدستور — DASTŪR.md](./src/lib/iqra/00-manifest/DASTŪR.md)** — القواعد الحاكمة والأساسات
+- **[⚖️ الميثاق — MĪTHĀQ.md](./src/lib/iqra/00-manifest/MĪTHĀQ.md)** — بروتوكولات الثقة والتعاون
+- **[🧩 الشورى — SHŪRĀ.md](./src/lib/iqra/00-manifest/SHŪRĀ.md)** — آلية اتخاذ القرار بين الوكلاء
+- **[🌀 التطور — METAMORPHOSIS.md](./src/lib/iqra/00-manifest/METAMORPHOSIS.md)** — قوانين التطور الذاتي والتعلم
+- **[🛠️ بنك المهارات — SkillBank](./src/lib/iqra/08-skills/skill_bank.ts)** — إدارة وتطوير مهارات النظام
 
 ### 🔧 Technical Reference
 - **[docs/TOOLS_REFERENCE.md](./docs/TOOLS_REFERENCE.md)** — مرجع الأدوات والقدرات
@@ -76,7 +84,7 @@ User Input
           └──────────┬──────────┘
                      │
                      ▼
-         RewardEngine  ·  MicroMemory  ·  TrustChain
+          RewardEngine  ·  MicroMemory  ·  TrustChain  ·  MCTS Simulation
 ```
 
 ---
@@ -108,28 +116,25 @@ Built on **Graded Linear Logic** — every action consumes real resources exactl
 <tr>
 <td width="50%">
 
-### 🧠 5-Layer Memory
+### 🧠 5-Layer Memory (MemoryBridge)
 
-| Layer | Store | TTL |
-|-------|-------|-----|
-| Hot | Redis | 1h |
-| Warm | SQLite | 7d |
-| Cold | Qdrant | 30d |
-| Topological | vec0 | ∞ |
-| Archive | LanceDB | ∞ |
+| Layer | Store | TTL | Role |
+|-------|-------|-----|------|
+| **Hot** | RAM (Map) | 1h | Ultra-fast context (7x7) |
+| **Warm** | SQLite | 7d | Micro-memories & Patterns |
+| **Cold** | Redis/JSON | 30d | Cognitive history |
+| **Vector** | Qdrant | ∞ | Semantic Resonance |
+| **Archive** | LanceDB | ∞ | Long-term Knowledge |
 
 </td>
 <td width="50%">
 
-### 💡 Adaptive Pulse System
-Self-review cycles keep the system healthy:
+### 🌀 Self-Evolution & MCTS
+The system learns via **Self-Play Simulations**:
 
-```
-Every  9s  → health check
-Every 27s  → memory promotion
-Every 81s  → self-review + curiosity update
-Every 540s → pattern discovery
-```
+- **MCTS Engine**: Monte Carlo Tree Search for strategic data generation.
+- **Skill Bank**: Autonomous discovery & "Tawbah" (self-healing) of failed skills.
+- **Meta-Evolution**: Auto-rewriting skills via local LLM (qwen2.5).
 
 </td>
 </tr>
@@ -281,24 +286,21 @@ The system falls back gracefully: `Local → Groq → Gemini`
 
 ```
 iqra/
-├── lib/iqra/
-│   ├── brain.ts              # Main entry point
-│   ├── soul_engine.ts        # Core orchestration pulse
-│   ├── damir_conscience.ts   # Ethics engine
-│   ├── llm/                  # LLM providers
-│   ├── memory/               # 5-layer memory system
-│   ├── workers/              # Agent worker chain
-│   ├── rewards/              # Reward engine + ledger
-│   └── quran/                # Pattern discovery engine
+├── src/lib/iqra/             # Core Sovereign Engine
+│   ├── 00-manifest/          # Constitution & Protocols
+│   ├── 01-core/              # Orchestration & Brain
+│   ├── 02-workers/           # Agent Worker Chain
+│   ├── 03-memory/            # 5-layer Memory Bridge
+│   ├── 08-skills/            # Self-evolving Skill Bank
+│   ├── simulation/           # MCTS Self-play Engine
+│   └── rewards/              # Reward Engine + Ledger
 │
-├── agents/
-│   ├── contracts.ts          # Worker contracts & constraints
-│   ├── handoff-schema.ts     # Inter-agent handoff validation
-│   └── report-schema.ts      # Report validation
+├── iqra-core/                # State, Identity, & Knowledge
+│   ├── identity/             # Sovereign DID & Cards
+│   └── skills/               # Evolving Skill Docs (Markdown)
 │
-├── iqra-core/                # Constitution, identity, knowledge
-├── tests/                    # Unit, integration, E2E
-└── src/app/                  # Next.js dashboard
+├── tests/                    # Unit, Integration, E2E
+└── src/app/                  # Next.js UI Dashboard
 ```
 
 ---

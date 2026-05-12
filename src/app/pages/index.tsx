@@ -1,3 +1,3 @@
-import HomePage from '../src/app/page';
+import HomePage from '../page';
 
 export default HomePage;

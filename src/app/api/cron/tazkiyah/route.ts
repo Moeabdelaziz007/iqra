@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { IQRAMemory } from '../#memory/memory'; // [TC] reason: correct depth to canonical lib/iqra | id: c1-taz
+import { IQRAMemory } from '#memory/memory'; // [TC] reason: correct depth to canonical lib/iqra | id: c1-taz
 
 /**
  * Arba'ūn Tazkiyah Cycle (40)

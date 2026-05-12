@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import {
   IQRASevenLayerArchitecture,
   SYSTEM_CONSTANTS,
-} from '../#core/IQRASevenLayerArchitecture';
+} from '#core/IQRASevenLayerArchitecture';
 
 describe('IQRASevenLayerArchitecture', () => {
   let architecture: IQRASevenLayerArchitecture;

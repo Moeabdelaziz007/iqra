@@ -67,25 +67,24 @@ export class MCTSEngine {
    * UCB1 = reward + exploration * √(ln(parent_visits) / child_visits)
    */
   private selectNode(node: MCTSNode): MCTSNode {
-    if (node.untried_actions.length === 0) {
-      // إذا لم يتبقى أي إجراء، اختر عشوائياً
-      return node.children[Math.floor(Math.random() * node.children.length)];
-    }
+    let current = node;
+    while (current.untried_actions.length === 0 && current.children.length > 0) {
+      let bestChild: MCTSNode = current.children[0];
+      let bestScore = -Infinity;
 
-    let bestNode: MCTSNode = node.children[0];
-    let bestScore = -Infinity;
-
-    for (const child of node.children) {
-      const ucb1Score = child.reward + 
-        this.config.exploration * Math.sqrt(Math.log(node.visits) / (child.visits || 1));
-      
-      if (ucb1Score > bestScore) {
-        bestScore = ucb1Score;
-        bestNode = child;
+      for (const child of current.children) {
+        // UCB1 formula
+        const ucb1Score = (child.value / (child.visits || 1)) + 
+          this.config.exploration * Math.sqrt(Math.log(current.visits) / (child.visits || 1));
+        
+        if (ucb1Score > bestScore) {
+          bestScore = ucb1Score;
+          bestChild = child;
+        }
       }
+      current = bestChild;
     }
-
-    return bestNode;
+    return current;
   }
 
   /**
@@ -197,11 +196,21 @@ export class MCTSEngine {
    * تقييم الحالة - دالة مكافأة
    */
   private evaluateState(state: any): number {
-    // يمكن تعديل هذا ليناسب المشكلة
-    // مثال: مكافأة بناءً على الهدف
-    if (state.goal_reached) return 1.0;
-    if (state.invalid_action) return -0.5;
-    return 0.0;
+    let score = 0;
+    
+    // Reward for reaching the "goal" (simulated)
+    if (state.goal_reached) score += 1.0;
+    
+    // Penalty for invalid or repetitive steps
+    if (state.invalid_action) score -= 0.5;
+    
+    // Sovereign Reward: Bonus for linguistic depth (simulated via step count in this generic version)
+    if (state.step > 0) score += (state.step * 0.1);
+
+    // Topological Symmetry Bonus (Placeholder for actual topological feedback)
+    if (state.action && state.action.length > 3) score += 0.05;
+
+    return score;
   }
 
   /**

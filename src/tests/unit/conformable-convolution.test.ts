@@ -9,9 +9,9 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import {
   ConformableConvolution,
   ConformableConvolutionResult,
-} from '../#core/ConformableConvolution';
-import type { TopologicalSignature, QalbinNode } from '../#core/QalbinVM';
-import type { ShannonEntropyResult } from '../#core/ShannonHELEntropy';
+} from '#core/ConformableConvolution';
+import type { TopologicalSignature, QalbinNode } from '#core/QalbinVM';
+import type { ShannonEntropyResult } from '#core/ShannonHELEntropy';
 
 // ── Test Fixtures ─────────────────────────────────────────────────────────────
 

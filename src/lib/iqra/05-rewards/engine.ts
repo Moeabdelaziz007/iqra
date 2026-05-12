@@ -82,6 +82,28 @@ export class RewardEngine {
     return 'seed';
   }
 
+  /**
+   * 🏆 Grant reward based on a collection of worker reports
+   */
+  static async grantFromReports(
+    missionId: string,
+    reports: WorkerReport[],
+    resonance: number = 0.5
+  ): Promise<RewardEntry> {
+    const vector: RewardVector = {
+      resonance,
+      novelty: reports.some(r => r.no_mock_verified) ? 0.5 : 0.1,
+      topology: reports.length > 2 ? 0.3 : 0.1,
+      fractal: 0.2,
+      lid: 0.1
+    };
+
+    // Use the first worker as the primary for the record, or 'orchestrator'
+    const primaryWorker = reports.length > 0 ? reports[0].worker_id : 'orchestrator';
+    
+    return await this.grant(missionId, primaryWorker, vector, reports, "Granted via MissionControl pulse");
+  }
+
   static async grant(
     missionId: string,
     workerId: string,

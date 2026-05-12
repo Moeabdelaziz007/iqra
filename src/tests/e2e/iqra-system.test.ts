@@ -6,11 +6,11 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { ReasonActLoop, LoopPhase } from '../#core/reason_act_loop';
-import { IQRAMemory } from '../#memory/memory';
-import { ForbiddenPatternsValidator } from '../#security/forbidden_patterns';
-import { IQRAEvolution } from '../#evolution/self_evolve';
-import { iqraThink, IQRABrainMode } from '../#core/brain';
+import { ReasonActLoop, LoopPhase } from '#core/reason_act_loop';
+import { IQRAMemory } from '#memory/memory';
+import { ForbiddenPatternsValidator } from '#security/forbidden_patterns';
+import { IQRAEvolution } from '#evolution/self_evolve';
+import { iqraThink, IQRABrainMode } from '#core/brain';
 
 describe('🧬 IQRA System E2E Tests', () => {
   let testSessionId: string;

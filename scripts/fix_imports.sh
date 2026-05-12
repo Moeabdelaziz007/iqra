@@ -7,16 +7,16 @@ DIRECTORY="/Applications/iqra/src"
 echo "🔍 Starting Batch Import Fix..."
 
 # 1. Remove .ts and .js extensions from imports
-# Pattern: from '.../file.ts' or from ".../file.ts"
 find "$DIRECTORY" -type f -name "*.ts" -o -name "*.tsx" | xargs sed -i '' -E "s/from ['\"](.+)\.(ts|js)['\"]/from '\1'/g"
 
-# 2. Normalize #iqra-core to #core (if preferred, or just keep aliases consistent)
-# find "$DIRECTORY" -type f -name "*.ts" | xargs sed -i '' "s/#iqra-core/#core/g"
+# 2. Fix broken relative aliases (e.g. ../#memory -> #memory)
+find "$DIRECTORY" -type f -name "*.ts" -o -name "*.tsx" | xargs sed -i '' -E "s/from ['\"]\.+\/(#.+)/from '\1/g"
 
-# 3. Fix explicit paths that should be aliases
-# (Example: ../../../lib/iqra/03-memory/memory -> #memory/memory)
-# This is complex for sed, but we can do common ones.
+# 3. Fix explicit long paths to aliases
 find "$DIRECTORY" -type f -name "*.ts" | xargs sed -i '' "s|\.\./\.\./\.\./\./lib/iqra/03-memory/memory|#memory/memory|g"
 find "$DIRECTORY" -type f -name "*.ts" | xargs sed -i '' "s|\.\./\./lib/iqra/01-core/brain|#core/brain|g"
+
+# 4. Fix missing member exports in common files
+# (This is better done via code edits, but we can do some simple ones)
 
 echo "✅ Import Fix Complete."

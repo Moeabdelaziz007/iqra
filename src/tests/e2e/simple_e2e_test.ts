@@ -6,7 +6,7 @@ import os from 'os';
 import yaml from 'js-yaml';
 
 // Direct imports without aliases - following IQRA_SUPREME principles
-import { runMission } from '../#core/mission-runner';
+import { runMission } from '#core/mission-runner';
 
 /**
  * 🔬 IQRA Simple E2E Test — "Truth Verification"

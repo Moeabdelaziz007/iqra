@@ -4,8 +4,8 @@
  * Verifies the 7-loop cognitive cycle and sovereign governance.
  */
 
-import { Orchestrator } from '../#runtime/sovereign-gateway';
-import { MemoryEngine, MemoryType } from '../#runtime/topological-memory-bridge';
+import { Orchestrator } from '#runtime/sovereign-gateway';
+import { MemoryEngine, MemoryType } from '#runtime/topological-memory-bridge';
 import { IQRALogger } from '#infra/logger';
 import * as fs from 'fs';
 import * as path from 'path';

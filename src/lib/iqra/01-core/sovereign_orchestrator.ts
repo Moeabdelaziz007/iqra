@@ -14,8 +14,11 @@ import { SovereignIdentity } from '#security/sovereign_identity';
 import { TopologicalAnalyzer } from '#skills/topological_analyzer';
 import { Search369 } from '#evolution/search_369';
 import { LeagueManager } from '#evolution/league_manager';
+import { TawbahLoop } from '#evolution/tawbah_loop';
+import { SkillBank } from '#skills/skill_bank';
 import { FithrahBaseline } from '#security/audit/fithrah_baseline';
 import { IQRAMemory } from '#memory/memory';
+import { SovereignCognitiveOrchestrator } from '#cognitive/engine';
 
 // ── Damir يُحمَّل lazily لتجنب circular imports ──────────────────────────────
 let _missionDamir: import('#security/damir_conscience').DamirConscience | null = null;
@@ -61,6 +64,9 @@ export class MissionControl {
       skills.push('creative');
     }
 
+    if (skills.length === 0) {
+      skills.push('general');
+    }
     return skills;
   }
 
@@ -124,15 +130,31 @@ export class MissionControl {
     return worker;
   }
 
-  /**
-   * Execute a single phase of the mission | تنفيذ مرحلة واحدة من المهمة
-   * يُفحص الضمير قبل تمرير HandoffResult للوكيل التالي
-   */
-  async executePhase(phase: string, input: string, state: MissionState): Promise<WorkerResult> {
-    const worker = this.getWorkerForPhase(phase, state.assigned_skills ?? [], state.metadata.mission_id);
+  private async executePhase(phase: string, input: string, state: MissionState, mock: boolean = false): Promise<WorkerResult> {
+    const worker = this.getWorkerForPhase(phase, state.context.skills, state.metadata.mission_id);
+    
+    if (mock) {
+      IQRALogger.info(`🧪 [MISSION_CONTROL] Mocking phase: ${phase}`);
+      return {
+        success: true,
+        data: `Mock response for ${phase}`,
+        report: {
+          worker_id: worker.id,
+          mission_id: state.metadata.mission_id,
+          timestamp: Date.now(),
+          status: 'success',
+          exit_code: 0,
+          commands_run: [],
+          implemented: [`Mocked ${phase}`],
+          undone: [],
+          issues_discovered: [],
+          procedures_followed: true,
+        },
+      };
+    }
+
     IQRALogger.info(`🛰️ [MISSION_CONTROL] Routing phase '${phase}' to ${worker.id}...`);
 
-    // ── فحص الضمير قبل التنفيذ ───────────────────────────────────────────────
     const intention = (worker as any).intention ?? `تنفيذ مرحلة ${phase} للمهمة ${state.metadata.mission_id}`;
     const factoryResult = ResourceFactory.forWorker(
       worker.id,
@@ -140,7 +162,6 @@ export class MissionControl {
       intention
     );
 
-    // تهيئة Damir lazily (يمنع null reference)
     const damir = await getMissionDamir();
 
     for (const r of factoryResult.resources) {
@@ -167,19 +188,10 @@ export class MissionControl {
 - **Type**: ${verdict.rejection_type ?? 'unknown'}
 ---`;
       await logToIQRAFile('TAWBAH.md', tawbahEntry);
-
-      appendToTrustChain(
-        'MISSION:CONSCIENCE_BLOCK',
-        `${state.metadata.mission_id}:${phase}`,
-        `BLOCKED reason="${verdict.reason}"`,
-        0.0
-      );
-
+      appendToTrustChain('MISSION:CONSCIENCE_BLOCK', `${state.metadata.mission_id}:${phase}`, `BLOCKED reason="${verdict.reason}"`, 0.0);
       IQRALogger.warn(`🛑 [MISSION_CONTROL] Damir blocked phase '${phase}': ${verdict.reason}`);
-
       damir.reset();
 
-      // إرجاع نتيجة فشل واضحة
       return {
         success: false,
         error: `[DAMIR_BLOCK] ${verdict.reason}`,
@@ -201,108 +213,125 @@ export class MissionControl {
       };
     }
 
-    // ── مسموح — استهلاك الموارد وتنفيذ المرحلة ──────────────────────────────
     damir.execute(action);
 
-    // حقن الهوية والنبض والذاكرة قبل التنفيذ
     const integratedSoul = await SovereignIdentity.getIntegratedSoul(worker.id, intention);
     worker.setSovereignPrompt(integratedSoul);
 
     return await worker.execute(input, state);
   }
 
-  async run(input: string): Promise<{ response: string; reports: WorkerReport[]; context: any }> {
+  async run(input: string, options: { mock?: boolean } = {}): Promise<{ response: string; reports: WorkerReport[]; provider: string; context: any }> {
     this.reports = [];
-    IQRALogger.info('🚀 [MISSION_CONTROL] Initiating Sovereign Worker Chain...');
+    const missionId = `mission_${Date.now()}`;
+    IQRALogger.info(`🛰️ [MISSION_CONTROL] Starting mission ${missionId}: "${input}"`);
     
     const skills = this.classifyMission(input);
-    IQRALogger.info(`🎯 [MISSION_CONTROL] Skills identified: ${skills.join(', ') || 'general'}`);
-
-    // Initialize Mission State
     let state: MissionState = {
       initial_input: input,
       reports: [],
-      context: {},
+      context: { skills },
       assigned_skills: skills,
       metadata: {
         start_time: Date.now(),
-        mission_id: `mission_${Math.random().toString(36).substring(7)}`
+        mission_id: missionId
       }
     };
 
-    // 🧬 Alpha Evolution: Evolutionary Contemplation (3-6-9 Search)
+    for (const skill of skills) {
+      const content = SkillBank.getSkillContent(skill);
+      if (content) {
+        state.context[`skill_${skill}`] = content;
+        IQRALogger.info(`🛠️ [MISSION_CONTROL] Skill context loaded: ${skill}`);
+      }
+    }
+
+    if (skills.includes('quran_analysis') || skills.includes('reasoning')) {
+      IQRALogger.info('🧠 [MISSION_CONTROL] Initiating Sovereign Cognitive Exploration...');
+      const cognitiveOrchestrator = new SovereignCognitiveOrchestrator();
+      const cognitiveResult = await cognitiveOrchestrator.explore(input);
+      
+      state.context.cognitive = {
+        simulation: cognitiveResult.simulation,
+        topology: cognitiveResult.topology,
+        swarm_path: cognitiveResult.swarmPath,
+        found_verses_count: cognitiveResult.foundVerses.length
+      };
+
+      input = `[COGNITIVE_INSIGHT]: Best Path identified via MCTS: ${cognitiveResult.simulation.bestAction}\n` +
+              `[TOPOLOGICAL_RESONANCE]: Betti Numbers: ${JSON.stringify(cognitiveResult.topology.betti)}\n` +
+              `[ORIGINAL_INPUT]: ${input}`;
+              
+      IQRALogger.info(`✅ [MISSION_CONTROL] Cognitive exploration complete.`);
+    }
+
     IQRALogger.info('🧬 [MISSION_CONTROL] Initiating Alpha Evolution pulse...');
     const evolutionWinner = await Search369.evolve(input);
-    const optimizedInput = `[EVOLVED_STRATEGY]: ${evolutionWinner.vector}\n\n[ORIGINAL_OBJECTIVE]: ${input}`;
     state.context.evolution = {
       winner: evolutionWinner.vector,
       score: evolutionWinner.score,
       simulation: evolutionWinner.simulationResult
     };
 
-    // 🤺 Alpha League: Adversarial Pressure Test
     const leagueVerdict = await LeagueManager.adjudicate(evolutionWinner.simulationResult);
     if (!leagueVerdict.isStable) {
-      IQRALogger.warn(`🤺 [MISSION_CONTROL] League blocked winner! Exploits: ${leagueVerdict.exploitsFound.join(', ')}`);
-      // Re-route to a "Safe Path" or abort
-      return { response: "Mission Aborted: League Stability Failure.", reports: [], context: state.context };
+      return { response: "Mission Aborted: League Stability Failure.", reports: [], provider: 'local', context: state.context };
     }
 
-    // 🌱 Fithrah Check: Evolutionary Alignment
     const winnerEmbedding = await IQRAMemory.generateEmbedding(evolutionWinner.vector);
     const alignment = await FithrahBaseline.verifyAlignment(evolutionWinner.vector, winnerEmbedding);
     if (!alignment.isAligned) {
-      IQRALogger.warn('🌱 [MISSION_CONTROL] Anomaly detected by Fithrah. Proceeding with caution...');
       state.context.anomaly_detected = true;
     }
 
-    // 🌀 Topological Pulse Check (If Quranic)
-    if (skills.includes('quran_analysis')) {
-      const segments = input.split('\n'); 
-      const topoResult = await TopologicalAnalyzer.analyze(optimizedInput, segments);
-      state.context.resonance = {
-        ...state.context.resonance,
-        topological_score: topoResult.resonance,
-        symmetry_score: topoResult.symmetryScore,
-        patterns: topoResult.patterns,
-        novelty: topoResult.novelty
-      };
-      IQRALogger.info(`🌀 [MISSION_CONTROL] Topological resonance detected: ${topoResult.resonance.toFixed(4)}`);
-    }
+    let lastProvider = 'local';
 
-    // 1. Resonance Worker
-    const resResult = await this.executePhase('resonance', input, state);
+    // 1. Resonance Phase
+    const resResult = await this.executePhase('resonance', input, state, options.mock);
     if (resResult.updated_state) state = resResult.updated_state;
     this.reports.push(resResult.report);
-    
     if (!resResult.success) {
-       return { response: "Mission Aborted: Resonance Failure.", reports: this.reports, context: state.context };
+      await TawbahLoop.run();
+      return { response: "Mission Aborted: Resonance Failure.", reports: this.reports, provider: 'local', context: state.context };
     }
+    state.context.resonance = resResult.data;
 
-    // 2. Research Worker
-    const researchResult = await this.executePhase('research', input, state);
-    if (researchResult.updated_state) state = researchResult.updated_state;
-    this.reports.push(researchResult.report);
-
-    if (!researchResult.success) {
-      return { response: "Mission Aborted: Research Failure.", reports: this.reports, context: state.context };
+    // 2. Research Phase
+    const reschResult = await this.executePhase('research', input, state, options.mock);
+    if (reschResult.updated_state) state = reschResult.updated_state;
+    this.reports.push(reschResult.report);
+    if (!reschResult.success) {
+      await TawbahLoop.run();
+      return { response: "Mission Aborted: Research Failure.", reports: this.reports, provider: 'local', context: state.context };
     }
+    state.context.research = reschResult.data;
 
-    // 3. Validation Worker
-    const valResult = await this.executePhase('validation', input, state);
+    // 3. Validation Phase
+    const valResult = await this.executePhase('validation', input, state, options.mock);
     if (valResult.updated_state) state = valResult.updated_state;
     this.reports.push(valResult.report);
-
     if (!valResult.success) {
-      return { response: `Mission Aborted: Dastur Violation. ${valResult.error}`, reports: this.reports, context: state.context };
+      await TawbahLoop.run();
+      return { response: "Mission Aborted: Validation Failure.", reports: this.reports, provider: 'local', context: state.context };
     }
+    state.context.validation = valResult.data;
 
     // 4. Execution Worker
-    const execResult = await this.executePhase('execution', input, state);
+    const execResult = await this.executePhase('execution', input, state, options.mock);
     if (execResult.updated_state) state = execResult.updated_state;
     this.reports.push(execResult.report);
+    if (!execResult.success) {
+      IQRALogger.error(`❌ [MISSION_CONTROL] Execution Phase Failed: ${execResult.error}`);
+      await TawbahLoop.run();
+      return { response: `Mission Failed: ${execResult.error}`, reports: this.reports, provider: 'local', context: state.context };
+    }
+    state.context.execution = execResult.data;
 
     IQRALogger.info('🏁 [MISSION_CONTROL] Chain completed successfully.');
+
+    // Determine last provider used
+    const lastReport = this.reports[this.reports.length - 1];
+    const lastProvider = (lastReport as any).model_metadata?.provider || 'local';
 
     // ── بناء PathKey ومنح المكافأة ────────────────────────────────────────
     const pathKey = RewardEngine.buildPathKey(this.reports);
@@ -320,8 +349,9 @@ export class MissionControl {
     );
 
     return {
-      response: execResult.data || "Processing complete.",
+      response: execResult?.data || "Processing complete.",
       reports: this.reports,
+      provider: lastProvider || 'local',
       context: {
         ...state.context,
         reward: rewardEntry,

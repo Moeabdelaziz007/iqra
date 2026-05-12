@@ -47,6 +47,36 @@ export interface CycleMetadata {
   history: string[];       // سجل الانتقالات بين العمال
 }
 
+export interface ContextSnapshot {
+  resonance_score: number;
+  novelty_score: number;
+  curiosity_score?: number;
+  topology_state?: string;
+}
+
+export interface MissionHandoff {
+  mission_id: string;
+  from_worker: string;
+  to_worker: string;
+  timestamp: number;
+  intent: string;
+  context_snapshot?: ContextSnapshot;
+  artifacts: string[];
+  pending_tasks: string[];
+  known_issues: string[];
+  validation_gates?: string[];
+  validation_rules: string[];
+  context_data: Record<string, any>;
+  reasoning_log?: string;
+  
+  // Backward compatibility fields
+  source_worker?: string;
+  target_worker?: string;
+  reason?: string;
+  data?: Record<string, any>;
+  priority?: number;
+}
+
 export interface MissionContext {
   missionId: string;
   scope: MissionScope;

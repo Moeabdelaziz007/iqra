@@ -22,6 +22,7 @@
       "#manifest/*": ["./src/lib/iqra/00-manifest/*"],
       "#core/*": ["./src/lib/iqra/01-core/*"],
       "#iqra-core/*": ["./src/lib/iqra/01-core/*"],
+      "#errors/*": ["./src/lib/iqra/01-core/*"],
       "#orchestrator/*": ["./src/lib/iqra/01-core/*"],
       "#workers/*": ["./src/lib/iqra/02-workers/*"],
       "#memory/*": ["./src/lib/iqra/03-memory/*"],

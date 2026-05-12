@@ -158,6 +158,8 @@ export async function iqraThink({
   context?: any;
   options?: Record<string, any>;
 }): Promise<{ response: string; provider: string; reports?: any[] }> {
+  console.log('🚀 [DEBUG] iqraThink started with input:', input);
+  console.log('🛠️ [DEBUG] options:', JSON.stringify(options));
   
   // 1. Soul Injection Validation
   if (!validateSoulInjection(FULL_SYSTEM_PROMPT)) {
@@ -193,12 +195,33 @@ export async function iqraThink({
   const { MissionControl } = await import('#core/sovereign_orchestrator');
   const missionControl = new MissionControl();
   
-  // Execute full mission
-  const result = await missionControl.run(input);
-  
-  return {
-    response: result.response,
-    provider: result.provider,
-    reports: result.reports
+  // Convert test-specific mock_workers to orchestrator mock option
+  const runOptions = {
+    ...options,
+    mock: options.mock_workers || options.mock || false
   };
+
+  // Execute full mission
+  const result = await missionControl.run(input, runOptions);
+  
+  if (!result) {
+    IQRALogger.error('❌ [BRAIN] MissionControl.run returned null/undefined');
+    return { response: '⚠️ حدث خطأ داخلي في نظام التحكم', provider: 'orchestrator' };
+  }
+
+  // Safety check and debug logs for execution result
+  if (typeof result !== 'object') {
+    IQRALogger.error('❌ [BRAIN] MissionControl result is not an object');
+  } else {
+    IQRALogger.info(`🔍 [BRAIN] Result structure validated: provider=${result.provider}`);
+  }
+
+  const finalResult = {
+    response: result.response || "No response generated.",
+    provider: result.provider || "unknown",
+    reports: result.reports || []
+  };
+
+  console.log('🏁 [DEBUG] iqraThink finished with response length:', finalResult.response.length);
+  return finalResult;
 }
