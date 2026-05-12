@@ -91,12 +91,15 @@ export interface MissionHandoff extends IQRAExchange {
 export function makeWorkerReport(
   mission_id: string,
   worker_id: string,
-  provider: string
+  provider: string,
+  intent: string = '',
+  context_snapshot: ContextSnapshot = { resonance_score: 1.0, novelty_score: 0.0 },
+  artifacts: string[] = []
 ): WorkerReport {
   return {
     mission_id,
     timestamp: Date.now(),
-    intent: '',
+    intent,
     worker_id,
     implemented: [],
     undone: [],
@@ -108,8 +111,8 @@ export function makeWorkerReport(
     exit_code: 0,
     source_attestations: [],
     no_mock_verified: provider !== 'simulated',
-    artifacts: [],
-    context_snapshot: { resonance_score: 1.0, novelty_score: 0.0 }
+    artifacts,
+    context_snapshot
   };
 }
 

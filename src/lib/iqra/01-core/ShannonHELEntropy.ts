@@ -5,15 +5,13 @@
  * Quranic signature patterns (H_EL < 0.9685 bits)
  */
 
-export interface EntropyResult {
-  value: number;
-  isQuranic: boolean;
-  confidence: number;
-  metadata: {
-    characterCount: number;
-    uniqueChars: number;
-    distribution: Map<string, number>;
-  };
+export interface ShannonEntropyResult {
+  shannonEntropy: number;
+  lastLetterEntropy: number;
+  fractalDimension: number;
+  informationDensity: number;
+  compressionRatio: number;
+  quranicResonance: number;
 }
 
 export class ShannonHELEntropy {

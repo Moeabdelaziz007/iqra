@@ -7,16 +7,19 @@
 
 export interface QalbinNode {
   id: string;
-  value: number;
+  value: string | number;
   connections: string[];
-  type: 'verse' | 'word' | 'pattern';
+  type: 'verse' | 'word' | 'pattern' | 'letter';
+  resonance: number;
+  depth: number;
 }
 
 export interface TopologicalSignature {
   nodes: QalbinNode[];
   edges: Array<{ from: string; to: string; weight: number }>;
-  dimension: number;
-  integrity: number;
+  resonance: number;
+  depth: number;
+  complexity: number;
 }
 
 export class QalbinVM {
