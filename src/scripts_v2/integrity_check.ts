@@ -9,7 +9,7 @@ import { execSync } from 'child_process';
  * المرجع: !IQRA_SUPREME.md - "لا كذب، لا Mock، لا اختراع".
  */
 
-const TARGET_DIRS = ['lib/iqra', 'scripts', 'orchestrator', 'workers'];
+const TARGET_DIRS = ['src/lib/iqra', 'src/scripts_v2', 'runtime', 'src/worker.ts'];
 const FORBIDDEN_STRINGS = ['mock', '<<<<<<<', '=======', '>>>>>>>'];
 
 async function runIntegrityCheck() {

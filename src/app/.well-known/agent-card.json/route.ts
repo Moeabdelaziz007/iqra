@@ -1,15 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { resolveBaseUrl } from '../../_utils/http';
 
-function resolveBaseUrl(req: NextRequest): string {
-  const explicit = process.env.NEXT_PUBLIC_APP_URL?.trim();
-  if (explicit) return explicit.replace(/\/$/, '');
-
-  const host = req.headers.get('host') || 'localhost:3000';
-  const proto = host.includes('localhost') ? 'http' : 'https';
-  return `${proto}://${host}`;
-}
-
-export function GET(req: NextRequest) {
+export async function GET(req: NextRequest) {
   const baseUrl = resolveBaseUrl(req);
 
   return NextResponse.json({

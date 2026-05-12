@@ -85,7 +85,7 @@ export class TadabburLoop {
 
   private static async invokePythonHunter(surah: number, ayahs: any[]): Promise<any> {
     return new Promise((resolve, reject) => {
-      const pythonProcess = spawn('python3', [path.join(process.cwd(), 'scripts/resonance_hunter.py')]);
+      const pythonProcess = spawn('python3', [path.join(process.cwd(), 'src/scripts_v2/resonance_hunter.py')]);
       
       const aixPacket = {
         header: { mission_id: "mission-001", stage: "Niyyah" },

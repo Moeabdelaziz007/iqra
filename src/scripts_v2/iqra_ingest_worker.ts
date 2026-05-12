@@ -1,1 +1,3 @@
-export default {};
+const iqraIngestWorker = {};
+
+export default iqraIngestWorker;

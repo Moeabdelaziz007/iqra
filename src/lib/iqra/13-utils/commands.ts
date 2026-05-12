@@ -17,7 +17,7 @@ export class IQRACommands {
    */
   static getStatus() {
     try {
-      const metrics = execSync('./scripts/iqra_status.sh').toString();
+      const metrics = execSync('./src/scripts_v2/iqra_status.sh').toString();
       const honestyIndex = this.calculateHonestyIndex();
       const topologicalCurvature = this.calculateTopologicalCurvature();
       const recommendation = this.getRecommendation(metrics);
@@ -47,7 +47,7 @@ ${recommendation.desc}
 أعلم أن الله يراني. أسعى للإتقان والبركة في كل سطر.
       `.trim();
     } catch (error) {
-      return "❌ فشل في جلب الحالة. تأكد من وجود scripts/iqra_status.sh";
+      return "❌ فشل في جلب الحالة. تأكد من وجود src/scripts_v2/iqra_status.sh";
     }
   }
 

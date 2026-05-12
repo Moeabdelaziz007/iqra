@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 /**
  * 🚀 IQRA Mission CLI — واجهة تشغيل المهام
- * الاستخدام: npx tsx scripts/run_mission.ts [mission-scope.yml]
+ * الاستخدام: npx tsx src/scripts_v2/run_mission.ts [mission-scope.yml]
  * المرجع: "اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ" — العلق: 1
  */
 
@@ -13,7 +13,7 @@ import { runMission } from '#core/mission-runner';
 
 config({ path: path.join(process.cwd(), '.env') });
 
-const missionFile = process.argv[2] || 'mission-scope.yml';
+const missionFile = process.argv[2] || 'src/lib/iqra/01-core/missions/config/mission-scope.yml';
 const missionPath = path.resolve(missionFile);
 
 if (!fs.existsSync(missionPath)) {

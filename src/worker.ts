@@ -43,7 +43,7 @@ function injectEnv(env: Env) {
   Object.assign(process.env, env);
 }
 
-export default {
+const worker = {
   /**
    * HTTP Handler (Webhook endpoint)
    * This handles incoming Telegram messages
@@ -143,3 +143,5 @@ export default {
     }
   }
 };
+
+export default worker;

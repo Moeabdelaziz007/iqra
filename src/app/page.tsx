@@ -125,7 +125,7 @@ export default function Home() {
             {echoes.map((echo, i) => (
               <div key={i} className="glass-surface iqra-padding" style={{ fontSize: '0.9rem' }}>
                 <p style={{ opacity: 0.8, fontStyle: 'italic' }}>
-                  &quot;{echo.content.substring(0, 150)}...&quot;
+                  &ldquo;{echo.content.substring(0, 150)}...&rdquo;
                 </p>
                 <div style={{ marginTop: '1rem', fontSize: '0.7rem', color: 'var(--iqra-neon)' }}>
                   RELEVANCE: {(echo.score || 0.8).toFixed(2)}

@@ -1,5 +1,5 @@
-import { getPiValidationKeyResponse } from '../_shared/pi-validation-key';
+import { piValidationKeyResponse } from '../_utils/http';
 
-export function GET() {
-  return getPiValidationKeyResponse();
+export async function GET() {
+  return piValidationKeyResponse();
 }

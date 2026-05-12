@@ -75,12 +75,13 @@ function toGraphML(
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => null);
-  const parsed = RequestSchema.safeParse(body || {});
-
+  const parsed = RequestSchema.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) {
     return NextResponse.json(
-      { error: 'Invalid topology payload', details: parsed.error.flatten() },
+      {
+        error: 'Invalid topology payload',
+        details: parsed.error.flatten(),
+      },
       { status: 400 },
     );
   }
@@ -141,12 +142,14 @@ export async function POST(req: NextRequest) {
 
     if (data.exportFormat === 'csv') {
       return new NextResponse(toCsv(payload.hiddenLayerIds, payload.hiddenPatterns), {
+        status: 200,
         headers: { 'Content-Type': 'text/csv; charset=utf-8' },
       });
     }
 
     if (data.exportFormat === 'graphml') {
       return new NextResponse(toGraphML(data, hiddenLayerIds, hiddenNodeIds), {
+        status: 200,
         headers: { 'Content-Type': 'application/graphml+xml; charset=utf-8' },
       });
     }
