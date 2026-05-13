@@ -937,9 +937,12 @@ describe('regression — .iqra/scripts/ shebang is correct', () => {
   ];
 
   for (const script of SCRIPTS) {
-    it(`${path.basename(script)} starts with npx tsx shebang`, () => {
+    it(`${path.basename(script)} starts with executable tsx shebang`, () => {
       const firstLine = readText(script).split('\n')[0];
-      expect(firstLine).toBe('#!/usr/bin/env npx tsx');
+      // 🤖 NOTE: نقبل صيغة `env -S npx tsx` فقط — الصيغة الوحيدة القابلة
+      // للتنفيذ المباشر على Linux (GNU env يحتاج -S لتقسيم args).
+      // الصيغة القديمة `env npx tsx` كانت تفشل بـ "No such file or directory".
+      expect(firstLine).toBe('#!/usr/bin/env -S npx tsx');
     });
   }
 });
