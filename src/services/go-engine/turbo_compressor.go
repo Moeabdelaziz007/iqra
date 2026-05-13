@@ -53,13 +53,17 @@ func TurboQuantCompress(embedding []float64, bits int) TurboQuantResult {
 				nearest = j
 			}
 		}
+		// See DecompressTurboQuant for the int8/uint8 reinterpret-cast
+		// rationale: storing codebook indices > 127 in int8 is fine on
+		// the wire, but we must round-trip via uint8 when indexing back.
 		compressed[i] = int8(nearest)
 	}
 
-	// 4. Calculate reconstruction error
+	// 4. Calculate reconstruction error using the same uint8-reinterpret
+	// path that DecompressTurboQuant uses, so the round-trip is honest.
 	reconstructed := make([]float64, len(embedding))
 	for i, idx := range compressed {
-		reconstructed[i] = codebook[idx]
+		reconstructed[i] = codebook[uint8(idx)]
 	}
 	reconError := meanSquaredError(embedding, reconstructed)
 
@@ -137,11 +141,20 @@ func QJLCompress(embedding []float64) []int8 {
 }
 
 // DecompressTurboQuant reconstructs embedding from compressed form
+// DecompressTurboQuant reverses TurboQuantCompress. The compressed field
+// is typed as []int8 for JSON compactness, but TurboQuantCompress stores
+// codebook indices in 0..2^bits-1; for bits=8 the index range is 0..255
+// which does NOT fit in int8 (max 127). The on-disk byte representation
+// is identical between int8 and uint8, so we reinterpret-cast each entry
+// via uint8(idx) before indexing the codebook. Without this conversion
+// any 8-bit compression with an index >= 128 would panic on lookup with
+// "index out of range [-N]".
 func DecompressTurboQuant(compressed []int8, codebook []float64) []float64 {
 	reconstructed := make([]float64, len(compressed))
 	for i, idx := range compressed {
-		if int(idx) < len(codebook) {
-			reconstructed[i] = codebook[idx]
+		ui := uint8(idx) // reinterpret the int8 byte as an unsigned index
+		if int(ui) < len(codebook) {
+			reconstructed[i] = codebook[ui]
 		}
 	}
 	return reconstructed
