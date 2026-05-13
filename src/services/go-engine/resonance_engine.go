@@ -24,7 +24,9 @@ var sacredConstants = map[string]int{
 	"NINE":     9,
 }
 
-// CalculateResonance performs real-time analysis of text for Quranic symmetries
+// CalculateResonance analyzes Arabic text for numeric and semantic patterns and returns a ResonanceResult describing discovered patterns, letter/word counts, and a coherence score.
+// 
+// It computes letter and word counts (letters counted after removing Arabic diacritics), detects divisibility-based pattern labels for both counts using package constants, and detects predefined semantic opposite pairs which increase coherence and add a "MIZAN_BALANCE" pattern. If the letter count is prime a "PRIME_SOVEREIGNTY" pattern is added. The coherence score is derived from the number of discovered patterns (with caps applied) and DiscoveryFound is set when any pattern is present.
 func CalculateResonance(text string) ResonanceResult {
 	result := ResonanceResult{
 		Patterns: []string{},
@@ -91,10 +93,13 @@ var arabicDiacriticsRE = regexp.MustCompile(
 	`[\x{064B}-\x{065F}\x{0670}\x{06D6}-\x{06DC}\x{06DF}-\x{06E4}\x{06E7}\x{06E8}\x{06EA}-\x{06ED}]`,
 )
 
+// removeArabicDiacritics removes Arabic diacritic and annotation characters from the input string.
 func removeArabicDiacritics(text string) string {
 	return arabicDiacriticsRE.ReplaceAllString(text, "")
 }
 
+// countLetters returns the number of Unicode letters in text.
+// The returned value is the count of runes for which unicode.IsLetter reports true.
 func countLetters(text string) int {
 	count := 0
 	for _, r := range text {
