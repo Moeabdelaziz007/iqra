@@ -35,9 +35,10 @@ async function benchmark() {
   const mockAI = {
     run: async (model: string, input: any) => {
       aiCalls++;
-      const count = input.text ? input.text.length : 1;
+      const text = input?.text;
+      const count = Array.isArray(text) ? text.length : 1;
       await new Promise(r => setTimeout(r, 20 * count));
-      return { data: Array(count).fill(Array(384).fill(0.1)) };
+      return { data: Array.from({ length: count }, () => Array(384).fill(0.1)) };
     }
   };
 
@@ -49,11 +50,18 @@ async function benchmark() {
 
   const startTime = Date.now();
 
-  const originalFetch = global.fetch;
-  global.fetch = async (url: string) => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url =
+      typeof input === 'string'
+        ? input
+        : input instanceof URL
+          ? input.toString()
+          : input.url;
+
     if (url.includes('api.alquran.cloud')) {
-      return {
-        json: async () => ({
+      return new Response(
+        JSON.stringify({
           data: {
             surahs: Array.from({ length: 5 }, (_, s) => ({
               number: s + 1,
@@ -64,16 +72,17 @@ async function benchmark() {
               }))
             }))
           }
-        })
-      } as any;
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } }
+      );
     }
-    return originalFetch(url);
-  };
+    return originalFetch(input, init);
+  }) as typeof fetch;
 
   try {
     await ingestQuran(env);
   } finally {
-    global.fetch = originalFetch;
+    globalThis.fetch = originalFetch;
   }
 
   const endTime = Date.now();
