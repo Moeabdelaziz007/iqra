@@ -63,7 +63,10 @@ export class InverseDesign {
     };
     const action = this.propose(sig);
 
-    const header = `// IQRA Tawbah binder — designed ${new Date().toISOString()}\n// Action: ${action.kind} — ${action.reason}\n`;
+    // Deterministic header (no wall-clock timestamp). Two runs of the
+    // binder on identical input produce byte-identical output, which
+    // matters when the binder text is canonicalized + signed downstream.
+    const header = `// IQRA Tawbah binder — deterministic design\n// Action: ${action.kind} — ${action.reason}\n`;
 
     switch (action.kind) {
       case 'halt':
