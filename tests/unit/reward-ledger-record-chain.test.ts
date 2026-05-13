@@ -91,3 +91,73 @@ describe('RewardLedger — sync record() participates in the hash chain', () => 
     expect(result.total_entries).toBe(3);
   });
 });
+
+describe('RewardLedger codex P1 regressions', () => {
+  let tp: string;
+  let restore: () => void;
+
+  beforeEach(() => {
+    tp = tempPath();
+    const original = RewardLedger.LEDGER_PATH;
+    RewardLedger.LEDGER_PATH = tp;
+    restore = () => { RewardLedger.LEDGER_PATH = original; };
+  });
+
+  afterEach(() => {
+    restore();
+    if (fs.existsSync(tp)) fs.unlinkSync(tp);
+  });
+
+  it('verifyIntegrity() fails loudly on a malformed JSONL line', async () => {
+    await RewardLedger.append(fullAppendEntry({ mission_id: 'good' }));
+    // Append a corrupt second line directly to the file. The original
+    // bug was that getAll() would silently drop this and the chain
+    // would still report "valid".
+    fs.appendFileSync(tp, '{this is not json}\n', 'utf-8');
+    const result = await RewardLedger.verifyIntegrity();
+    expect(result.valid).toBe(false);
+    expect(result.broken_chain_at).toBe(1);
+    expect(result.message).toMatch(/malformed JSON/);
+  });
+
+  it('entry_hash covers nested reward_vector fields', async () => {
+    await RewardLedger.append(fullAppendEntry({ mission_id: 'nested' }));
+    // Tamper a nested field. With the old top-level-keys canonicaliser
+    // this slipped through; with recursive canonicalisation it must
+    // break the chain.
+    const lines = fs.readFileSync(tp, 'utf-8').trim().split('\n');
+    const entry = JSON.parse(lines[0]);
+    entry.reward_vector.novelty = 0.999;
+    fs.writeFileSync(tp, JSON.stringify(entry) + '\n', 'utf-8');
+    const result = await RewardLedger.verifyIntegrity();
+    expect(result.valid).toBe(false);
+    expect(result.broken_chain_at).toBe(0);
+  });
+
+  it('append() rejects path_multiplier outside [1, 3]', async () => {
+    await expect(
+      RewardLedger.append(fullAppendEntry({ path_multiplier: 0 })),
+    ).rejects.toThrow(/LEDGER_ERR: path_multiplier/);
+    await expect(
+      RewardLedger.append(fullAppendEntry({ path_multiplier: 4 })),
+    ).rejects.toThrow(/LEDGER_ERR: path_multiplier/);
+  });
+
+  it('append() rejects anomaly_score outside [0, 1]', async () => {
+    await expect(
+      RewardLedger.append(fullAppendEntry({ anomaly_score: -0.1 })),
+    ).rejects.toThrow(/LEDGER_ERR: anomaly_score/);
+    await expect(
+      RewardLedger.append(fullAppendEntry({ anomaly_score: 1.5 })),
+    ).rejects.toThrow(/LEDGER_ERR: anomaly_score/);
+  });
+
+  it('append() accepts boundary values for the new range checks', async () => {
+    await expect(
+      RewardLedger.append(fullAppendEntry({ path_multiplier: 1, anomaly_score: 0 })),
+    ).resolves.toBeUndefined();
+    await expect(
+      RewardLedger.append(fullAppendEntry({ path_multiplier: 3, anomaly_score: 1 })),
+    ).resolves.toBeUndefined();
+  });
+});

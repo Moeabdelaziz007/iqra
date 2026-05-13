@@ -305,18 +305,61 @@ export class RewardLedger {
     if (!entry.validation_status) {
       throw new Error('LEDGER_ERR: validation_status is required');
     }
+    // Parity with ledger/reward-ledger.ts::_validateEntry. Without
+    // these range checks, append() would accept out-of-range
+    // metadata that the legacy sync ledger has always rejected.
+    if (
+      entry.path_multiplier !== undefined &&
+      (entry.path_multiplier < 1 || entry.path_multiplier > 3)
+    ) {
+      throw new Error(
+        `LEDGER_ERR: path_multiplier must be between 1 and 3, got ${entry.path_multiplier}`,
+      );
+    }
+    if (
+      entry.anomaly_score !== undefined &&
+      (entry.anomaly_score < 0 || entry.anomaly_score > 1)
+    ) {
+      throw new Error(
+        `LEDGER_ERR: anomaly_score must be between 0 and 1, got ${entry.anomaly_score}`,
+      );
+    }
+  }
+
+  /**
+   * Canonicalise a value for hashing: recursively sort object keys
+   * so the produced string is stable regardless of insertion order,
+   * and so nested objects (e.g. `reward_vector.novelty`) actually
+   * contribute to the hash. JSON.stringify with an array replacer
+   * only whitelists top-level keys at every depth, which would let
+   * a tamper of `reward_vector.novelty` slip through unnoticed.
+   */
+  private static _canonicalise(value: unknown): unknown {
+    if (Array.isArray(value)) {
+      return value.map(v => this._canonicalise(v));
+    }
+    if (value !== null && typeof value === 'object') {
+      const obj = value as Record<string, unknown>;
+      const sorted: Record<string, unknown> = {};
+      for (const key of Object.keys(obj).sort()) {
+        sorted[key] = this._canonicalise(obj[key]);
+      }
+      return sorted;
+    }
+    return value;
   }
 
   /**
    * Compute the deterministic content hash for an entry. The hash
    * input is the canonical JSON serialisation of the entry with
    * `entry_hash` stripped (we are computing it) but `prev_hash`
-   * included, so any tamper of either field breaks the chain.
+   * included, so any tamper of either field breaks the chain. The
+   * canonicaliser recurses into nested objects (notably
+   * `reward_vector`) so inner-field tampering is also detected.
    */
   private static _hashEntry(entry: RewardEntry): string {
     const { entry_hash: _omit, ...payload } = entry;
-    const keys = Object.keys(payload).sort();
-    const canonical = JSON.stringify(payload, keys);
+    const canonical = JSON.stringify(this._canonicalise(payload));
     return crypto.createHash('sha256').update(canonical).digest('hex');
   }
 
@@ -391,7 +434,45 @@ export class RewardLedger {
     broken_chain_at: number | null;
     message: string;
   }> {
-    const entries = await this.getAll();
+    // Read strictly: `getAll()` skips malformed lines, which is the
+    // right behaviour for query/summary callers but the wrong
+    // behaviour for an integrity check. Here we parse every non-empty
+    // line and fail loudly on the first one that does not deserialise,
+    // so a truncated trailing line cannot turn an actually-corrupt
+    // ledger into a "valid" report.
+    if (!fs.existsSync(this.LEDGER_PATH)) {
+      return {
+        valid: true,
+        total_entries: 0,
+        broken_chain_at: null,
+        message: 'Ledger is empty',
+      };
+    }
+    let content: string;
+    try {
+      content = fs.readFileSync(this.LEDGER_PATH, 'utf-8');
+    } catch (err) {
+      return {
+        valid: false,
+        total_entries: 0,
+        broken_chain_at: null,
+        message: `Cannot read ledger: ${(err as Error).message}`,
+      };
+    }
+    const rawLines = content.split('\n').filter(l => l.trim().length > 0);
+    const entries: RewardEntry[] = [];
+    for (let i = 0; i < rawLines.length; i++) {
+      try {
+        entries.push(JSON.parse(rawLines[i]) as RewardEntry);
+      } catch (err) {
+        return {
+          valid: false,
+          total_entries: rawLines.length,
+          broken_chain_at: i,
+          message: `Chain broken at entry ${i}: malformed JSON (${(err as Error).message})`,
+        };
+      }
+    }
     if (entries.length === 0) {
       return {
         valid: true,
