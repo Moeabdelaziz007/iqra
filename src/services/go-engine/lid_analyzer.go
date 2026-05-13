@@ -97,7 +97,8 @@ func euclideanDistance(a, b []float64) float64 {
 	return math.Sqrt(sum)
 }
 
-// variance calculates variance of a slice
+// variance computes the population variance of the values in data.
+// If data is empty, it returns 0.
 func variance(data []float64) float64 {
 	if len(data) == 0 {
 		return 0
@@ -115,11 +116,4 @@ func variance(data []float64) float64 {
 		variance += diff * diff
 	}
 	return variance / float64(len(data))
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }

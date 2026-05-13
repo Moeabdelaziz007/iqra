@@ -1,0 +1,69 @@
+name: Go Engine CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/services/go-engine/**'
+      - '.github/workflows/go-engine-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/services/go-engine/**'
+      - '.github/workflows/go-engine-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Go build + vet + test (race + cover)
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    defaults:
+      run:
+        working-directory: src/services/go-engine
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          # Pinned to the version declared in src/services/go-engine/go.mod.
+          # Bumping the floor here MUST go hand-in-hand with bumping go.mod.
+          go-version: '1.23'
+          cache: true
+          cache-dependency-path: src/services/go-engine/go.sum
+
+      - name: Verify go.mod is tidy
+        run: |
+          go mod tidy
+          if [ -n "$(git status --porcelain go.mod go.sum 2>/dev/null)" ]; then
+            echo "::error::go.mod or go.sum is not tidy. Run \`go mod tidy\` locally and commit the result."
+            git diff go.mod go.sum
+            exit 1
+          fi
+
+      - name: Build
+        run: go build ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test (race + coverage)
+        run: |
+          go test -race -coverprofile=coverage.out -covermode=atomic ./...
+          go tool cover -func=coverage.out | tail -1
+
+      - name: Reject committed binaries
+        run: |
+          # Defence-in-depth: even with .gitignore, fail CI if anyone
+          # ever re-commits a compiled binary. Patterns mirror the
+          # entries in the repo-root .gitignore for src/services/go-engine.
+          shopt -s nullglob
+          for f in go-engine iqra-engine engine *.exe *.test; do
+            if [ -f "$f" ] && file "$f" | grep -qE 'ELF|Mach-O|PE32'; then
+              echo "::error::Compiled binary $f committed to the repo. Delete it; CI builds the binary on-demand."
+              exit 1
+            fi
+          done
