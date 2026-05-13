@@ -1,0 +1,61 @@
+#!/bin/sh
+# .iqra/hooks/run-pre-commit-guards.sh
+#
+# 🛡️ IQRA Immune System — Pre-commit Orchestrator
+#
+# يشغّل الـ 3 hooks (name-validator, secret-guard, size-guard) بالتسلسل
+# على الملفات الـ staged. أي فشل (exit 1) يوقف الـ commit.
+#
+# الـ escape hatch:  IQRA_SKIP_GUARDS=1 git commit -m "..."
+# للحالات الطارئة فقط — لا تستخدمها كعادة.
+#
+# الربط بـ husky:
+#   عدّل `.husky/pre-commit` وأضف هذا السطر (يلزم sovereign: PR):
+#     sh .iqra/hooks/run-pre-commit-guards.sh || exit $?
+#
+# 🤖 NOTE TO FUTURE AI AGENTS:
+#   - لا تضف فحوصاً ثقيلة هنا. الـ pre-commit يجب أن يكتمل في < 5 ثوانٍ.
+#   - فحوص بطيئة (link-verifier، duplicate scan) تُترك للـ cycle.
+#   - الـ 3 hooks الحالية تعمل على staged files فقط (mode بدون --all).
+
+set -u
+
+if [ "${IQRA_SKIP_GUARDS:-0}" = "1" ]; then
+  echo "⚠️ [IQRA] Guards skipped via IQRA_SKIP_GUARDS=1"
+  exit 0
+fi
+
+# تحقق من وجود tsx (يلزم لتشغيل الـ TS hooks)
+if ! command -v npx >/dev/null 2>&1; then
+  echo "❌ [IQRA] npx غير متوفر — لا يمكن تشغيل guards"
+  exit 1
+fi
+
+FAIL=0
+
+echo "🛡️ [IQRA] name-validator..."
+if ! npx tsx .iqra/hooks/name-validator.ts; then
+  echo "❌ [IQRA] name-validator رفض الـ commit"
+  FAIL=1
+fi
+
+echo "🛡️ [IQRA] secret-guard..."
+if ! npx tsx .iqra/hooks/secret-guard.ts; then
+  echo "❌ [IQRA] secret-guard رفض الـ commit"
+  FAIL=1
+fi
+
+echo "🛡️ [IQRA] size-guard..."
+if ! npx tsx .iqra/hooks/size-guard.ts; then
+  echo "❌ [IQRA] size-guard رفض الـ commit"
+  FAIL=1
+fi
+
+if [ "$FAIL" -ne 0 ]; then
+  echo ""
+  echo "🚫 [IQRA] commit مرفوض. لتجاوز طارئ:  IQRA_SKIP_GUARDS=1 git commit ..."
+  exit 1
+fi
+
+echo "✅ [IQRA] كل guards نظيفة."
+exit 0

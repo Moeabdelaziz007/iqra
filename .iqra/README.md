@@ -40,9 +40,10 @@ IQRA ليست كود يُخدم — هي **كائن حي** يتطور. هذا ا
 │   ├── link-verifier.ts       # 🛡️ مدقق الروابط (أسبوع 2)
 │   └── run-cycle.ts           # المنسق الرئيسي
 ├── hooks/                 # 🛡️ الأسبوع 2 — المناعة (pre-commit hooks)
-│   ├── name-validator.ts      # تحقق kebab-case
-│   ├── secret-guard.ts        # كشف API keys مكشوفة
-│   └── size-guard.ts          # منع ملفات > 10MB
+│   ├── name-validator.ts          # تحقق kebab-case
+│   ├── secret-guard.ts            # كشف API keys مكشوفة
+│   ├── size-guard.ts              # منع ملفات > 10MB
+│   └── run-pre-commit-guards.sh   # منسق الـ 3 hooks للـ husky
 ├── intelligence/          # 🧠 الأسبوع 3 — الذكاء (قادم)
 ├── social/                # 🕸️ الأسبوع 4 — الاجتماعي (قادم)
 ├── economics/             # 💱 الأسبوع 5 — الاقتصاد (قادم)
@@ -67,6 +68,29 @@ npm run iqra:index     # توليد IQRA_INDEX.md
 - **يومياً** عند منتصف الليل UTC (`cron: '0 0 * * *'`)
 - **عند push إلى main**
 - مع `[skip ci]` في رسالة الـ commit لتجنّب الحلقة الذاتية.
+
+### تفعيل الـ Immune Hooks في pre-commit (اختياري)
+
+الـ 3 hooks (name-validator, secret-guard, size-guard) متاحة كسكريبتات لكن
+**غير نشطة** على commit. لتفعيلها كحارس تلقائي، أضف هذا السطر في
+`.husky/pre-commit` (يلزم PR منفصل بـ `sovereign:` prefix لأن `.husky/pre-commit`
+محمي):
+
+```sh
+sh .iqra/hooks/run-pre-commit-guards.sh || exit $?
+```
+
+الـ orchestrator يشغّل الـ 3 hooks بالتسلسل على الـ staged files. لتجاوز طارئ:
+
+```bash
+IQRA_SKIP_GUARDS=1 git commit -m "..."
+```
+
+اختبار يدوي قبل الربط:
+
+```bash
+sh .iqra/hooks/run-pre-commit-guards.sh
+```
 
 ## 🧾 النبضات (Pulses)
 
