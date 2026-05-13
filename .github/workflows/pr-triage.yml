@@ -16,6 +16,11 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  # actions/labeler@v5 needs issues: write to create any area:* label
+  # that does not already exist in the repo. Without this, the first
+  # run that encounters a missing label fails with "Resource not
+  # accessible by integration" and the labels silently degrade.
+  issues: write
 
 jobs:
   triage:

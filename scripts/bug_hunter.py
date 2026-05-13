@@ -45,10 +45,23 @@ STOP = {"the", "a", "an", "of", "for", "in", "on", "and", "or", "to",
 
 
 def _git(*args: str) -> str:
-    try:
-        return subprocess.check_output(["git", "-C", str(ROOT), *args], text=True)
-    except subprocess.CalledProcessError:
-        return ""
+    """
+    Run a git subcommand and return stdout. Raises RuntimeError on
+    non-zero exit so a transient git failure cannot be turned into
+    an empty "0 fix commits" report that silently lands on main.
+    """
+    proc = subprocess.run(
+        ["git", "-C", str(ROOT), *args],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if proc.returncode != 0:
+        raise RuntimeError(
+            f"git {' '.join(args)} failed (exit {proc.returncode}): "
+            f"{proc.stderr.strip()}"
+        )
+    return proc.stdout
 
 
 def _window(today: date) -> tuple[date, date, str]:
@@ -171,7 +184,11 @@ def _render(label: str, commits: list[tuple[str, str, list[str]]],
 def main() -> int:
     today = date.today()
     since, until, label = _window(today)
-    commits = _fix_commits(since, until)
+    try:
+        commits = _fix_commits(since, until)
+    except RuntimeError as exc:
+        print(f"Bug Hunter: {exc}", file=sys.stderr)
+        return 1
     files, words = _summary(commits)
     SIGNALS.mkdir(parents=True, exist_ok=True)
     target = SIGNALS / f"bug-hunter-{label}.md"
