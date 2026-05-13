@@ -24,7 +24,9 @@ name: 🛡️ Agent PR Guard
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, edited]
+    # 🤖 NOTE: labeled/unlabeled مدرجان لإعادة تشغيل الـ guard تلقائياً
+    # عند إضافة 'sovereign-approved' (المراجع لا يحتاج push يدوي ليُعاد فحص الـ PR).
+    types: [opened, synchronize, reopened, edited, labeled, unlabeled]
 
 permissions:
   contents: read
