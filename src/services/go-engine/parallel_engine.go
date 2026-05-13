@@ -27,15 +27,10 @@ type ParallelResult struct {
 	Error            string          `json:"error,omitempty"`
 }
 
-// minLIDCorpusSize is the minimum number of reference points required for the
-// MLE-LID estimator to produce a non-degenerate result. Below this, the LID
-// step is skipped and a warning is attached to the surah's ParallelResult.
-const minLIDCorpusSize = 8
-
 // BatchAnalysisRequest represents batch processing request.
 //
 // LID note: when EnableLID=true, the caller MUST supply ReferenceCorpus
-// containing >= minLIDCorpusSize real embeddings from the SAME model that
+// containing >= MinLIDCorpusSize real embeddings from the SAME model that
 // produced SurahData.Embedding. The previous implementation generated
 // reference embeddings synthetically by adding a uniform offset to the
 // query (`base + (i/count)*0.1*1⃗`), which placed all references on the
@@ -183,10 +178,10 @@ func processSurah(surah SurahData, req *BatchAnalysisRequest) ParallelResult {
 	// estimator returns garbage on a collinear point set (see the
 	// BatchAnalysisRequest doc comment for the full explanation).
 	if req.EnableLID && len(surah.Embedding) > 0 {
-		if len(req.ReferenceCorpus) < minLIDCorpusSize {
+		if len(req.ReferenceCorpus) < MinLIDCorpusSize {
 			result.Warnings = append(result.Warnings, fmt.Sprintf(
 				"LID skipped: needs reference_corpus with >= %d real embeddings, got %d",
-				minLIDCorpusSize, len(req.ReferenceCorpus),
+				MinLIDCorpusSize, len(req.ReferenceCorpus),
 			))
 		} else {
 			lid := CalculateLID(surah.Embedding, req.ReferenceCorpus, 7)

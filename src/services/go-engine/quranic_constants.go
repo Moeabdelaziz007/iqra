@@ -56,4 +56,11 @@ const (
 	// HighResonanceThreshold is the cut-off above which a surah is reported
 	// in AnalysisSummary.HighResonanceSurahs.
 	HighResonanceThreshold = 0.7
+
+	// MinLIDCorpusSize is the minimum number of reference points required
+	// for the MLE-LID estimator to produce a non-degenerate result. Below
+	// this, the LID step in ProcessBatchParallel is skipped and a warning
+	// is attached to the surah's ParallelResult.Warnings instead of
+	// fabricating a synthetic corpus.
+	MinLIDCorpusSize = 8
 )

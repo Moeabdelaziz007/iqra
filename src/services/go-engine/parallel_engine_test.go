@@ -57,12 +57,12 @@ func TestProcessBatchParallel_LID_SkipsWhenCorpusTooSmall(t *testing.T) {
 	req := BatchAnalysisRequest{
 		Surahs:          []SurahData{makeSurah(1, []float64{0.1, 0.2, 0.3, 0.4})},
 		EnableLID:       true,
-		ReferenceCorpus: makeCorpus(minLIDCorpusSize - 1), // 7 < 8
+		ReferenceCorpus: makeCorpus(MinLIDCorpusSize - 1), // 7 < 8
 	}
 	resp := ProcessBatchParallel(req)
 	r := resp.Results[0]
 	if r.LIDAnalysis != nil {
-		t.Errorf("LIDAnalysis must be nil when corpus is under minLIDCorpusSize")
+		t.Errorf("LIDAnalysis must be nil when corpus is under MinLIDCorpusSize")
 	}
 	if len(r.Warnings) == 0 || !strings.Contains(r.Warnings[0], "LID skipped") {
 		t.Errorf("expected size-floor warning; got %v", r.Warnings)
@@ -73,7 +73,7 @@ func TestProcessBatchParallel_LID_RunsWhenCorpusValid(t *testing.T) {
 	req := BatchAnalysisRequest{
 		Surahs:          []SurahData{makeSurah(1, []float64{0.5, -0.5, 0.25, -0.25})},
 		EnableLID:       true,
-		ReferenceCorpus: makeCorpus(minLIDCorpusSize),
+		ReferenceCorpus: makeCorpus(MinLIDCorpusSize),
 		MaxWorkers:      1,
 	}
 	resp := ProcessBatchParallel(req)
