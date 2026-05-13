@@ -23,7 +23,7 @@ import re
 import subprocess
 import sys
 from collections import Counter
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -82,10 +82,17 @@ def _fix_commits(since: date, until: date) -> list[tuple[str, str, list[str]]]:
     prefix on the metadata line keeps parsing simple regardless of
     how many files a commit touches (including zero).
     """
+    # `git log --until=<DATE>` is inclusive: a commit at exactly
+    # 00:00:00 on the first day of the new month would be counted in
+    # the previous month's report. Compute an exclusive upper bound
+    # by subtracting one second, formatted with explicit time.
+    until_ts = (datetime.combine(until, time.min) - timedelta(seconds=1)).strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
     raw = _git(
         "log",
-        f"--since={since.isoformat()}",
-        f"--until={until.isoformat()}",
+        f"--since={since.isoformat()} 00:00:00",
+        f"--until={until_ts}",
         "--pretty=format:COMMIT:%H%x09%s",
         "--name-only",
     )

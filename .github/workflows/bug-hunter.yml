@@ -61,6 +61,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add signals/
-          git commit -m "bug-hunter: monthly fix-commit analysis [skip ci]"
+          # Commit subject deliberately avoids the literal word "bug"
+          # near the start so this bot commit is not later re-ingested
+          # by _fix_commits in the next month's report. Self-feedback
+          # would otherwise inflate the hotspot count for signals/.
+          git commit -m "signals: monthly fix-commit report [skip ci]"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
           git push origin HEAD:${{ github.event.repository.default_branch }}
