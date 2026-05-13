@@ -2,8 +2,8 @@
  * Tests for PR changes in .iqra/scripts/link-verifier.ts and related hooks.
  *
  * Covers:
- *  - Shebang change: `#!/usr/bin/env -S npx tsx` → `#!/usr/bin/env npx tsx`
- *    (link-verifier.ts + all three hooks)
+ *  - Shebang: portable `#!/usr/bin/env -S npx tsx`
+ *    (link-verifier.ts + all three hooks + license-checker + run-cycle)
  *  - INLINE_LINK regex: simplified to support only "double-quote" titles
  *    (removed support for 'single-quote' and (paren) titles)
  *  - IMAGE_LINK regex: same simplification
@@ -35,15 +35,15 @@ function readText(relPath: string): string {
 
 // ── Shebang regression — link-verifier.ts ────────────────────────────────────
 
-describe('link-verifier.ts — shebang changed to #!/usr/bin/env npx tsx', () => {
-  it('first line is #!/usr/bin/env npx tsx (without -S flag)', () => {
+describe('link-verifier.ts — portable shebang #!/usr/bin/env -S npx tsx', () => {
+  it('first line is #!/usr/bin/env -S npx tsx (portable form)', () => {
     const firstLine = readText('.iqra/scripts/link-verifier.ts').split('\n')[0];
-    expect(firstLine).toBe('#!/usr/bin/env npx tsx');
+    expect(firstLine).toBe('#!/usr/bin/env -S npx tsx');
   });
 
-  it('does NOT use the old -S flag shebang', () => {
+  it('uses the -S flag for portable argument splitting on Linux', () => {
     const firstLine = readText('.iqra/scripts/link-verifier.ts').split('\n')[0];
-    expect(firstLine).not.toContain('-S');
+    expect(firstLine).toContain('-S');
   });
 });
 
@@ -51,7 +51,7 @@ describe('link-verifier.ts — shebang changed to #!/usr/bin/env npx tsx', () =>
 //
 // All three hooks had the same shebang change in this PR.
 
-describe('.iqra/hooks — shebang changed from -S to plain npx tsx', () => {
+describe('.iqra/hooks — portable shebang #!/usr/bin/env -S npx tsx', () => {
   const HOOKS = [
     '.iqra/hooks/name-validator.ts',
     '.iqra/hooks/secret-guard.ts',
@@ -59,24 +59,24 @@ describe('.iqra/hooks — shebang changed from -S to plain npx tsx', () => {
   ];
 
   for (const hook of HOOKS) {
-    it(`${path.basename(hook)} starts with #!/usr/bin/env npx tsx`, () => {
+    it(`${path.basename(hook)} starts with #!/usr/bin/env -S npx tsx`, () => {
       const firstLine = readText(hook).split('\n')[0];
-      expect(firstLine).toBe('#!/usr/bin/env npx tsx');
+      expect(firstLine).toBe('#!/usr/bin/env -S npx tsx');
     });
 
-    it(`${path.basename(hook)} does NOT use the old -S flag`, () => {
+    it(`${path.basename(hook)} uses the -S flag for portability`, () => {
       const firstLine = readText(hook).split('\n')[0];
-      expect(firstLine).not.toContain('-S');
+      expect(firstLine).toContain('-S');
     });
   }
 });
 
 // ── Shebang regression — license-checker.ts ──────────────────────────────────
 
-describe('license-checker.ts — shebang changed to #!/usr/bin/env npx tsx', () => {
-  it('first line is #!/usr/bin/env npx tsx', () => {
+describe('license-checker.ts — portable shebang #!/usr/bin/env -S npx tsx', () => {
+  it('first line is #!/usr/bin/env -S npx tsx', () => {
     const firstLine = readText('.iqra/scripts/license-checker.ts').split('\n')[0];
-    expect(firstLine).toBe('#!/usr/bin/env npx tsx');
+    expect(firstLine).toBe('#!/usr/bin/env -S npx tsx');
   });
 });
 
@@ -542,9 +542,9 @@ describe('deleted GitHub workflow files — no longer present', () => {
 
 // ── run-cycle.ts shebang ──────────────────────────────────────────────────────
 
-describe('.iqra/scripts/run-cycle.ts — shebang changed', () => {
-  it('first line is #!/usr/bin/env npx tsx', () => {
+describe('.iqra/scripts/run-cycle.ts — portable shebang', () => {
+  it('first line is #!/usr/bin/env -S npx tsx', () => {
     const firstLine = readText('.iqra/scripts/run-cycle.ts').split('\n')[0];
-    expect(firstLine).toBe('#!/usr/bin/env npx tsx');
+    expect(firstLine).toBe('#!/usr/bin/env -S npx tsx');
   });
 });
