@@ -23,10 +23,26 @@ type ParallelResult struct {
 	CompressionRatio float64         `json:"compression_ratio"`
 	OverallResonance float64         `json:"overall_resonance"`
 	Discoveries      []string        `json:"discoveries"`
+	Warnings         []string        `json:"warnings,omitempty"`
 	Error            string          `json:"error,omitempty"`
 }
 
-// BatchAnalysisRequest represents batch processing request
+// minLIDCorpusSize is the minimum number of reference points required for the
+// MLE-LID estimator to produce a non-degenerate result. Below this, the LID
+// step is skipped and a warning is attached to the surah's ParallelResult.
+const minLIDCorpusSize = 8
+
+// BatchAnalysisRequest represents batch processing request.
+//
+// LID note: when EnableLID=true, the caller MUST supply ReferenceCorpus
+// containing >= minLIDCorpusSize real embeddings from the SAME model that
+// produced SurahData.Embedding. The previous implementation generated
+// reference embeddings synthetically by adding a uniform offset to the
+// query (`base + (i/count)*0.1*1⃗`), which placed all references on the
+// same ray and made the MLE estimator's r_i/r_k ratios constant — meaning
+// the returned LID was a function of i and k only, INDEPENDENT of the
+// query. That entire code path is removed; callers must now provide a
+// real reference corpus or accept that LID is skipped.
 type BatchAnalysisRequest struct {
 	Surahs            []SurahData `json:"surahs"`
 	EnableLID         bool        `json:"enable_lid"`
@@ -34,6 +50,11 @@ type BatchAnalysisRequest struct {
 	EnableHomology    bool        `json:"enable_homology"`
 	EnableCompression bool        `json:"enable_compression"`
 	MaxWorkers        int         `json:"max_workers"`
+	// ReferenceCorpus is the set of real embeddings used as the k-NN
+	// reference cloud for every surah's LID analysis in this batch. All
+	// embeddings (queries and references) MUST share the same dimensionality
+	// and originate from the same embedding model.
+	ReferenceCorpus [][]float64 `json:"reference_corpus,omitempty"`
 }
 
 // SurahData represents a single surah for processing
@@ -157,15 +178,22 @@ func processSurah(surah SurahData, req *BatchAnalysisRequest) ParallelResult {
 		}
 	}
 
-	// 2. LID Analysis (if embedding provided)
+	// 2. LID Analysis (if embedding + real reference corpus provided).
+	// We refuse to run LID against a synthetic corpus because the MLE
+	// estimator returns garbage on a collinear point set (see the
+	// BatchAnalysisRequest doc comment for the full explanation).
 	if req.EnableLID && len(surah.Embedding) > 0 {
-		// Generate reference embeddings (simplified)
-		refEmbeddings := generateReferenceEmbeddings(surah.Embedding, 49)
-		lid := CalculateLID(surah.Embedding, refEmbeddings, 7)
-		result.LIDAnalysis = &lid
-
-		if lid.IsHighResonance {
-			result.Discoveries = append(result.Discoveries, "HIGH_RESONANCE")
+		if len(req.ReferenceCorpus) < minLIDCorpusSize {
+			result.Warnings = append(result.Warnings, fmt.Sprintf(
+				"LID skipped: needs reference_corpus with >= %d real embeddings, got %d",
+				minLIDCorpusSize, len(req.ReferenceCorpus),
+			))
+		} else {
+			lid := CalculateLID(surah.Embedding, req.ReferenceCorpus, 7)
+			result.LIDAnalysis = &lid
+			if lid.IsHighResonance {
+				result.Discoveries = append(result.Discoveries, "HIGH_RESONANCE")
+			}
 		}
 	}
 
@@ -270,22 +298,6 @@ func calculateSummary(results []ParallelResult) AnalysisSummary {
 	summary.TotalDiscoveries = totalDiscoveries
 
 	return summary
-}
-
-// generateReferenceEmbeddings creates reference embeddings for LID
-func generateReferenceEmbeddings(base []float64, count int) [][]float64 {
-	refs := make([][]float64, count)
-
-	for i := range refs {
-		refs[i] = make([]float64, len(base))
-		// Add small perturbations
-		for j := range base {
-			noise := (float64(i) / float64(count)) * 0.1
-			refs[i][j] = base[j] + noise
-		}
-	}
-
-	return refs
 }
 
 // FormatBatchResponse formats response as JSON
