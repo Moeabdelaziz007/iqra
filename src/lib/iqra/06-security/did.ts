@@ -26,7 +26,35 @@ import {
   codec,
 } from '#aix/ed25519_signer';
 import { toAxiomDID, toWebDID, AXIOM_AUTHORITY } from '#aix/did_translator';
+import { IQRALogger } from '#infra/logger';
 import type { AxiomDID } from '#aix/types';
+
+/**
+ * Resolve the persisted Ed25519 secret from the environment, if any.
+ * The agent's published DID Document MUST bind to a stable key — if a
+ * different keypair is rolled on every request, every cached signature
+ * tied to the previous public key becomes unverifiable. This helper is
+ * the single seam where we pick "persistent (preferred)" vs "ephemeral
+ * (fallback only)" key material.
+ */
+function loadPersistedPrivateKey(): Uint8Array | null {
+  const b64 = process.env.IQRA_IDENTITY_PRIVATE_KEY_B64URL?.trim();
+  if (!b64) return null;
+  try {
+    const bytes = codec.base64UrlToBytes(b64);
+    if (bytes.length !== 32) {
+      IQRALogger.warn(
+        `⚠️ [DID] IQRA_IDENTITY_PRIVATE_KEY_B64URL has wrong length (${bytes.length}, expected 32). Falling back to ephemeral key.`,
+      );
+      return null;
+    }
+    return bytes;
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    IQRALogger.warn(`⚠️ [DID] IQRA_IDENTITY_PRIVATE_KEY_B64URL failed to decode: ${msg}`);
+    return null;
+  }
+}
 
 export interface DIDDocument {
   "@context": string[];
@@ -167,25 +195,66 @@ function buildDocument(id: string, domain: string, pub: Uint8Array): DIDDocument
   };
 }
 
+/**
+ * Module-level cache of ephemeral keypairs, keyed by `${id}::${domain}`.
+ *
+ * In production the env-derived persistent key is used, so this cache
+ * is a no-op. In dev and tests where no persistent key is configured,
+ * the cache guarantees that repeated calls to `generateDocument(id,
+ * domain)` within the same process emit the same public key — so a
+ * single boot serves a stable identity at `/.well-known/did.json`
+ * instead of rotating on every request and breaking external verifiers.
+ *
+ * Across process restarts the ephemeral identity necessarily changes;
+ * persistence is the operator's job via `IQRA_IDENTITY_PRIVATE_KEY_B64URL`.
+ */
+const EPHEMERAL_KEY_CACHE = new Map<string, Uint8Array>();
+let WARNED_EPHEMERAL = false;
+
+function resolveKeypair(id: string, domain: string): { privateKey: Uint8Array; persistent: boolean } {
+  const persisted = loadPersistedPrivateKey();
+  if (persisted) return { privateKey: persisted, persistent: true };
+
+  const cacheKey = `${id}::${domain}`;
+  const cached = EPHEMERAL_KEY_CACHE.get(cacheKey);
+  if (cached) return { privateKey: cached, persistent: false };
+
+  const kp = generateKeyPair();
+  EPHEMERAL_KEY_CACHE.set(cacheKey, kp.privateKey);
+  if (!WARNED_EPHEMERAL) {
+    WARNED_EPHEMERAL = true;
+    IQRALogger.warn(
+      '⚠️ [DID] IQRA_IDENTITY_PRIVATE_KEY_B64URL is not set; published DID documents are using a per-process ephemeral keypair. ' +
+        'They will be stable within this process but change across restarts. Generate a persistent key with: ' +
+        'npx tsx src/scripts_v2/aix_export.ts keygen',
+    );
+  }
+  return { privateKey: kp.privateKey, persistent: false };
+}
+
 export class SovereignDID {
   /**
    * Generate a DID Document for an agent or the main system, backed by
-   * a fresh Ed25519 keypair. The caller MUST persist `privateKey`
-   * before publishing the document — otherwise the identity is
-   * unrecoverable.
+   * a stable Ed25519 keypair. Resolution order:
+   *   1) IQRA_IDENTITY_PRIVATE_KEY_B64URL env (preferred, persistent across restarts)
+   *   2) Per-process ephemeral cache (stable within one boot)
+   *
+   * Use `fromPrivateKey()` directly when you already hold the secret.
    */
   static async generateBundle(id: string, domain: string = AXIOM_AUTHORITY): Promise<DIDDocumentBundle> {
-    const kp = generateKeyPair();
-    return SovereignDID.fromPrivateKey(id, domain, kp.privateKey);
+    const { privateKey } = resolveKeypair(id, domain);
+    return SovereignDID.fromPrivateKey(id, domain, privateKey);
   }
 
   /**
-   * Backwards-compatible shape (legacy callers only): returns only the
-   * DID Document. A fresh keypair is generated internally and the
-   * private key is discarded. Use this ONLY when the identity is
-   * ephemeral (e.g. a per-request audit trail).
-   *
-   * Prefer `generateBundle()` for persistent identities.
+   * Returns the DID Document only, but ALWAYS bound to a stable
+   * keypair: the env-persisted secret if present, otherwise the
+   * per-process ephemeral key for `(id, domain)`. The previous
+   * implementation generated a fresh keypair on every call and
+   * discarded the secret, which made `/.well-known/did.json` rotate
+   * its public key on every request and invalidated every signature
+   * tied to a prior response. Callers that need the raw keypair should
+   * use `generateBundle()` or `fromPrivateKey()`.
    */
   static async generateDocument(id: string, domain: string = AXIOM_AUTHORITY): Promise<DIDDocument> {
     const bundle = await SovereignDID.generateBundle(id, domain);

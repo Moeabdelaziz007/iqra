@@ -205,6 +205,30 @@ describe('Pi Network claim', () => {
     const v = verifyPiClaim(tampered as any);
     expect(v.ok).toBe(false);
   });
+
+  it('rejects a non-did:axiom owner method even when domain appears in path', () => {
+    // Hostile DID method that just happens to embed `:axiomid.app:` as a
+    // path segment. The old substring check accepted this; the strict
+    // regex check rejects it.
+    const kp = generateKeyPair();
+    const claim = createPiClaim({
+      domain: 'axiomid.app',
+      owner_id: 'x',
+      app_id: 'app',
+      environment: 'sandbox',
+      privateKey: kp.privateKey,
+    });
+    const hostile: any = { ...claim, payload: { ...claim.payload, owner_did: 'did:evil:axiomid.app:x' } };
+    // We have to recompute payload_hash and re-sign so BAD_SIGNATURE does
+    // not preempt the format check. The point is that a signature-valid
+    // hostile DID would have passed under the old check.
+    const { signPayload: sp } = require('../ed25519_signer');
+    const resigned = sp(hostile.payload, kp.privateKey);
+    const tampered = { ...hostile, ...resigned, well_known_url: claim.well_known_url };
+    const v = verifyPiClaim(tampered as any);
+    expect(v.ok).toBe(false);
+    if (!v.ok) expect(v.reason).toBe('DID_DOMAIN_MISMATCH');
+  });
 });
 
 describe('Manifest exporter + signer', () => {
