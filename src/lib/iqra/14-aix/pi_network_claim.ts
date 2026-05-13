@@ -107,9 +107,20 @@ export function verifyPiClaim(artifact: PiClaimArtifact): { ok: true } | { ok: f
     return { ok: false, reason: 'BAD_SIGNATURE' };
   }
   const { domain, owner_did } = artifact.payload;
-  if (!owner_did.includes(`:${domain}:`)) {
+
+  // Strict DID format: must be exactly `did:axiom:<domain>:<id>` where
+  // <id> follows the AIX-schema id charset. A loose substring match
+  // (`owner_did.includes(`:${domain}:`)`) would accept hostile methods
+  // like `did:evil:axiomid.app:x` simply because they contain the
+  // domain as a path segment. We anchor on the full string instead.
+  const escapedDomain = domain.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const STRICT_AXIOM_DID = new RegExp(
+    `^did:axiom:${escapedDomain}:[a-zA-Z0-9._\\-]+$`,
+  );
+  if (!STRICT_AXIOM_DID.test(owner_did)) {
     return { ok: false, reason: 'DID_DOMAIN_MISMATCH' };
   }
+
   if (!artifact.well_known_url.endsWith(`/.well-known/pi-claim.json`)) {
     return { ok: false, reason: 'BAD_URL' };
   }

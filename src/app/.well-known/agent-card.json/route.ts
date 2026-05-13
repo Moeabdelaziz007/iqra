@@ -68,8 +68,24 @@ export async function GET(req: NextRequest) {
   });
 }
 
-async function aixManifestResponse(domain: string, personaId: string) {
-  const persona = PERSONA_REGISTRY[personaId] ?? PERSONA_REGISTRY['iqra-core'];
+async function aixManifestResponse(domain: string, rawPersonaId: string) {
+  // Persona id normalization. The PERSONA_REGISTRY keys are namespaced
+  // (`iqra-core`, `iqra-researcher`, ...), but callers commonly pass
+  // the short form (`core`, `researcher`). Previously we did
+  // `PERSONA_REGISTRY[rawPersonaId]` which silently fell back to core
+  // for any short id, yet we still derived `owner_id` from the raw
+  // input — producing a manifest that signed core's metadata under
+  // `did:axiom:axiomid.app:researcher`. Normalize ONCE and use the
+  // resolved persona's actual id everywhere downstream.
+  const candidates = [
+    rawPersonaId,
+    rawPersonaId.startsWith('iqra-') ? rawPersonaId : `iqra-${rawPersonaId}`,
+  ];
+  const resolved =
+    candidates.map((c) => PERSONA_REGISTRY[c]).find((p) => p !== undefined) ??
+    PERSONA_REGISTRY['iqra-core'];
+  const persona = resolved;
+  const ownerId = persona.id.replace(/^iqra-/, '');
 
   // Derive (or generate) the identity keypair.
   const persistedKey = process.env.IQRA_IDENTITY_PRIVATE_KEY_B64URL?.trim();
@@ -78,16 +94,16 @@ async function aixManifestResponse(domain: string, personaId: string) {
 
   if (persistedKey) {
     privateKey = codec.base64UrlToBytes(persistedKey);
-    const bundle = SovereignDID.fromPrivateKey(personaId.replace(/^iqra-/, ''), domain, privateKey);
+    const bundle = SovereignDID.fromPrivateKey(ownerId, domain, privateKey);
     publicKey = bundle.publicKey;
   } else {
-    const bundle = await SovereignDID.generateBundle(personaId.replace(/^iqra-/, ''), domain);
+    const bundle = await SovereignDID.generateBundle(ownerId, domain);
     privateKey = bundle.privateKey;
     publicKey = bundle.publicKey;
   }
 
   const manifest = exportManifest({
-    owner_id: personaId.replace(/^iqra-/, ''),
+    owner_id: ownerId,
     publicKey,
     meta: {
       // Pinned to a real source-of-truth constant. `npm_package_version`
