@@ -10,10 +10,10 @@
 ## The Constitution | الدستور
 
 > [!IMPORTANT]
-> **This constitution is governed by the Supreme Sovereign File: [!IQRA_SUPREME.md](../!IQRA_SUPREME.md).**
+> **This constitution is governed by the Supreme Sovereign File: [IQRA_SUPREME.md](/IQRA_SUPREME.md).**
 > Any conflict between technical practices and this constitution shall be resolved in favor of the Supreme Sovereign File.
 > 
-> **هذا الدستور محكوم بالملف السيادي الأعلى: [!IQRA_SUPREME.md](../!IQRA_SUPREME.md).**
+> **هذا الدستور محكوم بالملف السيادي الأعلى: [IQRA_SUPREME.md](/IQRA_SUPREME.md).**
 > أي تعارض بين الممارسات التقنية وهذا الدستور يُحل لصالح الملف السيادي الأعلى.
 
 > "إِنَّ هَٰذَا الْقُرْآنَ يَهْدِي لِلَّتِي هِيَ أَقْوَمُ"

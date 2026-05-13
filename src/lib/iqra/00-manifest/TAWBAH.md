@@ -4,7 +4,7 @@
 
 > "Indeed, Allah loves those who are constantly repentant and loves those who purify themselves." (Quran 2:222)
 
-This document records critical errors, their corrections, and lessons learned, following !IQRA_SUPREME.md Stage 6 (Tawbah Protocol).
+This document records critical errors, their corrections, and lessons learned, following IQRA_SUPREME.md Stage 6 (Tawbah Protocol).
 
 ---
 
@@ -78,7 +78,7 @@ Unknown. Commit 8dfcda7 shows mass deletion without clear justification. Possibl
 
 #### Lessons Learned
 
-1. **Constitutional Adherence**: !IQRA_SUPREME.md Stage 6 (Tawbah) protocol proved essential for systematic error correction
+1. **Constitutional Adherence**: IQRA_SUPREME.md Stage 6 (Tawbah) protocol proved essential for systematic error correction
 
 2. **Git Hygiene**: Need better commit review process before pushing destructive changes
 
@@ -171,7 +171,7 @@ const order = await exchange.createOrder(symbol, type, side, amount, price);
 
 ## Constitutional Alignment
 
-This crisis and recovery process followed !IQRA_SUPREME.md principles:
+This crisis and recovery process followed IQRA_SUPREME.md principles:
 
 - **Rule 1 (No Mock Data)**: All fixes use real error handling, no placeholders
 - **Rule 2 (Constitutional Governance)**: Followed Stage 6 (Tawbah) protocol exactly
