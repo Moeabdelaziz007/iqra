@@ -593,7 +593,7 @@ class TestEdgeCases(unittest.TestCase):
         files = Counter({f"src/file{i}.ts": i + 1 for i in range(20)})
         out = _render("2024-05", [], files, Counter())
         # Count table data rows (lines starting with "| `")
-        rows = [l for l in out.splitlines() if l.startswith("| `")]
+        rows = [line for line in out.splitlines() if line.startswith("| `")]
         self.assertLessEqual(len(rows), 15)
 
     def test_render_at_most_12_words_in_recurring_section(self):
@@ -602,7 +602,7 @@ class TestEdgeCases(unittest.TestCase):
         # Words section is a single comma-separated line
         word_section = out.split("## Recurring subject words")[-1]
         # Count backtick-delimited tokens which are the words
-        word_tokens = [p for p in word_section.split("`") if p and "(" in p or False]
+        word_tokens = [p for p in word_section.split("`") if (p and "(" in p)]
         # At most 12 top words are shown
         backtick_pairs = word_section.count("` (")
         self.assertLessEqual(backtick_pairs, 12)
