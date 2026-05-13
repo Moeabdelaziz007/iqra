@@ -29,8 +29,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SIGNALS = ROOT / "signals"
 
-FIX_RE = re.compile(r"^(?:fix|bug|bugfix|hotfix)(?:\([^)]+\))?:\s*(.+)$", re.IGNORECASE)
-FIX_INLINE_RE = re.compile(r"\b(?:fix|bug|bugfix|hotfix)\b", re.IGNORECASE)
+FIX_RE = re.compile(
+    r"^(?:fix|bug|bugfix|hotfix)(?:es|ed|s)?(?:\([^)]+\))?:\s*(.+)$",
+    re.IGNORECASE,
+)
+FIX_INLINE_RE = re.compile(
+    r"\b(?:fix|bug|bugfix|hotfix)(?:es|ed|s)?\b",
+    re.IGNORECASE,
+)
 TOKEN_RE = re.compile(r"[A-Za-z][A-Za-z0-9_-]{2,}")
 STOP = {"the", "a", "an", "of", "for", "in", "on", "and", "or", "to",
         "with", "from", "by", "is", "be", "issue", "error", "missing",
@@ -53,23 +59,54 @@ def _window(today: date) -> tuple[date, date, str]:
 
 
 def _fix_commits(since: date, until: date) -> list[tuple[str, str, list[str]]]:
-    """Return list of (sha, subject, changed_files) for fix-shaped commits."""
+    """
+    Return a list of (sha, subject, changed_files) for fix-shaped
+    commits in the given window.
+
+    Uses a single `git log --name-only` invocation rather than
+    spawning a `git show` subprocess per commit, which would be
+    O(n) subprocesses for n fix commits. The COMMIT: sentinel
+    prefix on the metadata line keeps parsing simple regardless of
+    how many files a commit touches (including zero).
+    """
     raw = _git(
         "log",
         f"--since={since.isoformat()}",
         f"--until={until.isoformat()}",
-        "--pretty=format:%H%x09%s",
+        "--pretty=format:COMMIT:%H%x09%s",
+        "--name-only",
     )
     commits: list[tuple[str, str, list[str]]] = []
-    for line in raw.splitlines():
-        if "\t" not in line:
+    current: tuple[str, str] | None = None
+    current_files: list[str] = []
+
+    def _flush() -> None:
+        if current is not None:
+            commits.append((current[0], current[1], current_files))
+
+    for raw_line in raw.splitlines():
+        line = raw_line.strip()
+        if not line:
             continue
-        sha, subject = line.split("\t", 1)
-        if not (FIX_RE.match(subject) or FIX_INLINE_RE.search(subject[:30])):
-            continue
-        files_raw = _git("show", "--pretty=format:", "--name-only", sha)
-        files = [f for f in files_raw.splitlines() if f.strip()]
-        commits.append((sha, subject, files))
+        if line.startswith("COMMIT:"):
+            # Boundary: flush the previous commit's accumulated files
+            # before starting the next one.
+            _flush()
+            current_files = []
+            payload = line[len("COMMIT:"):]
+            if "\t" not in payload:
+                current = None
+                continue
+            sha, subject = payload.split("\t", 1)
+            if FIX_RE.match(subject) or FIX_INLINE_RE.search(subject[:30]):
+                current = (sha, subject)
+            else:
+                current = None
+        elif current is not None:
+            # File path line for the active fix-shaped commit.
+            current_files.append(line)
+
+    _flush()
     return commits
 
 
