@@ -19,6 +19,7 @@
  * manifest must come from real input data passed by the caller.
  */
 
+import * as ed25519 from '@noble/ed25519';
 import { sha256 } from '@noble/hashes/sha256';
 import { canonicalizeJSONBytes } from './canonical';
 import { codec, signPayload } from './ed25519_signer';
@@ -178,15 +179,14 @@ export function verifyManifest(manifest: AIXManifest): { ok: true } | { ok: fals
   if (recomputed !== checksum) {
     return { ok: false, reason: 'CHECKSUM_MISMATCH' };
   }
-  // Ed25519 verify
+  // Ed25519 verify. We import `@noble/ed25519` statically at the top of
+  // the file (not via `require`) so this module stays ESM-pure and
+  // bundles cleanly under Edge/Workers runtimes.
   try {
     const pubBytes = codec.base64UrlToBytes(pub.value);
     const sigBytes = codec.base64UrlToBytes(sig.value);
     const digest = sha256(bytes);
-    // Re-use verify primitive from the signer module.
-    // (Inline import to avoid a circular re-export.)
-    const ed = require('@noble/ed25519') as typeof import('@noble/ed25519');
-    if (!ed.verify(sigBytes, digest, pubBytes)) {
+    if (!ed25519.verify(sigBytes, digest, pubBytes)) {
       return { ok: false, reason: 'BAD_SIGNATURE' };
     }
   } catch {

@@ -5,6 +5,8 @@ import {
   exportManifest,
   signManifest,
   AXIOM_AUTHORITY,
+  IQRA_VERSION,
+  AIX_FORMAT_VERSION,
   codec,
 } from '#aix/index';
 import { PERSONA_REGISTRY } from '#utils/personas';
@@ -88,8 +90,11 @@ async function aixManifestResponse(domain: string, personaId: string) {
     owner_id: personaId.replace(/^iqra-/, ''),
     publicKey,
     meta: {
-      version: process.env.npm_package_version ?? '0.369.0',
-      format_version: '1.3',
+      // Pinned to a real source-of-truth constant. `npm_package_version`
+      // is not reliably populated in Vercel, Docker, or direct `node`/
+      // `tsx` invocations, so we do not read it.
+      version: IQRA_VERSION,
+      format_version: AIX_FORMAT_VERSION,
       id: process.env.IQRA_IDENTITY_UUID ?? '00000000-0000-4000-8000-000000000000',
       name: persona.name,
       description: persona.description,

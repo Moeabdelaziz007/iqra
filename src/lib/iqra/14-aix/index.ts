@@ -26,6 +26,7 @@
  */
 
 export * from './types';
+export { IQRA_VERSION, AIX_FORMAT_VERSION, AXIOM_PROTOCOL } from './version';
 export {
   canonicalizeJSON,
   canonicalizeJSONBytes,

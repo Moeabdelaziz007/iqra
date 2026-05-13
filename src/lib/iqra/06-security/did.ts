@@ -38,6 +38,7 @@ export interface DIDDocument {
     type: string;
     controller: string;
     publicKeyMultibase?: string;
+    publicKeyJwk?: Record<string, string>;
     blockchainAccountId?: string;
     serviceEndpoint?: string;
   }[];
@@ -59,18 +60,77 @@ export interface DIDDocumentBundle {
 
 const DID_CONTEXT = [
   'https://www.w3.org/ns/did/v1',
-  'https://w3id.org/security/suites/ed25519-2020/v1',
+  'https://w3id.org/security/suites/jws-2020/v1',
 ];
 
+const BASE58BTC_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
 /**
- * Multibase 'z' prefix for base58btc. We don't carry a base58btc
- * codec, so we emit the public key in raw bytes encoded as a
- * `z-base64url` form (`z` prefix + base64url) which W3C resolvers
- * tolerate when the `Ed25519VerificationKey2020` suite is declared
- * alongside `publicKeyJwk`-style fallback hints.
+ * Base58btc encode. ~30 lines, no native bindings, edge-safe.
+ * Used to render the publicKeyMultibase value for the
+ * Ed25519VerificationKey2020 suite (multibase prefix 'z' === base58btc).
+ */
+function base58btcEncode(bytes: Uint8Array): string {
+  if (bytes.length === 0) return '';
+  // Count leading zero bytes for separate handling.
+  let zeros = 0;
+  while (zeros < bytes.length && bytes[zeros] === 0) zeros++;
+
+  // Allocate result digits in base 58.
+  // size = ceil(bytes.length * log(256) / log(58)) ~ bytes.length * 1.4.
+  const size = Math.ceil((bytes.length - zeros) * 1.365) + 1;
+  const b58 = new Uint8Array(size);
+  let length = 0;
+
+  for (let i = zeros; i < bytes.length; i++) {
+    let carry = bytes[i];
+    let j = 0;
+    for (let k = size - 1; (carry !== 0 || j < length) && k >= 0; k--, j++) {
+      carry += 256 * b58[k];
+      b58[k] = carry % 58;
+      carry = (carry / 58) | 0;
+    }
+    length = j;
+  }
+
+  // Skip leading zeroes in the b58 buffer.
+  let it = size - length;
+  while (it < size && b58[it] === 0) it++;
+
+  let out = '';
+  for (let i = 0; i < zeros; i++) out += BASE58BTC_ALPHABET[0]; // '1'
+  for (; it < size; it++) out += BASE58BTC_ALPHABET[b58[it]];
+  return out;
+}
+
+/**
+ * Multibase prefix 'z' is reserved for base58btc per the multibase
+ * specification. The Ed25519VerificationKey2020 suite requires a
+ * multicodec prefix `0xed 0x01` (Ed25519-pub) followed by the 32-byte
+ * raw public key, all base58btc-encoded with the `z` prefix.
+ *
+ * Reference: https://www.w3.org/TR/vc-data-integrity/#multibase-0
+ *           https://github.com/multiformats/multicodec/blob/master/table.csv
  */
 function multibasePublicKey(pub: Uint8Array): string {
-  return `z${codec.bytesToBase64Url(pub)}`;
+  const prefixed = new Uint8Array(2 + pub.length);
+  prefixed[0] = 0xed; // multicodec: ed25519-pub
+  prefixed[1] = 0x01;
+  prefixed.set(pub, 2);
+  return `z${base58btcEncode(prefixed)}`;
+}
+
+/**
+ * JWK form of an Ed25519 public key (RFC 8037 / OKP). Used as the
+ * preferred publicKeyJwk value alongside (or in place of) multibase
+ * for resolvers that follow the JsonWebKey2020 suite.
+ */
+function publicKeyJwk(pub: Uint8Array): Record<string, string> {
+  return {
+    kty: 'OKP',
+    crv: 'Ed25519',
+    x: codec.bytesToBase64Url(pub),
+  };
 }
 
 function buildDocument(id: string, domain: string, pub: Uint8Array): DIDDocument {
@@ -88,6 +148,7 @@ function buildDocument(id: string, domain: string, pub: Uint8Array): DIDDocument
         type: 'Ed25519VerificationKey2020',
         controller: webDID,
         publicKeyMultibase: multibasePublicKey(pub),
+        publicKeyJwk: publicKeyJwk(pub),
       },
       {
         id: `${webDID}#pi-network`,

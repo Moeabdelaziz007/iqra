@@ -24,6 +24,8 @@ import {
   codec,
   bootstrapPiClaim,
   AXIOM_AUTHORITY,
+  IQRA_VERSION,
+  AIX_FORMAT_VERSION,
 } from '#aix/index';
 import { SovereignDID } from '#security/did';
 import { PERSONA_REGISTRY } from '#utils/personas';
@@ -57,8 +59,8 @@ async function cmdEmit(personaId: string): Promise<number> {
     owner_id: bareId,
     publicKey: bundle.publicKey,
     meta: {
-      version: process.env.npm_package_version ?? '0.369.0',
-      format_version: '1.3',
+      version: IQRA_VERSION,
+      format_version: AIX_FORMAT_VERSION,
       id: process.env.IQRA_IDENTITY_UUID ?? '00000000-0000-4000-8000-000000000000',
       name: persona.name,
       description: persona.description,

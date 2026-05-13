@@ -54,8 +54,20 @@ function recomputeHash(entry: IQRATrustChainEntry): string {
   return codec.bytesToHex(sha256(new TextEncoder().encode(canonical)));
 }
 
+/**
+ * Deterministic timestamp coercion.
+ *
+ * If the source entry has no usable timestamp, we MUST NOT fall back to
+ * `new Date()` — that would inject wall-clock non-determinism into the
+ * canonical payload and break signature stability across reruns of the
+ * same input. Instead we use a fixed sentinel (Unix epoch) so the same
+ * input always hashes the same way. Upstream code should set real
+ * timestamps; this sentinel is a typed loud signal that one was missing.
+ */
+const SENTINEL_ISO = '1970-01-01T00:00:00.000Z';
+
 function tsToISO(ms: number | undefined): string {
-  if (typeof ms !== 'number' || !Number.isFinite(ms)) return new Date().toISOString();
+  if (typeof ms !== 'number' || !Number.isFinite(ms)) return SENTINEL_ISO;
   return new Date(ms).toISOString();
 }
 
