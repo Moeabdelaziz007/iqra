@@ -63,7 +63,7 @@ export class InverseDesign {
     };
     const action = this.propose(sig);
 
-    const header = `// IQRA Tawbah binder — designed ${new Date().toISOString()}\n// Action: ${action.kind} — ${action.reason}\n`;
+    const header = `// IQRA Tawbah binder — deterministic design\n// Action: ${action.kind} — ${action.reason}\n`;
 
     switch (action.kind) {
       case 'halt':

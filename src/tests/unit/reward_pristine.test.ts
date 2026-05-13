@@ -1,4 +1,3 @@
-// @ts-nocheck — legacy test: assertions target pre-migration APIs (May 2026). Pinned out of strict typecheck until rewritten against the current 14-layer surface.
 // بسم الله الرحمن الرحيم
 
 /**
@@ -21,6 +20,12 @@ function makeReport(workerId: string, status: 'PASS' | 'FAIL' = 'PASS'): WorkerR
   return {
     mission_id: 'test_mission',
     worker_id: workerId,
+    intent: 'Test worker execution',
+    context_snapshot: {
+      resonance_score: 1.0,
+      novelty_score: 0.0,
+    },
+    artifacts: [],
     implemented: status === 'PASS' ? ['task done'] : [],
     undone: [],
     commands_run: [],

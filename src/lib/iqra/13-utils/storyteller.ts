@@ -128,6 +128,10 @@ export class IQRAStoryteller {
       if (!fs.existsSync(file)) {
         fs.writeFileSync(file, `# IQRA Hadith Trail\n\n${line}`);
       } else {
+        const content = fs.readFileSync(file, 'utf-8');
+        if (content.includes(`\`${hash}\``)) {
+          return;
+        }
         fs.appendFileSync(file, line);
       }
     } catch (e) {

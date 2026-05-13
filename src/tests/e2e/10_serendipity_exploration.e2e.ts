@@ -11,10 +11,10 @@ describe('Serendipity & Pristine Path E2E', () => {
   
   beforeEach(() => {
     vi.restoreAllMocks();
-    
+
     // Mock RewardLedger to prevent writing to disk
-    vi.spyOn(RewardLedger, 'append').mockResolvedValue();
-    
+    vi.spyOn(RewardLedger, 'record').mockResolvedValue('mock_ledger_id');
+
     // Mock IQRAMemory
     vi.spyOn(IQRAMemory, 'get').mockResolvedValue(null); // Default: path doesn't exist
     vi.spyOn(IQRAMemory, 'set').mockResolvedValue('OK');
@@ -60,7 +60,7 @@ describe('Serendipity & Pristine Path E2E', () => {
     });
 
     // 2. Spy on RewardEngine to see what it computes before multiplier
-    const computeSpy = vi.spyOn(RewardEngine, 'computeTotalReward');
+    const computeSpy = vi.spyOn(RewardEngine, 'computeReward');
 
     // 3. Run the loop
     await loop.runCycle();
@@ -68,14 +68,14 @@ describe('Serendipity & Pristine Path E2E', () => {
     // 4. Assertions
     expect(computeSpy).toHaveBeenCalled();
     const engineOutput = computeSpy.mock.results[0].value;
-    
-    // The engineOutput.total_reward is ALREADY multiplied in the loop
-    // because output is modified in place. 
+
+    // The engineOutput.total is ALREADY multiplied in the loop
+    // because output is modified in place.
     // Base reward was 0.895, expected total is 1.79
-    expect(engineOutput.total_reward).toBeCloseTo(1.79, 2);
-    
-    expect(RewardLedger.append).toHaveBeenCalledWith(expect.objectContaining({
-      total_reward: engineOutput.total_reward
+    expect(engineOutput.total).toBeCloseTo(1.79, 2);
+
+    expect(RewardLedger.record).toHaveBeenCalledWith(expect.objectContaining({
+      total_reward: engineOutput.total
     }));
 
     console.log('✅ Pristine Path Multiplier (2.0x) verified.');
@@ -121,15 +121,15 @@ describe('Serendipity & Pristine Path E2E', () => {
       }
     });
 
-    const computeSpy = vi.spyOn(RewardEngine, 'computeTotalReward');
+    const computeSpy = vi.spyOn(RewardEngine, 'computeReward');
 
     await loop.runCycle();
 
     const engineOutput = computeSpy.mock.results[0].value;
-    
+
     // Multiplier should be 1.0 since pathExists is true
-    expect(RewardLedger.append).toHaveBeenCalledWith(expect.objectContaining({
-      total_reward: engineOutput.total_reward
+    expect(RewardLedger.record).toHaveBeenCalledWith(expect.objectContaining({
+      total_reward: engineOutput.total
     }));
 
     console.log('✅ Known Path Multiplier (1.0x) verified.');
@@ -164,11 +164,11 @@ describe('Serendipity & Pristine Path E2E', () => {
       context: {}
     });
 
-    const computeSpy = vi.spyOn(RewardEngine, 'computeTotalReward');
+    const computeSpy = vi.spyOn(RewardEngine, 'computeReward');
     await loop.runCycle();
 
     expect(computeSpy).toHaveBeenCalledWith(expect.objectContaining({
-      topology_score: 0.75
+      topology: 0.75
     }));
 
     console.log('✅ Dynamic Topology Score (0.75) verified.');

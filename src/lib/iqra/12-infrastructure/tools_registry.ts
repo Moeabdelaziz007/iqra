@@ -393,10 +393,11 @@ export class ToolsRegistry {
       inputSchema: z.object({}),
       handler: async () => {
         const { HeartbeatSystem } = await import('./heartbeat');
+        const lastHealth = HeartbeatSystem.getLastHealth();
         return {
-          status: (HeartbeatSystem as any).getStatus?.() ?? 'UNKNOWN',
-          uptime_ms: (HeartbeatSystem as any).getUptime?.() ?? 0,
-          last_report: (HeartbeatSystem as any).getLastReport?.() ?? null,
+          status: lastHealth?.status ?? 'UNKNOWN',
+          uptime_ms: HeartbeatSystem.getUptime(),
+          last_report: lastHealth,
         };
       },
     });
@@ -409,8 +410,9 @@ export class ToolsRegistry {
       inputSchema: z.object({ mission_id: z.string().default('system') }),
       handler: async ({ mission_id }) => {
         const { HeartbeatSystem } = await import('./heartbeat');
-        await (HeartbeatSystem as any).start?.(mission_id);
-        return { started: true, status: (HeartbeatSystem as any).getStatus?.() ?? 'UNKNOWN' };
+        await HeartbeatSystem.start();
+        const lastHealth = HeartbeatSystem.getLastHealth();
+        return { started: true, status: lastHealth?.status ?? 'UNKNOWN' };
       },
     });
 

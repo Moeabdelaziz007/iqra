@@ -48,6 +48,14 @@ export class RewardEngine {
     return { is_pristine: isPristine, multiplier, path_key: pathKey, previous_uses: uses };
   }
 
+  /**
+   * Compute pristine multiplier for a given path key.
+   * This is a convenience method that returns just the multiplier value.
+   */
+  static computePristineMultiplier(pathKey: PathKey): number {
+    return this.isPristinePath(pathKey).multiplier;
+  }
+
   static computeReward(
     vector: RewardVector,
     pathKey?: PathKey

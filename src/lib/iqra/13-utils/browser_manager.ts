@@ -8,12 +8,12 @@
  */
 
 let globalBrowser: any = null;
+let globalBrowserPromise: Promise<any> | null = null;
 let playwrightMod: any = null;
 
 async function loadPlaywright(): Promise<any> {
   if (playwrightMod) return playwrightMod;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     playwrightMod = await import('playwright' as any);
     return playwrightMod;
   } catch {
@@ -28,8 +28,20 @@ export async function getBrowserPage(): Promise<any | null> {
     return null;
   }
   if (!globalBrowser) {
-    console.log('🚀 [أخوَّة] | Launching Shared Browser Instance...');
-    globalBrowser = await pw.chromium.launch({ headless: true });
+    if (!globalBrowserPromise) {
+      console.log('🚀 [أخوَّة] | Launching Shared Browser Instance...');
+      globalBrowserPromise = pw.chromium.launch({ headless: true })
+        .then((browser: any) => {
+          globalBrowser = browser;
+          globalBrowserPromise = null;
+          return browser;
+        })
+        .catch((err: any) => {
+          globalBrowserPromise = null;
+          throw err;
+        });
+    }
+    await globalBrowserPromise;
   }
   return await globalBrowser.newPage();
 }
@@ -38,10 +50,28 @@ export async function closePage(page: any): Promise<void> {
   if (page) await page.close();
 }
 
-// Ensure browser closes on process exit
-process.on('exit', () => {
+async function closeBrowser(): Promise<void> {
   if (globalBrowser) {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    globalBrowser.close();
+    try {
+      await globalBrowser.close();
+      globalBrowser = null;
+    } catch (e) {
+      console.error('⚠️ [BROWSER] Error closing browser:', e);
+    }
   }
+}
+
+// Ensure browser closes on process exit
+process.on('beforeExit', () => {
+  void closeBrowser();
+});
+
+process.on('SIGINT', async () => {
+  await closeBrowser();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  await closeBrowser();
+  process.exit(0);
 });
