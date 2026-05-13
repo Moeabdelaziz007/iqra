@@ -125,20 +125,21 @@ jobs:
           # M path  → MOD
           # D path  → DEL (لـ ملف كان محمياً → MOD)
           # R### old new → كلاهما يُفحَص: old (كأنه DEL) + new (كأنه ADD)
-          # 🤖 NOTE: IFS=tab صريح عبر printf لضمان عمله في كل shells (GH bash + sh).
-          TAB=$(printf '\t')
-          NL=$(printf '\n')
+          # 🤖 NOTE: IFS=tab صريح عبر $'\t' (bash ANSI-C quoting).
+          # و newline حرفي بين علامتي اقتباس لأن $(printf '\n') يستبدل
+          # الـ trailing newline بفراغ، فيُصبح NL=''.
           CANDIDATES=""
-          while IFS="$TAB" read -r status p1 p2; do
+          while IFS=$'\t' read -r status p1 p2; do
             [ -z "$status" ] && continue
             case "$status" in
               R*)
                 # rename: نفحص الـ source path (إن كان محمياً، فقد نقله = MOD)
                 # و الـ destination (إن كان محمياً، فهو ملف سيادي جديد).
-                CANDIDATES="${CANDIDATES}${p1}${NL}${p2}${NL}"
+                CANDIDATES+="${p1}"$'\n'
+                CANDIDATES+="${p2}"$'\n'
                 ;;
               *)
-                CANDIDATES="${CANDIDATES}${p1}${NL}"
+                CANDIDATES+="${p1}"$'\n'
                 ;;
             esac
           done <<< "$STATUS"
