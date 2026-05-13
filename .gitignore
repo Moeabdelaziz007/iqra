@@ -48,6 +48,17 @@ tsc_output.txt
 /debug_*.ts
 /docs-out/
 
+# Transient drafts at the repo root. These accumulate when commit
+# messages or fix summaries are written to disk during an editing
+# session and then forgotten.
+/COMMIT_MESSAGE.md
+/typescript_fix_summary.md
+
+# The Quran SQLite DB belongs under iqra-core/data/quran_local.db
+# (every reader in src/ uses that path). A root-level copy is stale
+# by definition and just inflates the repo.
+/quran_local.db
+
 # Go engine binaries are produced by `npm run engine:build` under /bin/.
 # The source under src/services/go-engine/ stays in git; the binary does not.
 /bin/iqra-engine
