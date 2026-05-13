@@ -1,0 +1,244 @@
+# .github/workflows/agent-pr-guard.yml
+#
+# 🛡️ Agent PR Guard
+#
+# يحرس ضد PRs منفلتة من AI agents (Jules/Codex/Codesmith/إلخ).
+# يفحص:
+#   1. حجم الـ PR — يرفض > 1000 سطر بدون refactor:/restructure: في العنوان.
+#   2. الملفات المحمية — يفشل إذا لمست:
+#      - IQRA_SUPREME.md
+#      - src/lib/iqra/00-manifest/*
+#      - iqra-core/DAST*.md, MITHAQ*.md, إلخ
+#      - .husky/pre-commit
+#      - tsconfig.json (تغييرات جذرية)
+#      - AGENTS.md
+#      ما لم يحمل العنوان tag `sovereign:` ويوجد label `sovereign-approved` على الـ PR.
+#   3. AI agents المعروفون: يضيف label `agent-pr` ويعلّق تحذيراً عند انتهاك القاعدة.
+#
+# 🤖 NOTE TO FUTURE AI AGENTS:
+#   - إذا كنت تقرأ هذا، فأنت محكوم بـ AGENTS.md في الجذر.
+#   - لا تحاول تعطيل هذا الـ workflow. الـ CODEOWNERS يطلب مراجعة بشرية.
+#   - PR منفلت = إغلاق فوري (راجع PR #16 و #17 كأمثلة سابقة).
+
+name: 🛡️ Agent PR Guard
+
+on:
+  pull_request:
+    # 🤖 NOTE: labeled/unlabeled مدرجان لإعادة تشغيل الـ guard تلقائياً
+    # عند إضافة 'sovereign-approved' (المراجع لا يحتاج push يدوي ليُعاد فحص الـ PR).
+    types: [opened, synchronize, reopened, edited, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: agent-pr-guard-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  size-guard:
+    name: 📏 PR Size Guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Compute diff size
+        id: diff
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # نحسب الإجمالي بدون lockfiles/binaries/generated.
+          # 🤖 NOTE: --numstat ينتج '<added>\t<removed>\t<path>' بـ TAB صريح.
+          # awk الافتراضي يقسّم بأي whitespace، فمسار فيه مسافات (e.g. 'x y.txt')
+          # يجعل NF=4 ويُحذف من المجموع. نُفرض FS="\t" فيُحسب الـ path كحقل واحد
+          # بصرف النظر عن الـ spaces. الـ binary diffs تظهر بـ '-' في $1 و $2 فنتجاهلها.
+          ADDED=$(git diff --numstat "$BASE_SHA...$HEAD_SHA" -- ':(exclude)*.lock' ':(exclude)package-lock.json' ':(exclude)*.min.*' | awk -F'\t' 'NF==3 && $1!="-" {sum+=$1} END {print sum+0}')
+          REMOVED=$(git diff --numstat "$BASE_SHA...$HEAD_SHA" -- ':(exclude)*.lock' ':(exclude)package-lock.json' ':(exclude)*.min.*' | awk -F'\t' 'NF==3 && $2!="-" {sum+=$2} END {print sum+0}')
+          TOTAL=$((ADDED + REMOVED))
+          echo "added=$ADDED" >> "$GITHUB_OUTPUT"
+          echo "removed=$REMOVED" >> "$GITHUB_OUTPUT"
+          echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
+          echo "📏 الحجم: +$ADDED -$REMOVED (إجمالي $TOTAL سطر، باستثناء lockfiles/minified)"
+
+      - name: Check size threshold
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          TOTAL: ${{ steps.diff.outputs.total }}
+        run: |
+          # حد افتراضي: 1000 سطر. PRs أكبر تتطلب prefix صريح.
+          LIMIT=1000
+          # 🤖 NOTE: الـ prefixes المسموح بها مقصورة على ما توثّقه AGENTS.md
+          # ('refactor:' و 'restructure:' فقط). السابق كان يقبل migration:/initial:
+          # /chore(deps): أيضاً، وهذا يفتح ثغرة لتجاوز الحد بـ tag غير موثّق.
+          if echo "$PR_TITLE" | grep -qE '^(refactor|restructure):'; then
+            echo "✅ Title bears large-scope prefix — size $TOTAL allowed."
+            exit 0
+          fi
+          if [ "$TOTAL" -gt "$LIMIT" ]; then
+            echo "::error::PR size $TOTAL exceeds limit $LIMIT lines."
+            echo "::error::إذا كان هذا restructure متعمّد، أضف 'refactor:' أو 'restructure:' في بداية عنوان الـ PR."
+            echo "::error::PRs الضخمة بدون نطاق واضح تُغلَق بدون مراجعة (راجع AGENTS.md)."
+            exit 1
+          fi
+          echo "✅ Size $TOTAL ≤ $LIMIT — OK."
+
+  protected-paths:
+    name: 🔒 Protected Paths Guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Check protected paths
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_LABELS: ${{ toJSON(github.event.pull_request.labels) }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          # patterns محمية
+          # 🤖 NOTE: الـ manifest files تستخدم Arabic transliteration مع diacritics:
+          #   DASTŪR.md (ليس DASTUR.md)، MĪTHĀQ.md، MURĀQABAH.md.
+          # نقبل الـ ASCII fallback أيضاً (DASTUR.md) إن أُنشئ كـ alias.
+          # نستخدم alternation (Ū|U) بدل character class [ŪU] لأن grep -E
+          # يطابق character classes بـ بايت لا بـ codepoint، فـ [ŪU] يخفق
+          # على multi-byte UTF-8. الـ .md anchor يمنع false positives.
+          PROTECTED='^(IQRA_SUPREME\.md|AGENTS\.md|\.husky/pre-commit|tsconfig\.json|\.github/CODEOWNERS|src/lib/iqra/00-manifest/|iqra-core/(DAST(Ū|U)R|M(Ī|I)TH(Ā|A)Q|MUR(Ā|A)QABAH|FITRAH|RULES|POWERS|WISDOM_7|TAWBAH)\.md)'
+
+          # 🤖 NOTE: نُميّز بين modification لملف سيادي *موجود* (يحتاج إذن)
+          # و *creation* لملف جديد (يُسمَح: هكذا نبني الحوكمة أول مرة).
+          # نستخدم --name-status -M لالتقاط renames بـ R<score> oldpath newpath.
+          # هذا يحمي من ثغرة: rename لملف سيادي إلى اسم غير محمي.
+          # كلا الـ paths (src + dst) يُمرّران للـ regex.
+          STATUS=$(git diff --name-status -M "$BASE_SHA...$HEAD_SHA")
+          echo "Changed files (with status):"
+          echo "$STATUS" | sed 's/^/  /'
+          echo ""
+
+          # نحوّل status output إلى قائمة paths مع نوع التغيير المنطقي:
+          # A path  → ADD (creation)
+          # M path  → MOD
+          # D path  → DEL (لـ ملف كان محمياً → MOD)
+          # R### old new → كلاهما يُفحَص: old (كأنه DEL) + new (كأنه ADD)
+          # 🤖 NOTE: IFS=tab صريح عبر $'\t' (bash ANSI-C quoting).
+          # و newline حرفي بين علامتي اقتباس لأن $(printf '\n') يستبدل
+          # الـ trailing newline بفراغ، فيُصبح NL=''.
+          CANDIDATES=""
+          while IFS=$'\t' read -r status p1 p2; do
+            [ -z "$status" ] && continue
+            case "$status" in
+              R*)
+                # rename: نفحص الـ source path (إن كان محمياً، فقد نقله = MOD)
+                # و الـ destination (إن كان محمياً، فهو ملف سيادي جديد).
+                CANDIDATES+="${p1}"$'\n'
+                CANDIDATES+="${p2}"$'\n'
+                ;;
+              *)
+                CANDIDATES+="${p1}"$'\n'
+                ;;
+            esac
+          done <<< "$STATUS"
+
+          PROTECTED_HITS=$(echo "$CANDIDATES" | grep -E "$PROTECTED" || true)
+          if [ -z "$PROTECTED_HITS" ]; then
+            echo "✅ لا ملفات محمية في الـ diff."
+            exit 0
+          fi
+
+          # 🤖 NOTE: BOOTSTRAP_ALLOWLIST — ملفات الحوكمة الميتا التي يُسمَح
+          # بإنشائها أول مرة بدون موافقة (هكذا نبنيها). كل ما عداها يتطلب
+          # موافقة سواء كان creation أو modification — منع إضافة ملفات
+          # سيادية جديدة (مثل بند manifest جديد) بدون مراجعة.
+          BOOTSTRAP_ALLOWLIST_RE='^(AGENTS\.md|\.github/CODEOWNERS)$'
+
+          # افحص كل ملف محمي: existed_in_base ؟ في الـ allowlist ؟
+          MODIFIED_PROTECTED=""
+          BOOTSTRAP_CREATED=""
+          UNAUTHORIZED_CREATED=""
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            if git cat-file -e "$BASE_SHA:$f" 2>/dev/null; then
+              # موجود في BASE → modification
+              MODIFIED_PROTECTED="$MODIFIED_PROTECTED$f"$'\n'
+            elif echo "$f" | grep -qE "$BOOTSTRAP_ALLOWLIST_RE"; then
+              # creation لملف bootstrap → مسموح
+              BOOTSTRAP_CREATED="$BOOTSTRAP_CREATED$f"$'\n'
+            else
+              # creation لملف سيادي خارج الـ allowlist → يحتاج موافقة (treat as MOD)
+              UNAUTHORIZED_CREATED="$UNAUTHORIZED_CREATED$f"$'\n'
+            fi
+          done <<< "$PROTECTED_HITS"
+
+          if [ -n "$BOOTSTRAP_CREATED" ]; then
+            echo "🌱 ملفات bootstrap الحوكمة (إنشاء أول مرة — مسموح):"
+            echo "$BOOTSTRAP_CREATED" | sed '/^$/d; s/^/  - /'
+            echo ""
+          fi
+
+          # نضمّ unauthorized creations مع modifications: كلاهما يحتاج موافقة.
+          BLOCKING="${MODIFIED_PROTECTED}${UNAUTHORIZED_CREATED}"
+
+          if [ -z "$BLOCKING" ]; then
+            echo "✅ كل اللمسات على ملفات محمية ضمن قائمة الـ bootstrap — بلا حجب."
+            exit 0
+          fi
+
+          if [ -n "$UNAUTHORIZED_CREATED" ]; then
+            echo "🆕 ملفات سيادية جديدة تحتاج موافقة (ليست في bootstrap allowlist):"
+            echo "$UNAUTHORIZED_CREATED" | sed '/^$/d; s/^/  - /'
+            echo ""
+          fi
+
+          # alias للسطر التالي للوضوح
+          MODIFIED_PROTECTED="$BLOCKING"
+
+          echo "🔒 ملفات سيادية موجودة عُدِّلت:"
+          echo "$MODIFIED_PROTECTED" | sed '/^$/d; s/^/  - /'
+          echo ""
+
+          # تحقق من الإذن: title prefix `sovereign:` + label `sovereign-approved`
+          HAS_PREFIX=$(echo "$PR_TITLE" | grep -E '^(sovereign|manifest):' || true)
+          HAS_LABEL=$(echo "$PR_LABELS" | grep -q '"sovereign-approved"' && echo yes || echo no)
+
+          if [ -n "$HAS_PREFIX" ] && [ "$HAS_LABEL" = "yes" ]; then
+            echo "✅ Title bears 'sovereign:' prefix AND PR has 'sovereign-approved' label — bypass granted."
+            exit 0
+          fi
+
+          echo "::error::PR يعدّل ملفات سيادية موجودة بدون إذن."
+          echo "::error::إذا كان التغيير متعمّداً، يلزم:"
+          echo "::error::  1. وضع 'sovereign:' أو 'manifest:' في بداية عنوان الـ PR."
+          echo "::error::  2. إضافة label 'sovereign-approved' (يحتاج موافقة maintainer)."
+          echo "::error::راجع AGENTS.md و IQRA_SUPREME.md للقواعد."
+          exit 1
+
+  label-agent-prs:
+    name: 🏷️ Label Agent PRs
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+    steps:
+      - name: Label PR if author is an AI agent
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          AUTHOR_LOGIN: ${{ github.event.pull_request.user.login }}
+        run: |
+          # AI agents المعروفون
+          case "$AUTHOR_LOGIN" in
+            google-labs-jules*|jules*|coderabbitai*|chatgpt-codex*|codesmith*|copilot*)
+              echo "🤖 Author '$AUTHOR_LOGIN' detected as AI agent — applying label."
+              gh pr edit "$PR_NUMBER" --add-label "agent-pr" --repo "${{ github.repository }}" || true
+              ;;
+            *)
+              echo "👤 Author '$AUTHOR_LOGIN' is human — no label applied."
+              ;;
+          esac

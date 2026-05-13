@@ -1,0 +1,49 @@
+# .github/CODEOWNERS
+#
+# يطلب مراجعة المالك على الملفات السيادية والبنية المعمارية.
+# انظر https://docs.github.com/articles/about-code-owners
+#
+# 🤖 NOTE: هذا الملف يعمل بالتوازي مع .github/workflows/agent-pr-guard.yml.
+# الـ guard يفحص الـ size + protected paths عبر CI. CODEOWNERS يضيف
+# طلب مراجعة بشري إلزامي.
+#
+# الأولوية: الـ rule الأخيرة المطابقة تفوز.
+
+# Default fallback: المالك الأساسي يُراجَع كل شيء
+*                                       @Moeabdelaziz007
+
+# ── الملف السيادي الأعلى ────────────────────────────────────────────
+/IQRA_SUPREME.md                        @Moeabdelaziz007
+/AGENTS.md                              @Moeabdelaziz007
+
+# ── المنفست (الـ 14 طبقة + الدساتير) ────────────────────────────────
+# 🤖 NOTE: نسجّل الصيغتين — diacritic (canonical) و ASCII fallback — لأن
+# CODEOWNERS pattern matching path-exact (يدعم *? فقط، لا regex).
+# لو فاتنا أحد الصيغتين، rename لـ alias قد يُفلت من المراجعة.
+/src/lib/iqra/00-manifest/              @Moeabdelaziz007
+/iqra-core/DASTŪR.md                    @Moeabdelaziz007
+/iqra-core/DASTUR.md                    @Moeabdelaziz007
+/iqra-core/MĪTHĀQ.md                    @Moeabdelaziz007
+/iqra-core/MITHAQ.md                    @Moeabdelaziz007
+/iqra-core/MURĀQABAH.md                 @Moeabdelaziz007
+/iqra-core/MURAQABAH.md                 @Moeabdelaziz007
+/iqra-core/FITRAH.md                    @Moeabdelaziz007
+/iqra-core/RULES.md                     @Moeabdelaziz007
+/iqra-core/POWERS.md                    @Moeabdelaziz007
+/iqra-core/WISDOM_7.md                  @Moeabdelaziz007
+/iqra-core/TAWBAH.md                    @Moeabdelaziz007
+
+# ── الحراس البنيوية ───────────────────────────────────────────────────
+/.husky/                                @Moeabdelaziz007
+/tsconfig.json                          @Moeabdelaziz007
+/.github/CODEOWNERS                     @Moeabdelaziz007
+/.github/workflows/                     @Moeabdelaziz007
+
+# ── محرك النمو (IQRA Growth Engine) ──────────────────────────────────
+# 🤖 NOTE: ملف workflow الـ growth-engine يُضاف في PR #25 (feat/iqra-growth-engine-week1).
+# لا نُسجّل مساره هنا بشكل خاص لأن '/.github/workflows/' أعلاه يغطيه ضمناً عند إنشائه.
+/.iqra/                                 @Moeabdelaziz007
+
+# ── package metadata ─────────────────────────────────────────────────
+/package.json                           @Moeabdelaziz007
+/package-lock.json                      @Moeabdelaziz007
