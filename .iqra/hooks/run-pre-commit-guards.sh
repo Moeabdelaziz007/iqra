@@ -25,12 +25,6 @@ if [ "${IQRA_SKIP_GUARDS:-0}" = "1" ]; then
   exit 0
 fi
 
-# تحقق من وجود tsx (يلزم لتشغيل الـ TS hooks)
-if ! command -v npx >/dev/null 2>&1; then
-  echo "❌ [IQRA] npx غير متوفر — لا يمكن تشغيل guards"
-  exit 1
-fi
-
 # 🤖 NOTE: تخطّي كل شيء لو لا staged files (مثل commit --amend بدون تعديل،
 # أو تشغيل يدوي للتجربة). يوفّر startup الـ Node.js + tsx (~ ثانيتين).
 if [ -z "$(git diff --cached --name-only)" ]; then
@@ -38,25 +32,33 @@ if [ -z "$(git diff --cached --name-only)" ]; then
   exit 0
 fi
 
-# 🤖 NOTE: --no-install يجبر npx على استخدام tsx من node_modules المحلي
-# فقط — يمنع تحميل من الـ internet أثناء commit (بطيء، يفشل offline،
-# يطلب موافقة المستخدم). tsx معرّف في devDependencies فمن المفترض أنه موجود.
+# 🤖 NOTE: استدعاء tsx مباشرة من node_modules بدل npx. السبب:
+# - npx يبحث في الـ PATH/cache وقد يحاول تحميل لو فقد (--no-install
+#   يمنع التحميل لكن لا يزال يدفع overhead الـ resolution).
+# - direct binary أسرع (لا wrapper) و fail-fast واضح لو الـ install ناقص.
+# - tsx معرّف في devDependencies، فالـ npm install يوفّره دائماً.
+TSX_BIN="./node_modules/.bin/tsx"
+if [ ! -x "$TSX_BIN" ]; then
+  echo "❌ [IQRA] tsx غير متوفر في node_modules/.bin. شغّل 'npm install' أولاً."
+  exit 1
+fi
+
 FAIL=0
 
 echo "🛡️ [IQRA] name-validator..."
-if ! npx --no-install tsx .iqra/hooks/name-validator.ts; then
+if ! "$TSX_BIN" .iqra/hooks/name-validator.ts; then
   echo "❌ [IQRA] name-validator رفض الـ commit"
   FAIL=1
 fi
 
 echo "🛡️ [IQRA] secret-guard..."
-if ! npx --no-install tsx .iqra/hooks/secret-guard.ts; then
+if ! "$TSX_BIN" .iqra/hooks/secret-guard.ts; then
   echo "❌ [IQRA] secret-guard رفض الـ commit"
   FAIL=1
 fi
 
 echo "🛡️ [IQRA] size-guard..."
-if ! npx --no-install tsx .iqra/hooks/size-guard.ts; then
+if ! "$TSX_BIN" .iqra/hooks/size-guard.ts; then
   echo "❌ [IQRA] size-guard رفض الـ commit"
   FAIL=1
 fi
