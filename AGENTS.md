@@ -42,7 +42,7 @@ These are sovereign. Modifying them without an issue + maintainer approval will 
 - `.github/CODEOWNERS`
 - `AGENTS.md` itself (this file)
 
-Touching documentation under `src/lib/iqra/01-..14-/` is allowed for the task you were asked to do, but never as a side-effect.
+Touching documentation under `src/lib/iqra/01..14/` is allowed for the task you were asked to do, but never as a side-effect.
 
 ## Repository structure (do not move things around)
 
