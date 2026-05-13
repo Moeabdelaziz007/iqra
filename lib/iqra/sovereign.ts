@@ -126,7 +126,7 @@ export class SovereignEngine {
     // Log to REFLECTION.md
     logToIQRAFile('REFLECTION.md', `
 ---
-//# Task Reflection | ${new Date().toLocaleDateString()}
+## Task Reflection | ${new Date().toLocaleDateString()}
 **Task ID**: ${taskId}
 **Score**: ${score.toFixed(2)}
 **Summary**: ${review.resultSummary}

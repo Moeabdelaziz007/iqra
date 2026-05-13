@@ -16,6 +16,8 @@ export interface QuranicPattern {
 }
 
 export class PatternDiscovery {
+  private static isArchiving = false;
+
   /**
    * Analyze a specific segment to extract semantic patterns
    */
@@ -39,26 +41,46 @@ export class PatternDiscovery {
   /**
    * Batch Save to Knowledge Base
    * Reduces I/O from O(N) to O(1)
+   *
+   * Safety: Implements a simple lock to prevent overlapping updates.
    */
   private static async saveBatchToKnowledgeBase(patterns: string[]) {
-    // 1. Fetch the knowledge base once
-    const memory = await IQRAMemory.get<string[]>('quranic_knowledge') || [];
-    let updated = false;
-
-    // 2. Identify new unique patterns
-    for (const pattern of patterns) {
-      if (!memory.includes(pattern)) {
-        memory.push(pattern);
-        updated = true;
-        console.log(`✨ New Pattern Archived: ${pattern}`);
+    // Wait for existing archiving process to complete (simple lock)
+    if (this.isArchiving) {
+      while (this.isArchiving) {
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
     }
 
-    // 3. Save once if updates occurred
-    if (updated) {
-      const limitedMemory = memory.slice(-100); // Last 100 discoveries
-      await IQRAMemory.set('quranic_knowledge', limitedMemory);
-      console.log(`✅ Batch Archive Complete: ${patterns.length} patterns processed.`);
+    try {
+      this.isArchiving = true;
+
+      // 1. Fetch the knowledge base once
+      const memory = await IQRAMemory.get<string[]>('quranic_knowledge') || [];
+      let updated = false;
+      const newEntries: string[] = [];
+
+      // 2. Identify new unique patterns
+      for (const pattern of patterns) {
+        if (!memory.includes(pattern)) {
+          memory.push(pattern);
+          newEntries.push(pattern);
+          updated = true;
+        }
+      }
+
+      // 3. Save once if updates occurred
+      if (updated) {
+        const limitedMemory = memory.slice(-100); // Last 100 discoveries
+        await IQRAMemory.set('quranic_knowledge', limitedMemory);
+
+        for (const entry of newEntries) {
+          console.log(`✨ New Pattern Archived: ${entry}`);
+        }
+        console.log(`✅ Batch Archive Complete: ${newEntries.length} new patterns preserved.`);
+      }
+    } finally {
+      this.isArchiving = false;
     }
   }
 }

@@ -18,7 +18,6 @@ import { SovereignEngine } from './sovereign.ts';
 import { IQRAMemory } from './memory.ts';
 import { IQRALogger } from './logger.ts';
 import { iqraExecute } from './orchestrator.ts';
-import { MITHAQ, DASTUR, MURAQABAH } from "./philosophy.ts";
 import { IQRAStore } from './database.ts';
 import { IQRATopology } from './quran/topology.ts';
 import { withTimeout, IQRA_TIMEOUTS } from './utils/timeout.ts';
@@ -82,7 +81,6 @@ let _clients: any = null;
 
 async function getClients() {
   if (_clients) return _clients;
-  let OpenAIModule: any;
   _clients = {};
   
   if (process.env.ANTHROPIC_API_KEY) {
@@ -94,15 +92,15 @@ async function getClients() {
   
   if (process.env.OPENAI_API_KEY) {
     try {
-      OpenAIModule = (await import('openai')).default;
-      _clients.openai = new OpenAIModule({ apiKey: process.env.OPENAI_API_KEY });
+      const { default: OpenAI } = await import('openai');
+      _clients.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     } catch (e) { IQRALogger.warn('⚠️ [BRAIN] OpenAI SDK missing.'); }
   }
 
   if (process.env.OPENROUTER_API_KEY) {
     try {
-      OpenAIModule = (await import('openai')).default;
-      _clients.openrouter = new OpenAIModule({
+      const { default: OpenAI } = await import('openai');
+      _clients.openrouter = new OpenAI({
         apiKey: process.env.OPENROUTER_API_KEY,
         baseURL: process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/v1',
       });

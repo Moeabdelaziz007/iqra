@@ -31,7 +31,7 @@ export class SovereignEvolution {
     const summary = reflections.map(r => `- ${r.resultSummary}`).join('\n');
     
     const wisdom = `
-//## Cycle ${cycleNum} Wisdom
+### Cycle ${cycleNum} Wisdom
 - **Observation**: Stability maintained across ${reflections.length} tasks.
 - **Patterns**: No recurring failures in the last septenary window.
 - **Reflections Analyzed**:
@@ -58,7 +58,7 @@ ${summary}
     const majorCycleNum = Math.floor(counter / 49);
     
     const metamorphosis = `
-// System Metamorphosis | Cycle ${majorCycleNum}
+# System Metamorphosis | Cycle ${majorCycleNum}
 > "كَمَا بَدَأْنَا أَوَّلَ خَلْقٍ نُّعِيدُهُ" — الأنبياء: 104
 
 - **Total Tasks**: ${counter}
@@ -68,7 +68,7 @@ ${summary}
   - **Learning Velocity**: Optimized.
   - **TrustChain Depth**: ${counter} entries verified.
 
-//# Next Phase Direction
+## Next Phase Direction
 Deepen the Quranic Root Analysis patterns and enhance the curiosity threshold.
 ---
 `.trim();
