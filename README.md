@@ -8,7 +8,7 @@
 
 [![Layer](https://img.shields.io/badge/LAYER-L2%20%C2%B7%20RUNTIME-39FF14?style=for-the-badge&labelColor=050505)](https://github.com/Moeabdelaziz007/iqra)
 [![Stack](https://img.shields.io/badge/AIX%20STACK-v0.369.0-39FF14?style=for-the-badge&labelColor=050505)](https://github.com/Moeabdelaziz007/aix-format)
-[![License](https://img.shields.io/badge/LICENSE-MIT-39FF14?style=for-the-badge&labelColor=050505)](./LICENSE)
+[![License](https://img.shields.io/badge/LICENSE-Apache_2.0-39FF14?style=for-the-badge&labelColor=050505)](./LICENSE)
 
 </div>
 
@@ -395,7 +395,7 @@ iqra/
 <br/>
 
 <img src="https://img.shields.io/badge/Made%20with-TypeScript-blue?style=flat-square"/>
-<img src="https://img.shields.io/badge/License-Apache_2.0-green?style=flat-square"/>
+<img src="https://img.shields.io/badge/License-Apache_2.0-green?style=flat-square" alt="License: Apache 2.0"/>
 <img src="https://img.shields.io/github/stars/Moeabdelaziz007/iqra?style=flat-square"/>
 
 <br/><br/>
