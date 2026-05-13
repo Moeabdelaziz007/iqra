@@ -19,7 +19,11 @@ const PULSES = '.iqra/pulses.jsonl';
 const CYCLE_FILE = '.iqra/cycle.txt';
 const OUTPUT = '.iqra/performance/broken-links.md';
 const CYCLE_LENGTH = 30;
-const SKIP_DIRS = new Set(['node_modules', '.git', '.next', 'dist', 'build', '.iqra/memory']);
+// segments نقارنها بـ entry.name (مستوى واحد)
+// 🤖 NOTE: `.iqra/memory` كان لا يُتخطّى لأن entry.name هو `memory` فقط في هذا المستوى.
+// نضع `.iqra/memory` كـ prefix على الـ full path بدلاً.
+const SKIP_DIRS = new Set(['node_modules', '.git', '.next', 'dist', 'build']);
+const SKIP_PREFIXES = ['.iqra/memory'];
 
 // نمط الروابط في markdown
 const INLINE_LINK = /(?<!\!)\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
@@ -38,11 +42,20 @@ function appendPulse(action: string, meta: Record<string, unknown> = {}): void {
   fs.appendFileSync(PULSES, JSON.stringify(pulse) + '\n');
 }
 
+function shouldSkipPath(fullPath: string): boolean {
+  const norm = fullPath.split(path.sep).join('/').replace(/^\.\//, '');
+  for (const prefix of SKIP_PREFIXES) {
+    if (norm === prefix || norm.startsWith(`${prefix}/`)) return true;
+  }
+  return false;
+}
+
 function* walkMd(dir: string): Generator<string> {
   if (!fs.existsSync(dir)) return;
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (SKIP_DIRS.has(entry.name)) continue;
     const full = path.join(dir, entry.name);
+    if (shouldSkipPath(full)) continue;
     if (entry.isDirectory()) yield* walkMd(full);
     else if (entry.name.endsWith('.md')) yield full;
   }

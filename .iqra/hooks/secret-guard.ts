@@ -56,7 +56,11 @@ const SKIP_EXTS = new Set([
   '.db', '.sqlite', '.woff', '.woff2', '.ttf', '.otf',
 ]);
 
-const SKIP_DIRS = new Set(['node_modules', '.git', '.next', 'dist', 'build', '.iqra/memory']);
+// Skip directories as path *segments*, not substrings.
+// 🤖 NOTE: substring match يُسبّب false-skips خطيرة (مثلاً `src/lib/iqra/02-workers/builder.ts`
+// كان يُتخطّى لأنه يحوي "build"). نطابق segment كامل أو prefix path.
+const SKIP_SEGMENTS = new Set(['node_modules', '.git', '.next', 'dist', 'build']);
+const SKIP_PREFIXES = ['.iqra/memory/'];
 
 // تعليق للتجاوز الصريح في سطر فيه ما يشبه مفتاحاً
 const ALLOW_MARKER = 'iqra:secret-guard:allow';
@@ -78,7 +82,13 @@ function shouldSkip(filePath: string): boolean {
   const ext = path.extname(filePath).toLowerCase();
   if (SKIP_EXTS.has(ext)) return true;
   const norm = filePath.split(path.sep).join('/');
-  return Array.from(SKIP_DIRS).some((d) => norm.includes(d));
+  // prefix match: مثلاً .iqra/memory/anything
+  for (const prefix of SKIP_PREFIXES) {
+    if (norm.startsWith(prefix) || norm.includes(`/${prefix}`)) return true;
+  }
+  // segment match: كل قطعة في الـ path تُقارن بـ Set
+  const segments = norm.split('/');
+  return segments.some((s) => SKIP_SEGMENTS.has(s));
 }
 
 function getStagedFiles(): string[] {

@@ -29,12 +29,27 @@ const PULSES = '.iqra/pulses.jsonl';
 const CYCLE_FILE = '.iqra/cycle.txt';
 const CYCLE_LENGTH = 30;
 
-const SOFT_LIMIT_MB = Number.parseFloat(process.env.IQRA_SIZE_SOFT_MB || '1');
-const HARD_LIMIT_MB = Number.parseFloat(process.env.IQRA_SIZE_HARD_MB || '10');
+// 🤖 NOTE: parseFloat على env vars يعطي NaN عند الـ typos (مثلاً "ten").
+// NaN يجعل `size >= HARD` دائماً false، فيُعطّل الحارس بصمت.
+// نضع defaults صلبة عند NaN ونحذّر.
+function parseLimit(name: string, raw: string | undefined, fallback: number): number {
+  if (raw == null) return fallback;
+  const parsed = Number.parseFloat(raw);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    console.warn(`⚠️ ${name}="${raw}" غير صالح — استخدام الافتراضي ${fallback}MB`);
+    return fallback;
+  }
+  return parsed;
+}
+
+const SOFT_LIMIT_MB = parseLimit('IQRA_SIZE_SOFT_MB', process.env.IQRA_SIZE_SOFT_MB, 1);
+const HARD_LIMIT_MB = parseLimit('IQRA_SIZE_HARD_MB', process.env.IQRA_SIZE_HARD_MB, 10);
 const SOFT = SOFT_LIMIT_MB * 1024 * 1024;
 const HARD = HARD_LIMIT_MB * 1024 * 1024;
 
-const SKIP_PATTERNS = ['.iqra/memory/', 'node_modules/', '.git/'];
+// path prefixes تُقارن بـ startsWith على المسار المُسوّى (يبدأ من جذر الـ repo).
+// 🤖 NOTE: استخدام includes كان يُسبّب false-skips لملفات تحوي substring (مثلاً "builder.ts" → "build").
+const SKIP_PREFIXES = ['.iqra/memory/', 'node_modules/', '.git/'];
 
 function readCycle(): string {
   if (!fs.existsSync(CYCLE_FILE)) return '1';
@@ -70,8 +85,8 @@ function getAllRepoFiles(): string[] {
 }
 
 function shouldSkip(file: string): boolean {
-  const norm = file.split(path.sep).join('/');
-  return SKIP_PATTERNS.some((p) => norm.includes(p));
+  const norm = file.split(path.sep).join('/').replace(/^\.\//, '');
+  return SKIP_PREFIXES.some((p) => norm.startsWith(p) || norm.includes(`/${p}`));
 }
 
 type Violation = { file: string; sizeMB: number; level: 'soft' | 'hard' };
