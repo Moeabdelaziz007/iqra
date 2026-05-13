@@ -17,6 +17,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 
+	"iqra/engine/pkg/lifecycle"
 	"iqra/engine/pkg/observability"
 )
 
@@ -89,30 +90,63 @@ func resonanceHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func batchAnalysisHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
+// makeBatchHandler returns an HTTP handler closed over the engine's root
+// context. The handler links the per-request context to the root so that a
+// SIGINT/SIGTERM arriving during a long batch propagates down into the
+// BatchOrchestrator, which saves a checkpoint and returns a partial result
+// rather than being cut off mid-chunk by the server-Shutdown deadline.
+func makeBatchHandler(rootCtx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		var req BatchAnalysisRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		// Combine the request context with the root context so cancellation of
+		// either (client disconnect OR engine shutdown) reaches the orchestrator.
+		jobCtx, cancelJob := context.WithCancel(r.Context())
+		defer cancelJob()
+		stopBridge := context.AfterFunc(rootCtx, cancelJob)
+		defer stopBridge()
+
+		jobID := lifecycle.NewJobID()
+		_, span := observability.Tracer().Start(jobCtx, "ProcessBatchParallel")
+		span.SetAttributes(
+			attribute.String("batch.job_id", jobID),
+			attribute.Int("batch.surahs.requested", len(req.Surahs)),
+		)
+		orchestrator := &BatchOrchestrator{}
+		result, runErr := orchestrator.Run(jobCtx, jobID, req, 0, nil)
+		span.SetAttributes(
+			attribute.Int("batch.surahs.processed", result.ProcessedSurahs),
+			attribute.Int64("batch.duration.ms", int64(result.TotalTimeMs)),
+		)
+		span.End()
+
+		w.Header().Set("Content-Type", "application/json")
+		// Surface the job id so an interrupted run can be resumed via
+		// `iqra-engine -resume-from <jobID>`.
+		w.Header().Set("X-IQRA-Job-ID", jobID)
+
+		status := "success"
+		message := fmt.Sprintf("Processed %d/%d surahs in %dms", result.ProcessedSurahs, result.TotalSurahs, result.TotalTimeMs)
+		if runErr != nil {
+			status = "partial"
+			message = fmt.Sprintf("Interrupted at %d/%d surahs; resume with job_id=%s (reason: %v)",
+				result.ProcessedSurahs, result.TotalSurahs, jobID, runErr)
+			w.WriteHeader(http.StatusAccepted)
+		}
+		json.NewEncoder(w).Encode(Response{
+			Status:  status,
+			Message: message,
+			Data:    result,
+		})
 	}
-	var req BatchAnalysisRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	_, span := observability.Tracer().Start(r.Context(), "ProcessBatchParallel")
-	span.SetAttributes(attribute.Int("batch.surahs.requested", len(req.Surahs)))
-	result := ProcessBatchParallel(req)
-	span.SetAttributes(
-		attribute.Int("batch.surahs.processed", result.ProcessedSurahs),
-		attribute.Int64("batch.duration.ms", int64(result.TotalTimeMs)),
-	)
-	span.End()
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(Response{
-		Status:  "success",
-		Message: fmt.Sprintf("Processed %d surahs in %dms", result.ProcessedSurahs, result.TotalTimeMs),
-		Data:    result,
-	})
 }
 
 func lidAnalysisHandler(w http.ResponseWriter, r *http.Request) {
@@ -252,7 +286,19 @@ func main() {
 	cliMode := flag.String("mode", "", "Run in CLI mode (shannon, lid, homology)")
 	cliInput := flag.String("input", "", "JSON input for CLI mode")
 	port := flag.String("port", "8082", "Port to listen on (server mode)")
+	resumeFrom := flag.String("resume-from", "", "Resume an interrupted batch job by its job id (CLI mode)")
+	listCheckpoints := flag.Bool("list-checkpoints", false, "List all pending batch-job checkpoints and exit")
 	flag.Parse()
+
+	if *listCheckpoints {
+		runListCheckpoints()
+		return
+	}
+
+	if *resumeFrom != "" {
+		runResumeBatch(*resumeFrom)
+		return
+	}
 
 	if *cliMode != "" {
 		runCLIMode(*cliMode, *cliInput)
@@ -273,7 +319,9 @@ func main() {
 	mux.Handle("/fourier/transform", instrument("fourier.transform", fourierHandler))
 	mux.Handle("/resonance/evaluate", instrument("resonance.evaluate", resonanceHandler))
 	mux.Handle("/evolve/cycle", instrument("evolve.cycle", evolveHandler))
-	mux.Handle("/batch/analyze", instrument("batch.analyze", batchAnalysisHandler))
+	// Batch handler is wrapped with the root context so SIGINT/SIGTERM
+	// reaches the BatchOrchestrator's loop and triggers a checkpoint save.
+	mux.Handle("/batch/analyze", instrument("batch.analyze", makeBatchHandler(rootCtx)))
 	mux.Handle("/lid/analyze", instrument("lid.analyze", lidAnalysisHandler))
 	mux.Handle("/shannon/analyze", instrument("shannon.analyze", shannonHandler))
 	mux.Handle("/compression/compress", instrument("compression.compress", compressionHandler))
@@ -304,8 +352,14 @@ func main() {
 		log.Println("[main] shutdown signal received, draining...")
 	}
 
-	// Server drain (short ceiling so OTEL flush gets its own budget).
-	shutCtx, cancelShut := context.WithTimeout(context.Background(), 10*time.Second)
+	// Server drain. 30 seconds is the ceiling: long enough for an in-flight
+	// batch handler to recognise the root-context cancellation, persist a
+	// checkpoint via lifecycle.Save, and return a partial response cleanly;
+	// short enough that a truly stuck handler does not block process exit
+	// indefinitely. Most shutdowns complete in well under a second because
+	// the BatchOrchestrator's per-chunk select reacts to rootCtx the instant
+	// SIGTERM arrives.
+	shutCtx, cancelShut := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancelShut()
 	if err := srv.Shutdown(shutCtx); err != nil {
 		log.Printf("[main] server shutdown error: %v", err)
@@ -321,6 +375,75 @@ func main() {
 	}
 
 	log.Println("[main] shutdown complete")
+}
+
+// runListCheckpoints prints every pending batch-job checkpoint and exits.
+// Triggered by `iqra-engine -list-checkpoints` for operators inspecting the
+// queue without spinning up the server. Output is plain-text columnar so
+// pipe-to-grep stays useful.
+func runListCheckpoints() {
+	ids, err := lifecycle.List()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "list-checkpoints: %v\n", err)
+		os.Exit(1)
+	}
+	if len(ids) == 0 {
+		fmt.Println("No pending checkpoints. Directory:", lifecycle.DefaultDir())
+		return
+	}
+	fmt.Printf("Pending checkpoints (%d) in %s:\n", len(ids), lifecycle.DefaultDir())
+	for _, id := range ids {
+		cp, err := lifecycle.Load(id)
+		if err != nil {
+			fmt.Printf("  %s  (unreadable: %v)\n", id, err)
+			continue
+		}
+		fmt.Printf("  %s  %d/%d  reason=%-8s  updated=%s\n",
+			cp.JobID, cp.LastProcessedIndex, cp.TotalItems, cp.Reason, cp.UpdatedAt.Format(time.RFC3339))
+	}
+}
+
+// runResumeBatch reads the checkpoint for jobID, replays the request against
+// ProcessBatchParallel starting at LastProcessedIndex, and writes the final
+// (or partial-if-interrupted-again) response to stdout as JSON. Triggered by
+// `iqra-engine -resume-from <jobID>`. Honors SIGINT/SIGTERM so a second
+// interruption preserves the checkpoint for a third attempt.
+func runResumeBatch(jobID string) {
+	rootCtx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	shutdownOTel, err := observability.Init(rootCtx)
+	if err != nil {
+		log.Printf("[otel] init error (continuing without tracing): %v", err)
+	}
+	defer func() {
+		if shutdownOTel == nil {
+			return
+		}
+		otelCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := shutdownOTel(otelCtx); err != nil {
+			log.Printf("[otel] shutdown error: %v", err)
+		}
+	}()
+
+	fmt.Fprintf(os.Stderr, "[resume] loading checkpoint job_id=%s from %s\n", jobID, lifecycle.DefaultDir())
+	response, err := ResumeFromCheckpoint(rootCtx, jobID)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[resume] failed: %v\n", err)
+		os.Exit(1)
+	}
+	if rootCtx.Err() != nil {
+		fmt.Fprintf(os.Stderr, "[resume] interrupted again at %d/%d surahs; checkpoint preserved\n",
+			response.ProcessedSurahs, response.TotalSurahs)
+	} else {
+		fmt.Fprintf(os.Stderr, "[resume] complete: %d/%d surahs in %dms\n",
+			response.ProcessedSurahs, response.TotalSurahs, response.TotalTimeMs)
+	}
+	if err := json.NewEncoder(os.Stdout).Encode(response); err != nil {
+		fmt.Fprintf(os.Stderr, "[resume] encode error: %v\n", err)
+		os.Exit(1)
+	}
 }
 
 func runCLIMode(mode, input string) {

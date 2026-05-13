@@ -245,6 +245,56 @@ GET /health
 - **ذاكرة**: ضغط 6x يوفر 83% من الذاكرة
 - **دقة**: LID + Shannon + Homology = رنين دقيق
 
+## 💾 Graceful Shutdown + Checkpoint (Phase 5b H3)
+
+The batch endpoint (`POST /batch/analyze`) and the CLI runner are now
+checkpoint-aware. Long batches are sliced into chunks (default 8 surahs per
+chunk); after each chunk the engine writes a JSON checkpoint to disk so an
+interrupted run can be resumed without redoing the work that already
+completed.
+
+**On every batch request the server stamps the response with:**
+
+```http
+X-IQRA-Job-ID: 1715616000-a1b2c3d4e5f6a7b8
+```
+
+If a SIGINT/SIGTERM arrives mid-batch, the orchestrator persists progress
+under `~/.iqra/checkpoints/<job_id>.json` and returns HTTP 202 with
+`status: partial` and the job id surfaced in the header. Resume from the
+CLI:
+
+```bash
+iqra-engine -resume-from 1715616000-a1b2c3d4e5f6a7b8
+```
+
+**Inspect pending checkpoints:**
+
+```bash
+iqra-engine -list-checkpoints
+# Pending checkpoints (1) in /home/you/.iqra/checkpoints:
+#   1715616000-a1b2c3d4e5f6a7b8  16/40  reason=shutdown  updated=2026-05-13T17:00:00Z
+```
+
+**Override the storage location** (useful in Docker, Vercel, or CI):
+
+```bash
+export IQRA_CHECKPOINT_DIR=/var/data/iqra/checkpoints
+# or use the XDG path
+export XDG_DATA_HOME=/var/data
+```
+
+Checkpoints are written atomically (temp file + rename + fsync) so a crash
+mid-write leaves the previous checkpoint intact. The directory is created
+with `0700` permissions so partial results are not world-readable. Job IDs
+are `<unix-seconds>-<16-hex-chars>` so `ls -1` orders them chronologically.
+
+The cloud-storage backend (R2 / Vercel Blob / S3) is intentionally a
+follow-up because it requires a separate access-credential rollout. The
+Checkpoint struct is forward-compatible: a future backend can satisfy the
+same `Save`/`Load`/`Delete`/`List` contract without touching the batch
+engine.
+
 ## 📈 Observability (Phase 5a)
 
 The engine ships with OpenTelemetry tracing in `pkg/observability/`. Spans are
