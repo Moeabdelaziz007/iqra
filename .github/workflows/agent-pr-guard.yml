@@ -112,7 +112,15 @@ jobs:
           # نستخدم alternation (Ū|U) بدل character class [ŪU] لأن grep -E
           # يطابق character classes بـ بايت لا بـ codepoint، فـ [ŪU] يخفق
           # على multi-byte UTF-8. الـ .md anchor يمنع false positives.
-          PROTECTED='^(IQRA_SUPREME\.md|AGENTS\.md|\.husky/pre-commit|tsconfig\.json|\.github/CODEOWNERS|src/lib/iqra/00-manifest/|iqra-core/(DAST(Ū|U)R|M(Ī|I)TH(Ā|A)Q|MUR(Ā|A)QABAH|FITRAH|RULES|POWERS|WISDOM_7|TAWBAH)\.md)'
+          # Anchor each file-name alternative with `$` so the regex
+          # matches the canonical path only, not anything that
+          # happens to start with the same string. Without the
+          # anchor, `tsconfig\.json` matches `tsconfig.json.backup`
+          # too, blocking legitimate cleanup of backup files. The
+          # directory prefixes (`src/lib/iqra/00-manifest/`) stay
+          # unanchored because they are supposed to match any file
+          # beneath them.
+          PROTECTED='^(IQRA_SUPREME\.md$|AGENTS\.md$|\.husky/pre-commit$|tsconfig\.json$|\.github/CODEOWNERS$|src/lib/iqra/00-manifest/|iqra-core/(DAST(Ū|U)R|M(Ī|I)TH(Ā|A)Q|MUR(Ā|A)QABAH|FITRAH|RULES|POWERS|WISDOM_7|TAWBAH)\.md$)'
 
           # 🤖 NOTE: نُميّز بين modification لملف سيادي *موجود* (يحتاج إذن)
           # و *creation* لملف جديد (يُسمَح: هكذا نبني الحوكمة أول مرة).
