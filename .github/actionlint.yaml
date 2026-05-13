@@ -1,0 +1,13 @@
+# actionlint configuration. Lists the custom self-hosted / managed
+# runner labels we use across workflows so the linter does not flag
+# them as unknown. Keep this list aligned with the runner SKUs the
+# Blacksmith app exposes for this org.
+self-hosted-runner:
+  labels:
+    - blacksmith
+    - blacksmith-2vcpu-ubuntu-2404
+    - blacksmith-4vcpu-ubuntu-2404
+    - blacksmith-8vcpu-ubuntu-2404
+    - blacksmith-2vcpu-ubuntu-2204
+    - blacksmith-4vcpu-ubuntu-2204
+    - blacksmith-8vcpu-ubuntu-2204

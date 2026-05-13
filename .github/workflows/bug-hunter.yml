@@ -1,0 +1,70 @@
+name: Bug Hunter
+
+# Monthly read-only analysis of fix/bug commits. Writes
+# signals/bug-hunter-YYYY-MM.md and commits it back to main under
+# github-actions[bot] with [skip ci]. Pure read of git log.
+on:
+  schedule:
+    # Second of every month at 05:00 UTC, after security-sentinel
+    # and before any human is awake.
+    - cron: "0 5 2 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bug-hunter
+  cancel-in-progress: false
+
+jobs:
+  hunt:
+    name: Hunt last month's fixes
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Need full history to see last month's commits.
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run bug hunter
+        run: python3 scripts/bug_hunter.py
+
+      - name: Detect changes
+        id: diff
+        # git diff --quiet only sees tracked-file modifications. On
+        # the first run of a month signals/bug-hunter-YYYY-MM.md is
+        # brand-new and untracked, so we use git status --porcelain
+        # to also pick up untracked files.
+        run: |
+          if [[ -z "$(git status --porcelain --untracked-files=all -- signals/)" ]]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit & push
+        # Guard against workflow_dispatch from a non-default ref
+        # silently fast-forwarding main to that ref's HEAD. We only
+        # commit and push when the workflow itself is running on the
+        # default branch.
+        if: |
+          steps.diff.outputs.changed == 'true'
+          && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add signals/
+          # Commit subject deliberately avoids the literal word "bug"
+          # near the start so this bot commit is not later re-ingested
+          # by _fix_commits in the next month's report. Self-feedback
+          # would otherwise inflate the hotspot count for signals/.
+          git commit -m "signals: monthly fix-commit report [skip ci]"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git push origin HEAD:${{ github.event.repository.default_branch }}

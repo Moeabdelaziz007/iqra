@@ -1,0 +1,124 @@
+name: Security Sentinel
+
+# Daily npm audit. On the first detection of a new vulnerability,
+# opens a single tracking issue and updates it instead of spamming.
+# Zero cost: pure GitHub Actions + GitHub API + npm.
+on:
+  schedule:
+    # 07:00 UTC daily, after most overnight pushes have settled.
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "package.json"
+      - "package-lock.json"
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: security-sentinel
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    name: npm audit
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Run npm audit (JSON)
+        id: audit
+        run: |
+          # Capture audit output. npm audit exit codes:
+          #   0 -> no advisories of any severity
+          #   1 -> advisories present (this is the normal "found vulns"
+          #        signal that we route through the issue tracker)
+          # Anything else (2+, 127, etc.) is a genuine failure
+          # (network, registry, lockfile, missing node_modules). We
+          # surface those by re-exiting non-zero at the end of the
+          # step so the workflow fails loudly instead of pretending
+          # everything is clean.
+          set +e
+          npm audit --json --omit=dev > audit.json
+          rc=$?
+          echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
+          # Deterministic defaults so downstream `if` conditions
+          # never see an empty string (which compares as non-zero).
+          echo "critical=0" >> "$GITHUB_OUTPUT"
+          echo "high=0" >> "$GITHUB_OUTPUT"
+          echo "moderate=0" >> "$GITHUB_OUTPUT"
+          echo "low=0" >> "$GITHUB_OUTPUT"
+          if command -v jq >/dev/null; then
+            critical=$(jq -r '.metadata.vulnerabilities.critical // 0' audit.json 2>/dev/null || echo 0)
+            high=$(jq -r '.metadata.vulnerabilities.high // 0' audit.json 2>/dev/null || echo 0)
+            moderate=$(jq -r '.metadata.vulnerabilities.moderate // 0' audit.json 2>/dev/null || echo 0)
+            low=$(jq -r '.metadata.vulnerabilities.low // 0' audit.json 2>/dev/null || echo 0)
+            echo "critical=$critical" >> "$GITHUB_OUTPUT"
+            echo "high=$high" >> "$GITHUB_OUTPUT"
+            echo "moderate=$moderate" >> "$GITHUB_OUTPUT"
+            echo "low=$low" >> "$GITHUB_OUTPUT"
+            echo "::notice::npm audit: $critical critical, $high high, $moderate moderate, $low low"
+          fi
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 1 ]; then
+            echo "::error::npm audit exited with unexpected code $rc; treating as audit failure"
+            exit "$rc"
+          fi
+
+      - name: Open or update tracking issue
+        if: steps.audit.outputs.critical != '0' || steps.audit.outputs.high != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          title="Security Sentinel: ${{ steps.audit.outputs.critical }} critical / ${{ steps.audit.outputs.high }} high vulnerabilities"
+          body=$(cat <<'EOF'
+          The daily npm audit found dependencies with critical or high severity vulnerabilities.
+
+          - **Critical:** ${{ steps.audit.outputs.critical }}
+          - **High:** ${{ steps.audit.outputs.high }}
+          - **Moderate:** ${{ steps.audit.outputs.moderate }}
+          - **Low:** ${{ steps.audit.outputs.low }}
+
+          Run `npm audit` locally for the full report, or check the workflow artifact.
+
+          This issue is maintained automatically. It will be reopened or updated daily until the count drops to zero. Close it manually only after fixing the underlying dependencies.
+          EOF
+          )
+          # Reuse a single tracking issue by label, never spam.
+          # Query --state all (not just open) so a manually closed
+          # security-sentinel issue is reopened on the next run
+          # rather than spawning a duplicate. `// empty` so the
+          # result is "" (not the literal string "null") when no
+          # matching issue exists.
+          existing_json=$(gh issue list --label "security-sentinel" --state all --json number,state --jq '.[0] // empty' || true)
+          existing=$(printf '%s' "$existing_json" | jq -r '.number // empty')
+          existing_state=$(printf '%s' "$existing_json" | jq -r '.state // empty')
+          if [ -z "$existing" ]; then
+            gh issue create \
+              --title "$title" \
+              --body "$body" \
+              --label "security-sentinel" \
+              --label "auto-fix"
+          else
+            if [ "$existing_state" = "CLOSED" ]; then
+              gh issue reopen "$existing"
+            fi
+            gh issue edit "$existing" --title "$title" --body "$body"
+            gh issue comment "$existing" --body "Re-checked on $(date -u +%Y-%m-%dT%H:%M:%SZ). Counts above are current."
+          fi
+
+      - name: Upload audit JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-${{ github.run_id }}
+          path: audit.json
+          retention-days: 30
