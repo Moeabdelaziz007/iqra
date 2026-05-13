@@ -7,7 +7,7 @@
 // "Quranically meaningful" — that's a separate concern handled by the
 // reference-corpus fix tracked in iqra #2.
 
-package main
+package engine
 
 import (
 	"math"

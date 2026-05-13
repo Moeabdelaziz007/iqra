@@ -2,7 +2,7 @@
 // TurboQuant — Extreme Compression for Embeddings
 // ICLR 2026 — 6x compression without accuracy loss
 
-package main
+package engine
 
 import (
 	"math"

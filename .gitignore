@@ -78,10 +78,15 @@ wrangler.toml
 
 # Go build artifacts — compiled binaries must NOT be committed.
 # Both used to live next to the source at 9MB each, doubling repo size on every
-# rebuild. CI now builds them on-demand.
+# rebuild. CI now builds them on-demand. Post-#H5 the entry point is at
+# cmd/server/, so the binary name is `server`; legacy names kept for old branches.
 /src/services/go-engine/go-engine
 /src/services/go-engine/iqra-engine
 /src/services/go-engine/engine
+/src/services/go-engine/cmd/server/server
+/src/services/go-engine/cmd/server/go-engine
 /src/services/go-engine/*.exe
 /src/services/go-engine/*.test
+/src/services/go-engine/cmd/server/*.exe
+/src/services/go-engine/cmd/server/*.test
 *.exe

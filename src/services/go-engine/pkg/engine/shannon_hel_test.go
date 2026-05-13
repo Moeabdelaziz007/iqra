@@ -1,7 +1,7 @@
 // بسم الله الرحمن الرحيم
 // Baseline tests for Shannon H_EL entropy analyzer.
 
-package main
+package engine
 
 import (
 	"math"

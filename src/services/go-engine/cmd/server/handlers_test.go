@@ -12,6 +12,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+
+	"iqra/engine/pkg/engine"
 	"testing"
 )
 
@@ -161,8 +163,8 @@ func TestHomologyHandler(t *testing.T) {
 }
 
 func TestBatchAnalysisHandler_HappyPath(t *testing.T) {
-	body := mustMarshal(t, BatchAnalysisRequest{
-		Surahs: []SurahData{
+	body := mustMarshal(t, engine.BatchAnalysisRequest{
+		Surahs: []engine.SurahData{
 			{Number: 1, Name: "Fatihah", Verses: []string{"بسم الله"}},
 		},
 		EnableShannon: true,
@@ -179,13 +181,13 @@ func TestBatchAnalysisHandler_HappyPath(t *testing.T) {
 }
 
 func TestFormatBatchResponse(t *testing.T) {
-	resp := BatchAnalysisResponse{
+	resp := engine.BatchAnalysisResponse{
 		TotalSurahs: 1,
-		Results:     []ParallelResult{{SurahNumber: 1, TotalVerses: 7}},
+		Results:     []engine.ParallelResult{{SurahNumber: 1, TotalVerses: 7}},
 	}
-	out := FormatBatchResponse(resp)
+	out := engine.FormatBatchResponse(resp)
 	if !strings.Contains(out, `"total_surahs": 1`) {
-		t.Errorf("FormatBatchResponse output missing total_surahs:\n%s", out)
+		t.Errorf("engine.FormatBatchResponse output missing total_surahs:\n%s", out)
 	}
 }
 

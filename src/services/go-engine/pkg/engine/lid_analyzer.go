@@ -3,7 +3,7 @@
 // "Less is More" — NeurIPS 2025
 // انخفاض LID = تحسن الأداء = رنين أعلى
 
-package main
+package engine
 
 import (
 	"math"

@@ -6,7 +6,7 @@
 // abstraction; here we only document the divergence with a test so it
 // can't drift further.
 
-package main
+package engine
 
 import (
 	"math"

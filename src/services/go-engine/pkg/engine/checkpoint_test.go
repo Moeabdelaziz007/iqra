@@ -2,7 +2,7 @@
 // Tests for checkpoint serialisation, atomic write, version refusal, and
 // context-cancelled batch persisting its state to disk.
 
-package main
+package engine
 
 import (
 	"context"
@@ -15,8 +15,8 @@ import (
 
 func TestWriteCheckpoint_RoundTrip(t *testing.T) {
 	dir := t.TempDir()
-	setCheckpointDir(dir)
-	t.Cleanup(func() { setCheckpointDir(".generated") })
+	SetCheckpointDir(dir)
+	t.Cleanup(func() { SetCheckpointDir(".generated") })
 
 	want := AgentCheckpoint{
 		Request:         BatchAnalysisRequest{EnableShannon: true},
@@ -73,8 +73,8 @@ func TestWriteCheckpoint_Atomic(t *testing.T) {
 	// the happy path. This protects callers from accidentally picking
 	// up a half-written checkpoint as a real one.
 	dir := t.TempDir()
-	setCheckpointDir(dir)
-	t.Cleanup(func() { setCheckpointDir(".generated") })
+	SetCheckpointDir(dir)
+	t.Cleanup(func() { SetCheckpointDir(".generated") })
 
 	_, err := WriteCheckpoint(AgentCheckpoint{Reason: "atomic"})
 	if err != nil {
@@ -90,8 +90,8 @@ func TestWriteCheckpoint_Atomic(t *testing.T) {
 
 func TestProcessBatchParallelContext_WritesCheckpointOnCancel(t *testing.T) {
 	dir := t.TempDir()
-	setCheckpointDir(dir)
-	t.Cleanup(func() { setCheckpointDir(".generated") })
+	SetCheckpointDir(dir)
+	t.Cleanup(func() { SetCheckpointDir(".generated") })
 
 	surahs := make([]SurahData, 50)
 	for i := range surahs {
@@ -146,8 +146,8 @@ func TestProcessBatchParallelContext_WritesCheckpointOnCancel(t *testing.T) {
 func TestProcessBatchParallelContext_NoCheckpointOnCleanRun(t *testing.T) {
 	// A successful batch with a live context must NOT write a checkpoint.
 	dir := t.TempDir()
-	setCheckpointDir(dir)
-	t.Cleanup(func() { setCheckpointDir(".generated") })
+	SetCheckpointDir(dir)
+	t.Cleanup(func() { SetCheckpointDir(".generated") })
 
 	req := BatchAnalysisRequest{
 		Surahs: []SurahData{

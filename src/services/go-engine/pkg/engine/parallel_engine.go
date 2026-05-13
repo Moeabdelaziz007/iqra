@@ -2,7 +2,7 @@
 // Parallel Resonance Engine — محرك الرنين المتوازي
 // "وَإِن مِّن شَيْءٍ إِلَّا يُسَبِّحُ بِحَمْدِهِ" — الإسراء: 44
 
-package main
+package engine
 
 import (
 	"context"

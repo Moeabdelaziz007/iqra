@@ -9,7 +9,7 @@
 //   • CalculatePersistentHomology is exercised as an integration check so
 //     the IsFractal field reflects the fixed detectFractalStructure.
 
-package main
+package engine
 
 import (
 	"math"

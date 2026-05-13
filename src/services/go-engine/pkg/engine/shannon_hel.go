@@ -2,7 +2,7 @@
 // Shannon H_EL — Entropy of Last Character
 // "وَكُلَّ شَيْءٍ أَحْصَيْنَاهُ فِي إِمَامٍ مُّبِينٍ" — يس: 12
 
-package main
+package engine
 
 import (
 	"math"
