@@ -29,7 +29,11 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
+
+// 🤖 NOTE: 10 دقائق كحد أقصى لأي سكريبت في دورة. backup-smart قد يأخذ
+// دقائق على repos كبيرة، لكن أي شيء أطول من ذلك = هنغ يجب أن يُكسَر.
+const SCRIPT_TIMEOUT_MS = 10 * 60 * 1000;
 
 const PULSES = '.iqra/pulses.jsonl';
 const CYCLE_FILE = '.iqra/cycle.txt';
@@ -111,7 +115,13 @@ function appendPulse(
 function runScript(script: Script): boolean {
   console.log(`\n▶️  ${script.name} (${script.path})`);
   try {
-    execSync(`npx tsx ${script.path}`, { stdio: 'inherit' });
+    // 🤖 NOTE: execFileSync بدل execSync لتجنّب shell interpolation
+    // (يمنع command injection لو دخل path غير مأمون مستقبلاً)،
+    // و timeout يمنع هَنْج workflow كامل لو علق سكريبت.
+    execFileSync('npx', ['tsx', script.path], {
+      stdio: 'inherit',
+      timeout: SCRIPT_TIMEOUT_MS,
+    });
     return true;
   } catch (err) {
     console.error(`❌ ${script.name} فشل:`, err instanceof Error ? err.message : err);
