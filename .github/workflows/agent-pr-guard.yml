@@ -69,24 +69,43 @@ jobs:
       - name: Check size threshold
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
           TOTAL: ${{ steps.diff.outputs.total }}
         run: |
-          # حد افتراضي: 1000 سطر. PRs أكبر تتطلب prefix صريح.
+          # حد افتراضي: 1000 سطر. PRs أكبر تتطلب prefix صريح + body فيه تبرير.
           LIMIT=1000
-          # 🤖 NOTE: الـ prefixes المسموح بها مقصورة على ما توثّقه AGENTS.md
-          # ('refactor:' و 'restructure:' فقط). السابق كان يقبل migration:/initial:
-          # /chore(deps): أيضاً، وهذا يفتح ثغرة لتجاوز الحد بـ tag غير موثّق.
-          if echo "$PR_TITLE" | grep -qE '^(refactor|restructure):'; then
-            echo "✅ Title bears large-scope prefix — size $TOTAL allowed."
+          # حد أدنى لـ body الـ rationale (بعد إزالة الـ markdown templates الفارغة).
+          BODY_MIN_CHARS=80
+
+          # PRs ضمن الحد: pass دائماً.
+          if [ "$TOTAL" -le "$LIMIT" ]; then
+            echo "✅ Size $TOTAL ≤ $LIMIT — OK."
             exit 0
           fi
-          if [ "$TOTAL" -gt "$LIMIT" ]; then
+
+          # PRs أكبر من الحد: تتطلب prefix.
+          # 🤖 NOTE: الـ prefixes مقصورة على ما توثّقه AGENTS.md
+          # ('refactor:' و 'restructure:' فقط).
+          if ! echo "$PR_TITLE" | grep -qE '^(refactor|restructure):'; then
             echo "::error::PR size $TOTAL exceeds limit $LIMIT lines."
-            echo "::error::إذا كان هذا restructure متعمّد، أضف 'refactor:' أو 'restructure:' في بداية عنوان الـ PR."
-            echo "::error::PRs الضخمة بدون نطاق واضح تُغلَق بدون مراجعة (راجع AGENTS.md)."
+            echo "::error::PRs الضخمة بدون 'refactor:' أو 'restructure:' في العنوان تُغلَق."
+            echo "::error::راجع AGENTS.md."
             exit 1
           fi
-          echo "✅ Size $TOTAL ≤ $LIMIT — OK."
+
+          # PRs ضخمة بـ prefix: تتطلب أيضاً body فيه تبرير.
+          # 🤖 NOTE: AGENTS.md يقول 'the title carries the prefix AND the body
+          # explains why'. نتحقق أن الـ body ≥ BODY_MIN_CHARS من نص حقيقي.
+          # نزيل whitespace و markdown comments قبل القياس لتجنّب bypass بـ template فارغ.
+          STRIPPED=$(printf '%s' "$PR_BODY" | sed -E 's/<!--.*-->//g; s/^\s*//; s/\s*$//' | tr -s '[:space:]' ' ')
+          LEN=${#STRIPPED}
+          if [ "$LEN" -lt "$BODY_MIN_CHARS" ]; then
+            echo "::error::PR size $TOTAL exceeds $LIMIT, prefix OK, but body too short ($LEN < $BODY_MIN_CHARS chars)."
+            echo "::error::AGENTS.md يلزم أن يشرح body سبب التغيير الضخم. أضف فقرة تبرير."
+            exit 1
+          fi
+
+          echo "✅ Size $TOTAL allowed (prefix + $LEN-char body rationale)."
 
   protected-paths:
     name: 🔒 Protected Paths Guard
@@ -112,14 +131,17 @@ jobs:
           # نستخدم alternation (Ū|U) بدل character class [ŪU] لأن grep -E
           # يطابق character classes بـ بايت لا بـ codepoint، فـ [ŪU] يخفق
           # على multi-byte UTF-8. الـ .md anchor يمنع false positives.
-          PROTECTED='^(IQRA_SUPREME\.md|AGENTS\.md|\.husky/pre-commit|tsconfig\.json|\.github/CODEOWNERS|src/lib/iqra/00-manifest/|iqra-core/(DAST(Ū|U)R|M(Ī|I)TH(Ā|A)Q|MUR(Ā|A)QABAH|FITRAH|RULES|POWERS|WISDOM_7|TAWBAH)\.md)'
+          # package.json مُدرَج لأن AGENTS.md يحمي حقول name/license/version.
+          PROTECTED='^(IQRA_SUPREME\.md|AGENTS\.md|package\.json|\.husky/pre-commit|tsconfig\.json|\.github/CODEOWNERS|src/lib/iqra/00-manifest/|iqra-core/(DAST(Ū|U)R|M(Ī|I)TH(Ā|A)Q|MUR(Ā|A)QABAH|FITRAH|RULES|POWERS|WISDOM_7|TAWBAH)\.md)'
 
           # 🤖 NOTE: نُميّز بين modification لملف سيادي *موجود* (يحتاج إذن)
           # و *creation* لملف جديد (يُسمَح: هكذا نبني الحوكمة أول مرة).
           # نستخدم --name-status -M لالتقاط renames بـ R<score> oldpath newpath.
-          # هذا يحمي من ثغرة: rename لملف سيادي إلى اسم غير محمي.
           # كلا الـ paths (src + dst) يُمرّران للـ regex.
-          STATUS=$(git diff --name-status -M "$BASE_SHA...$HEAD_SHA")
+          # core.quotePath=false يمنع git من تهريب الأسماء غير-ASCII بـ C-style
+          # quotes (مثلاً 'iqra-core/M\304\252TH\304\200Q.md' بدل المسار UTF-8
+          # الحقيقي). بدونه، الـ regex لا يطابق ملفات الـ manifest بـ diacritics.
+          STATUS=$(git -c core.quotePath=false diff --name-status -M "$BASE_SHA...$HEAD_SHA")
           echo "Changed files (with status):"
           echo "$STATUS" | sed 's/^/  /'
           echo ""
