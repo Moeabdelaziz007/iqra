@@ -19,7 +19,12 @@ const CYCLE_FILE = '.iqra/cycle.txt';
 const OUTPUT = '.iqra/performance/license-report.md';
 const CYCLE_LENGTH = 30;
 
-const LICENSE_VARIANTS = ['LICENSE', 'LICENSE.md', 'LICENSE.txt', 'COPYING'];
+// 🤖 NOTE: نتقبل التهجئتين American (LICENSE) و British (LICENCE).
+const LICENSE_VARIANTS = [
+  'LICENSE', 'LICENSE.md', 'LICENSE.txt',
+  'LICENCE', 'LICENCE.md', 'LICENCE.txt',
+  'COPYING', 'COPYING.md', 'COPYING.txt',
+];
 
 // 🤖 NOTE: نستخدم signature أنماط مميزة (sentence-anchored) لا مجرد substring.
 // السابق كان يطابق "MIT" داخل "LIMITATIONS" أو "PERMITTED" فيُسيء التصنيف.
@@ -98,8 +103,14 @@ function extractLicenseTokens(declared: string): string[] {
 function licensesMatch(declared: string, detectedSpdx: string): boolean {
   if (detectedSpdx === 'unknown') return false;
   const tokens = extractLicenseTokens(declared);
-  // metadata-only: لا تقارن، اعتبره pass (المالك أعلن صراحة "see LICENSE").
-  if (tokens.includes('*SEE_LICENSE*') || tokens.includes('*UNLICENSED*')) return true;
+
+  // 'SEE LICENSE IN ...' — المالك أعلن صراحة التأجيل إلى الملف، نعتبره pass.
+  if (tokens.includes('*SEE_LICENSE*')) return true;
+
+  // 'UNLICENSED' — تناقض حقيقي عند كشف ترخيص OSS في الملف.
+  // 🤖 NOTE: السابق كان pass تلقائي، فيسمح بـ "license=UNLICENSED" بينما الملف
+  // يحوي MIT — هذا بالضبط ما يجب أن يُكشَف، لا أن يُخفى.
+  if (tokens.includes('*UNLICENSED*')) return false;
 
   const det = normalizeLicenseToken(detectedSpdx);
   for (const tok of tokens) {

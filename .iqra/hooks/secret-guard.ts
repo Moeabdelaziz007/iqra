@@ -115,13 +115,28 @@ function getAllRepoFiles(): string[] {
 
 type Hit = { file: string; line: number; pattern: string };
 
-function scanFile(file: string): Hit[] {
-  let content: string;
-  try {
-    content = fs.readFileSync(file, 'utf-8');
-  } catch {
-    return [];
+// 🤖 NOTE: لقراءة المحتوى المُدرَج (staged) لملف، نستخدم git show :file
+// بدل fs.readFileSync. السابق كان يقرأ working tree، فإذا أزال المستخدم
+// السرّ من working tree بعد الـ stage، يُرى الملف نظيفاً والـ commit يحوي
+// السرّ الأصلي. الـ staged read يمنع هذا.
+function readContent(file: string, mode: 'staged' | 'worktree'): string | null {
+  if (mode === 'staged') {
+    try {
+      return execSync(`git show :${file}`, { encoding: 'utf-8', maxBuffer: 64 * 1024 * 1024 });
+    } catch {
+      return null; // الملف ليس في الـ index أو binary
+    }
   }
+  try {
+    return fs.readFileSync(file, 'utf-8');
+  } catch {
+    return null;
+  }
+}
+
+function scanFile(file: string, mode: 'staged' | 'worktree'): Hit[] {
+  const content = readContent(file, mode);
+  if (content == null) return [];
 
   const hits: Hit[] = [];
   const lines = content.split('\n');
@@ -141,13 +156,18 @@ function main(): void {
   const args = process.argv.slice(2);
   const scanAll = args.includes('--all');
   const argFiles = args.filter((a) => !a.startsWith('--'));
+  // mode: pre-commit يقرأ من index؛ --all/argFiles يقرأ من working tree.
+  let mode: 'staged' | 'worktree';
   let files: string[];
   if (argFiles.length > 0) {
     files = argFiles;
+    mode = 'worktree';
   } else if (scanAll) {
     files = getAllRepoFiles();
+    mode = 'worktree';
   } else {
     files = getStagedFiles();
+    mode = 'staged';
   }
 
   if (files.length === 0) {
@@ -159,9 +179,10 @@ function main(): void {
   let scanned = 0;
 
   for (const file of files) {
-    if (!fs.existsSync(file)) continue;
+    // في staged mode: لا حاجة لـ fs.existsSync لأن المحتوى من git index.
+    if (mode === 'worktree' && !fs.existsSync(file)) continue;
     if (shouldSkip(file)) continue;
-    allHits.push(...scanFile(file));
+    allHits.push(...scanFile(file, mode));
     scanned++;
   }
 

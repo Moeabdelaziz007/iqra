@@ -26,8 +26,18 @@ const SKIP_DIRS = new Set(['node_modules', '.git', '.next', 'dist', 'build']);
 const SKIP_PREFIXES = ['.iqra/memory'];
 
 // نمط الروابط في markdown
-const INLINE_LINK = /(?<!\!)\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
-const IMAGE_LINK = /!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
+// 🤖 NOTE: CommonMark يسمح بـ pointy brackets حول الـ destination: [text](<path with spaces>).
+// نلتقطها كـ alternate group ونزيلها في stripPointyBrackets() قبل الـ resolve.
+const INLINE_LINK = /(?<!\!)\[([^\]]*)\]\((<[^>]+>|[^)\s]+)(?:\s+"[^"]*")?\)/g;
+const IMAGE_LINK = /!\[([^\]]*)\]\((<[^>]+>|[^)\s]+)(?:\s+"[^"]*")?\)/g;
+
+function stripPointyBrackets(target: string): string {
+  // <path/to/file.md> → path/to/file.md
+  if (target.startsWith('<') && target.endsWith('>')) {
+    return target.slice(1, -1);
+  }
+  return target;
+}
 // reference-style: نمطان منفصلان
 // 🤖 NOTE: CommonMark يدعم ثلاث صيغ:
 //   1. full:      [text][ref]
@@ -102,15 +112,20 @@ function checkFile(file: string): Broken[] {
   const fileDir = path.dirname(file);
   const broken: Broken[] = [];
 
-  // 🤖 NOTE: نجمع تعريفات [ref]: target أولاً ليُمكن للروابط reference-style
-  // الإشارة إليها لاحقاً في نفس الملف.
+  // 🤖 NOTE: CommonMark spec: عند تكرار [label]: target، التعريف الأول يفوز.
+  // السابق كان set() غير شرطي، فالأخير يطمس الأول وقد يقلب صحة الفحص.
   const refDefs = new Map<string, string>();
   for (const line of lines) {
     const m = line.match(REF_DEF);
-    if (m) refDefs.set(m[1].toLowerCase(), m[2]);
+    if (m) {
+      const key = m[1].toLowerCase();
+      if (!refDefs.has(key)) refDefs.set(key, m[2]);
+    }
   }
 
-  function checkTarget(rawTarget: string, lineNum: number, displayed: string): void {
+  function checkTarget(rawTargetIn: string, lineNum: number, displayed: string): void {
+    // أزل الـ pointy brackets أولاً (CommonMark angle-bracket destinations).
+    const rawTarget = stripPointyBrackets(rawTargetIn);
     let target: string;
     try {
       target = decodeURIComponent(rawTarget);

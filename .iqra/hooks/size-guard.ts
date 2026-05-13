@@ -93,17 +93,34 @@ function shouldSkip(file: string): boolean {
 
 type Violation = { file: string; sizeMB: number; level: 'soft' | 'hard' };
 
+// 🤖 NOTE: حجم الـ staged blob = حجم المحتوى المُدرَج في الـ index.
+// السابق كان يقيس working tree، فإذا قلّص المستخدم الملف بعد stage،
+// الحارس يرى الحجم الصغير ويفلت الـ commit بالحجم الكبير الـ staged.
+function getStagedBlobSize(file: string): number | null {
+  try {
+    const sizeStr = execSync(`git cat-file -s :${file}`, { encoding: 'utf-8' }).trim();
+    const n = Number.parseInt(sizeStr, 10);
+    return Number.isFinite(n) ? n : null;
+  } catch {
+    return null;
+  }
+}
+
 function main(): void {
   const args = process.argv.slice(2);
   const scanAll = args.includes('--all');
   const argFiles = args.filter((a) => !a.startsWith('--'));
   let files: string[];
+  let mode: 'staged' | 'worktree';
   if (argFiles.length > 0) {
     files = argFiles;
+    mode = 'worktree';
   } else if (scanAll) {
     files = getAllRepoFiles();
+    mode = 'worktree';
   } else {
     files = getStagedFiles();
+    mode = 'staged';
   }
 
   if (files.length === 0) {
@@ -116,12 +133,17 @@ function main(): void {
 
   for (const file of files) {
     if (shouldSkip(file)) continue;
-    if (!fs.existsSync(file)) continue;
-    let size: number;
-    try {
-      size = fs.statSync(file).size;
-    } catch {
-      continue;
+    let size: number | null;
+    if (mode === 'staged') {
+      size = getStagedBlobSize(file);
+      if (size == null) continue; // ليس في index (حُذف؟) — يتجاوز
+    } else {
+      if (!fs.existsSync(file)) continue;
+      try {
+        size = fs.statSync(file).size;
+      } catch {
+        continue;
+      }
     }
     checked++;
     const sizeMB = +(size / 1024 / 1024).toFixed(2);
