@@ -42,7 +42,11 @@ export class NestedSevensEngine {
    * shim that keeps the SacredGeometry API stable.
    */
   static discoverResonance(data: unknown): number {
-    const score = SacredGeometry.deterministicSeed(data);
+    // The FNV-1a helper lives on this class, not on SacredGeometry. The
+    // earlier `SacredGeometry.deterministicSeed(...)` call was a typo that
+    // would have failed type-check at compile time and thrown a TypeError
+    // at runtime (SacredGeometry exposes only divineScale + TeslaResonance).
+    const score = NestedSevensEngine.deterministicSeed(data);
     return SacredGeometry.divineScale(score * 100) / 100;
   }
 
@@ -71,7 +75,16 @@ export class NestedSevensEngine {
   private static deterministicSeed(data: unknown): number {
     let str: string;
     try {
-      str = typeof data === 'string' ? data : JSON.stringify(data);
+      if (typeof data === 'string') {
+        str = data;
+      } else {
+        // JSON.stringify returns `undefined` (not throws) for top-level
+        // `undefined`, functions, and symbols. The try/catch alone does
+        // not normalise that path, so check explicitly and fall back to
+        // String(data) which always produces a string.
+        const serialised = JSON.stringify(data);
+        str = serialised ?? String(data);
+      }
     } catch {
       str = String(data);
     }
