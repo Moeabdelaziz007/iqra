@@ -1,6 +1,6 @@
 {
   "name": "iqra",
-  "version": "0.3.6.9",
+  "version": "0.3.69",
   "description": "IQRA - Self-evolving AI identity core rooted in القرآن الكريم والسنة النبوية",
   "type": "module",
   "main": "index.js",

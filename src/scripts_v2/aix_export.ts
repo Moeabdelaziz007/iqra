@@ -28,7 +28,7 @@ import {
   AIX_FORMAT_VERSION,
 } from '#aix/index';
 import { SovereignDID } from '#security/did';
-import { PERSONA_REGISTRY } from '#utils/personas';
+import { getPersona, projectPersonaForAIX, resolveAIXMetaId } from '#utils/personas';
 
 function readPrivateKey(): Uint8Array | null {
   const b64 = process.env.IQRA_IDENTITY_PRIVATE_KEY_B64URL?.trim();
@@ -48,39 +48,53 @@ async function cmdKeygen(): Promise<number> {
 }
 
 async function cmdEmit(personaId: string): Promise<number> {
-  const persona = PERSONA_REGISTRY[personaId] ?? PERSONA_REGISTRY['iqra-core'];
-  const bareId = personaId.replace(/^iqra-/, '');
+  // Persona resolution + AIX projection are both centralized in
+  // #utils/personas so the CLI and the runtime endpoint cannot drift.
+  const persona = getPersona(personaId);
+  const projection = projectPersonaForAIX(persona, AXIOM_AUTHORITY);
+
   const persisted = readPrivateKey();
   const bundle = persisted
-    ? SovereignDID.fromPrivateKey(bareId, AXIOM_AUTHORITY, persisted)
-    : await SovereignDID.generateBundle(bareId, AXIOM_AUTHORITY);
+    ? SovereignDID.fromPrivateKey(projection.bareId, AXIOM_AUTHORITY, persisted)
+    : await SovereignDID.generateBundle(projection.bareId, AXIOM_AUTHORITY);
+
+  // Env override > persona.uuid. Validation is centralized in
+  // resolveAIXMetaId so a malformed IQRA_IDENTITY_UUID (empty,
+  // whitespace, non-v4) fails loudly here rather than silently
+  // emitting an invalid id into a signed manifest.
+  const metaId = resolveAIXMetaId(persona);
 
   const manifest = exportManifest({
-    owner_id: bareId,
+    owner_id: projection.bareId,
     publicKey: bundle.publicKey,
     meta: {
       version: IQRA_VERSION,
       format_version: AIX_FORMAT_VERSION,
-      id: process.env.IQRA_IDENTITY_UUID ?? '00000000-0000-4000-8000-000000000000',
+      id: metaId,
       name: persona.name,
       description: persona.description,
       created: process.env.IQRA_IDENTITY_CREATED ?? new Date().toISOString(),
       author: 'Mohamed Abdelaziz — AMRIKYY AI Solutions',
       license: 'MIT',
-      homepage: `https://${AXIOM_AUTHORITY}`,
+      homepage: projection.homepage,
+      repository: 'https://github.com/Moeabdelaziz007/iqra',
       framework: 'iqra',
       language: 'ar+en',
-      tags: persona.specialization,
+      runtime_version: IQRA_VERSION,
+      tags: projection.tags,
     },
     persona: {
       role: persona.role,
-      instructions: persona.personalityOverride ?? persona.description,
+      style: 'sovereign',
+      tone: 'reverent',
+      instructions: projection.instructions,
+      constraints: projection.constraints,
     },
     verification: { status: 'sovereign', trust_level: 3 },
     security: {
       level: 3,
-      capabilities: ['trustchain', 'damir_filter', 'doctrinal_guard', 'tawbah_loop'],
-      compliance: ['IQRA_SUPREME', 'MITHAQ', 'DASTUR'],
+      capabilities: projection.securityCapabilities,
+      compliance: projection.securityCompliance,
     },
     pi_network: process.env.PI_APP_ID
       ? {
@@ -91,14 +105,19 @@ async function cmdEmit(personaId: string): Promise<number> {
       : undefined,
   });
 
+  // Attach the richer optional sections from the same projection.
+  manifest.apis = projection.apis;
+  if (projection.skills) manifest.skills = { tools: projection.skills };
+
   const signed = signManifest(manifest, bundle.privateKey);
 
   const outDir = path.join(process.cwd(), '.iqra', 'aix');
   fs.mkdirSync(outDir, { recursive: true });
-  const outPath = path.join(outDir, `manifest-${bareId}.aix.json`);
+  const outPath = path.join(outDir, `manifest-${projection.bareId}.aix.json`);
   fs.writeFileSync(outPath, JSON.stringify(signed, null, 2));
   console.log(`✅ AIX manifest emitted → ${outPath}`);
   console.log(`   identity: ${signed.identity_layer.id}`);
+  console.log(`   meta.id:  ${signed.meta.id}`);
   console.log(`   checksum: ${signed.security.checksum}`);
   if (!persisted) {
     console.warn('⚠️  IQRA_IDENTITY_PRIVATE_KEY_B64URL not set — generated ephemeral key.');

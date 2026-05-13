@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { resolveBaseUrl, resolveDomain } from '../../_utils/http';
+import { resolveBaseUrl, resolveSignedDomain } from '../../_utils/http';
 import { SovereignDID } from '#security/did';
 import {
   exportManifest,
   signManifest,
-  AXIOM_AUTHORITY,
   IQRA_VERSION,
   AIX_FORMAT_VERSION,
   codec,
 } from '#aix/index';
-import { PERSONA_REGISTRY } from '#utils/personas';
+import { getPersona, projectPersonaForAIX, resolveAIXMetaId } from '#utils/personas';
 
 /**
  * Sovereign agent discovery endpoint.
@@ -31,15 +30,21 @@ import { PERSONA_REGISTRY } from '#utils/personas';
  */
 export async function GET(req: NextRequest) {
   const baseUrl = resolveBaseUrl(req);
-  const domain = resolveDomain(req);
   const format = req.nextUrl.searchParams.get('format')?.toLowerCase();
   const personaId = req.nextUrl.searchParams.get('persona') ?? 'core';
 
   if (format === 'aix') {
-    return aixManifestResponse(domain, personaId);
+    // SIGNED manifests must NEVER derive their URLs from the request
+    // Host header. A peer that forges Host could otherwise obtain a
+    // signed manifest advertising attacker-chosen URLs and undermine
+    // discovery integrity for every downstream consumer. Use the
+    // pinned signing domain (env > axiomid.app) instead.
+    return aixManifestResponse(resolveSignedDomain(), personaId);
   }
 
-  // Legacy IQRA-shaped card.
+  // Legacy IQRA-shaped card is unsigned, so it is safe to mirror the
+  // request domain for self-discovery on dev / preview deployments.
+  // (Used only via baseUrl, which is already proto-aware.)
   return NextResponse.json({
     name: 'iqra-sovereign',
     version: '1.0.0',
@@ -69,23 +74,10 @@ export async function GET(req: NextRequest) {
 }
 
 async function aixManifestResponse(domain: string, rawPersonaId: string) {
-  // Persona id normalization. The PERSONA_REGISTRY keys are namespaced
-  // (`iqra-core`, `iqra-researcher`, ...), but callers commonly pass
-  // the short form (`core`, `researcher`). Previously we did
-  // `PERSONA_REGISTRY[rawPersonaId]` which silently fell back to core
-  // for any short id, yet we still derived `owner_id` from the raw
-  // input — producing a manifest that signed core's metadata under
-  // `did:axiom:axiomid.app:researcher`. Normalize ONCE and use the
-  // resolved persona's actual id everywhere downstream.
-  const candidates = [
-    rawPersonaId,
-    rawPersonaId.startsWith('iqra-') ? rawPersonaId : `iqra-${rawPersonaId}`,
-  ];
-  const resolved =
-    candidates.map((c) => PERSONA_REGISTRY[c]).find((p) => p !== undefined) ??
-    PERSONA_REGISTRY['iqra-core'];
-  const persona = resolved;
-  const ownerId = persona.id.replace(/^iqra-/, '');
+  // Persona resolution + AIX projection are both centralized in
+  // #utils/personas so the CLI export and this endpoint cannot drift.
+  const persona = getPersona(rawPersonaId);
+  const projection = projectPersonaForAIX(persona, domain);
 
   // Derive (or generate) the identity keypair.
   const persistedKey = process.env.IQRA_IDENTITY_PRIVATE_KEY_B64URL?.trim();
@@ -94,39 +86,46 @@ async function aixManifestResponse(domain: string, rawPersonaId: string) {
 
   if (persistedKey) {
     privateKey = codec.base64UrlToBytes(persistedKey);
-    const bundle = SovereignDID.fromPrivateKey(ownerId, domain, privateKey);
+    const bundle = SovereignDID.fromPrivateKey(projection.bareId, domain, privateKey);
     publicKey = bundle.publicKey;
   } else {
-    const bundle = await SovereignDID.generateBundle(ownerId, domain);
+    const bundle = await SovereignDID.generateBundle(projection.bareId, domain);
     privateKey = bundle.privateKey;
     publicKey = bundle.publicKey;
   }
 
+  // Env override > persona.uuid. resolveAIXMetaId enforces the v4
+  // pattern so a malformed IQRA_IDENTITY_UUID never reaches the
+  // signed payload.
+  const metaId = resolveAIXMetaId(persona);
+
   const manifest = exportManifest({
-    owner_id: ownerId,
+    owner_id: projection.bareId,
     publicKey,
     meta: {
-      // Pinned to a real source-of-truth constant. `npm_package_version`
-      // is not reliably populated in Vercel, Docker, or direct `node`/
-      // `tsx` invocations, so we do not read it.
+      // Pinned source-of-truth constants. `npm_package_version` is not
+      // reliably populated on Vercel / Docker / direct invocations.
       version: IQRA_VERSION,
       format_version: AIX_FORMAT_VERSION,
-      id: process.env.IQRA_IDENTITY_UUID ?? '00000000-0000-4000-8000-000000000000',
+      id: metaId,
       name: persona.name,
       description: persona.description,
       created: process.env.IQRA_IDENTITY_CREATED ?? new Date().toISOString(),
       author: 'Mohamed Abdelaziz — AMRIKYY AI Solutions',
       license: 'MIT',
-      homepage: `https://${AXIOM_AUTHORITY}`,
+      homepage: projection.homepage,
+      repository: 'https://github.com/Moeabdelaziz007/iqra',
       framework: 'iqra',
       language: 'ar+en',
-      tags: persona.specialization,
+      runtime_version: IQRA_VERSION,
+      tags: projection.tags,
     },
     persona: {
       role: persona.role,
-      instructions: persona.personalityOverride ?? persona.description,
       style: 'sovereign',
       tone: 'reverent',
+      instructions: projection.instructions,
+      constraints: projection.constraints,
     },
     verification: { status: 'sovereign', trust_level: 3 },
     pi_network: process.env.PI_APP_ID
@@ -138,10 +137,16 @@ async function aixManifestResponse(domain: string, rawPersonaId: string) {
       : undefined,
     security: {
       level: 3,
-      capabilities: ['trustchain', 'damir_filter', 'doctrinal_guard', 'tawbah_loop'],
-      compliance: ['IQRA_SUPREME', 'MITHAQ', 'DASTUR'],
+      capabilities: projection.securityCapabilities,
+      compliance: projection.securityCompliance,
     },
   });
+
+  // Attach the richer optional sections from the same projection so
+  // peers reading the manifest get concrete endpoint URLs + tool
+  // inventory identical to what the CLI emits.
+  manifest.apis = projection.apis;
+  if (projection.skills) manifest.skills = { tools: projection.skills };
 
   const signed = signManifest(manifest, privateKey);
   return NextResponse.json(signed, {

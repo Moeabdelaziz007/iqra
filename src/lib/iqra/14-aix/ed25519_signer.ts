@@ -22,22 +22,22 @@
 import * as ed25519 from '@noble/ed25519';
 import { sha256 } from '@noble/hashes/sha256';
 import { sha512 } from '@noble/hashes/sha512';
-import { hmac } from '@noble/hashes/hmac';
 import { canonicalizeJSONBytes } from './canonical';
 
-// @noble/ed25519 v2.x is sync-only when given a sha512 implementation,
-// async otherwise. Wire the @noble/hashes implementation so we get a
-// pure-sync API that's also safe on Edge runtimes.
-(ed25519 as any).etc.sha512Sync = (...m: Uint8Array[]) =>
+// @noble/ed25519 v2.3 exposes two hash hooks on `etc`:
+//   - sha512Sync(...messages: Uint8Array[]): Uint8Array  → drives sign() / verify()
+//   - sha512Async(...messages: Uint8Array[]): Promise<Uint8Array> → drives *Async()
+//
+// There is NO `hashes` namespace on this version of the library; the
+// earlier code that wrote to `ed25519.hashes.sha512` threw on import
+// (`Cannot set properties of undefined`). We wire the @noble/hashes
+// SHA-512 implementation into the two `etc` hooks so callers can use
+// the sync API (`sign` / `verify`) safely on Node, Vercel Edge, and
+// Cloudflare Workers — none of which ship an ambient SHA-512.
+(ed25519 as any).etc.sha512Sync = (...m: Uint8Array[]): Uint8Array =>
   sha512(concat(m));
-(ed25519 as any).etc.sha512Async = async (...m: Uint8Array[]) =>
+(ed25519 as any).etc.sha512Async = async (...m: Uint8Array[]): Promise<Uint8Array> =>
   sha512(concat(m));
-(ed25519 as any).hashes.sha512 = (m: Uint8Array) => sha512(m);
-(ed25519 as any).hashes.sha512Async = async (m: Uint8Array) => sha512(m);
-(ed25519 as any).hashes.hmacSha512 = (k: Uint8Array, m: Uint8Array) =>
-  hmac(sha512, k, m);
-(ed25519 as any).hashes.hmacSha512Async = async (k: Uint8Array, m: Uint8Array) =>
-  hmac(sha512, k, m);
 
 function concat(arrs: Uint8Array[]): Uint8Array {
   let len = 0;
