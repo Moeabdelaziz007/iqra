@@ -26,10 +26,15 @@ const SKIP_DIRS = new Set(['node_modules', '.git', '.next', 'dist', 'build']);
 const SKIP_PREFIXES = ['.iqra/memory'];
 
 // نمط الروابط في markdown
-// 🤖 NOTE: CommonMark يسمح بـ pointy brackets حول الـ destination: [text](<path with spaces>).
-// نلتقطها كـ alternate group ونزيلها في stripPointyBrackets() قبل الـ resolve.
-const INLINE_LINK = /(?<!\!)\[([^\]]*)\]\((<[^>]+>|[^)\s]+)(?:\s+"[^"]*")?\)/g;
-const IMAGE_LINK = /!\[([^\]]*)\]\((<[^>]+>|[^)\s]+)(?:\s+"[^"]*")?\)/g;
+// 🤖 NOTE: regex لا يستطيع التقاط balanced parens مثل (myth)؛ نلتقط فقط
+// الـ shape العام: [text]( …لا newline ولا ) عارٍ ). الـ parser في checkFile
+// يأخذ أي ) متبوع بـ whitespace/EOL كنهاية للـ destination، أو يستخرج
+// pointy/inline بشكل خاص. للحالة العامة، نسمح بـ () المتوازنة عبر
+// regex مع تكرار محدود.
+// pattern: <...> أو سلسلة غير-)/whitespace قد تحوي () متوازنة على مستوى واحد.
+const DEST_PATTERN = '(?:<[^>]+>|(?:\\([^)]*\\)|[^)\\s])+)';
+const INLINE_LINK = new RegExp(`(?<!\\!)\\[([^\\]]*)\\]\\((${DEST_PATTERN})(?:\\s+"[^"]*")?\\)`, 'g');
+const IMAGE_LINK = new RegExp(`!\\[([^\\]]*)\\]\\((${DEST_PATTERN})(?:\\s+"[^"]*")?\\)`, 'g');
 
 function stripPointyBrackets(target: string): string {
   // <path/to/file.md> → path/to/file.md
@@ -48,8 +53,21 @@ const REF_USE_FULL = /(!?)\[([^\]]*)\]\[([^\]]+)\]/g;
 const REF_USE_COLLAPSED = /(!?)\[([^\]]+)\]\[\]/g;
 // shortcut: [text] غير متبوع بـ ( أو [ أو :
 const REF_USE_SHORTCUT = /(!?)\[([^\]]+)\](?!\s*[(:\[])/g;
-// تعريف المرجع:  [ref]: ./target.md "optional title"
-const REF_DEF = /^\s*\[([^\]]+)\]:\s*(\S+)(?:\s+.+)?$/;
+// تعريف المرجع: 3 صيغ destination مدعومة:
+//   1.  [ref]: ./target.md "title"
+//   2.  [ref]: <docs/My File.md> "title"     ← angle-bracket مع spaces
+//   3.  [ref]: ./target.md                  بدون title
+// 🤖 NOTE: \S+ يقطع <docs/My File.md> عند المسافة. نلتقط <...> صراحة كـ alt.
+const REF_DEF = /^\s*\[([^\]]+)\]:\s*(<[^>]+>|\S+)(?:\s+(?:"[^"]*"|'[^']*'|\([^)]*\)))?\s*$/;
+
+// 🤖 NOTE: CommonMark يطابق reference labels بقواعد whitespace:
+//   - يحذف edge whitespace
+//   - يطوي internal whitespace runs إلى مسافة واحدة
+//   - case-insensitive (Unicode-aware)
+// مثال: [Foo  bar] === [foo bar]
+function normalizeRefLabel(label: string): string {
+  return label.trim().replace(/\s+/g, ' ').toLowerCase();
+}
 
 function readCycle(): string {
   if (!fs.existsSync(CYCLE_FILE)) return '1';
@@ -112,13 +130,15 @@ function checkFile(file: string): Broken[] {
   const fileDir = path.dirname(file);
   const broken: Broken[] = [];
 
-  // 🤖 NOTE: CommonMark spec: عند تكرار [label]: target، التعريف الأول يفوز.
-  // السابق كان set() غير شرطي، فالأخير يطمس الأول وقد يقلب صحة الفحص.
+  // 🤖 NOTE:
+  // - CommonMark: عند تكرار [label]: target، التعريف الأول يفوز.
+  // - تطبيع الـ label عبر normalizeRefLabel: trim + collapse whitespace + lowercase.
+  //   مثال: '[Foo  bar]' ↔ '[foo bar]:' يجب أن يطابقا.
   const refDefs = new Map<string, string>();
   for (const line of lines) {
     const m = line.match(REF_DEF);
     if (m) {
-      const key = m[1].toLowerCase();
+      const key = normalizeRefLabel(m[1]);
       if (!refDefs.has(key)) refDefs.set(key, m[2]);
     }
   }
@@ -150,7 +170,7 @@ function checkFile(file: string): Broken[] {
   }
 
   function checkRef(refKey: string, lineNum: number, label: string): void {
-    const def = refDefs.get(refKey.toLowerCase());
+    const def = refDefs.get(normalizeRefLabel(refKey));
     if (def === undefined) {
       broken.push({ file, line: lineNum, target: `[ref:${label}] (تعريف مفقود)` });
       return;
@@ -197,7 +217,7 @@ function checkFile(file: string): Broken[] {
     // shortcut بدون def عادة ليس link حقيقي بل نص brackets).
     REF_USE_SHORTCUT.lastIndex = 0;
     while ((rm = REF_USE_SHORTCUT.exec(line)) !== null) {
-      const refKey = rm[2].toLowerCase();
+      const refKey = normalizeRefLabel(rm[2]);
       if (refDefs.has(refKey)) {
         checkRef(rm[2], i + 1, rm[2]);
       }

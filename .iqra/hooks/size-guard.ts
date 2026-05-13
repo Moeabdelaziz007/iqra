@@ -23,7 +23,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 const PULSES = '.iqra/pulses.jsonl';
 const CYCLE_FILE = '.iqra/cycle.txt';
@@ -66,12 +66,16 @@ function appendPulse(action: string, meta: Record<string, unknown> = {}): void {
 
 function getStagedFiles(): string[] {
   try {
-    // 🤖 NOTE: A=Added, M=Modified, R=Renamed. rename+expand قد يتجاوز
-    // الحد الأقصى للحجم لو استثنينا R.
-    const out = execSync('git diff --cached --name-only --diff-filter=AMR', {
-      encoding: 'utf-8',
-    });
-    return out.split('\n').filter(Boolean);
+    // 🤖 NOTE:
+    // - execFileSync بدل execSync: لا shell، لا interpolation.
+    // - --diff-filter=AMR: A=Added, M=Modified, R=Renamed (rename+expand خطر).
+    // - -z: NUL-delimited؛ بدونه أسماء بـ tabs/newlines تُقتَبس فتُخسَر.
+    const out = execFileSync(
+      'git',
+      ['diff', '--cached', '--name-only', '--diff-filter=AMR', '-z'],
+      { encoding: 'utf-8' }
+    );
+    return out.split('\0').filter(Boolean);
   } catch {
     return [];
   }
@@ -79,7 +83,7 @@ function getStagedFiles(): string[] {
 
 function getAllRepoFiles(): string[] {
   try {
-    const out = execSync('git ls-files -z', { encoding: 'utf-8' });
+    const out = execFileSync('git', ['ls-files', '-z'], { encoding: 'utf-8' });
     return out.split('\0').filter(Boolean);
   } catch {
     return [];
@@ -98,8 +102,13 @@ type Violation = { file: string; sizeMB: number; level: 'soft' | 'hard' };
 // الحارس يرى الحجم الصغير ويفلت الـ commit بالحجم الكبير الـ staged.
 function getStagedBlobSize(file: string): number | null {
   try {
-    const sizeStr = execSync(`git cat-file -s :${file}`, { encoding: 'utf-8' }).trim();
-    const n = Number.parseInt(sizeStr, 10);
+    // 🤖 NOTE: execFileSync بـ array — يمرّر :file كـ argument واحد آمن.
+    // shell-interpolation لـ $()/;/spaces في اسم الملف ممنوع.
+    const sizeStr = execFileSync('git', ['cat-file', '-s', `:${file}`], {
+      encoding: 'utf-8',
+    }).trim();
+    if (!/^\d+$/.test(sizeStr)) return null;
+    const n = Number(sizeStr);
     return Number.isFinite(n) ? n : null;
   } catch {
     return null;

@@ -22,7 +22,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 const PULSES = '.iqra/pulses.jsonl';
 const CYCLE_FILE = '.iqra/cycle.txt';
@@ -93,12 +93,17 @@ function shouldSkip(filePath: string): boolean {
 
 function getStagedFiles(): string[] {
   try {
-    // 🤖 NOTE: A=Added, M=Modified, R=Renamed. تجاهل R يفتح ثغرة:
-    // rename+edit في commit واحد قد يُدخل سرّاً جديداً دون فحص.
-    const out = execSync('git diff --cached --name-only --diff-filter=AMR', {
-      encoding: 'utf-8',
-    });
-    return out.split('\n').filter(Boolean);
+    // 🤖 NOTE:
+    // - execFileSync بدل execSync — لا shell، لا فرصة لـ command injection.
+    // - --diff-filter=AMR: A=Added, M=Modified, R=Renamed. تجاهل R يفتح ثغرة.
+    // - -z: NUL-delimited output. بدونه، الأسماء بـ tabs/newlines/backslashes
+    //   تُقتَبس وتُهرّب فتصبح مسارات غير موجودة → تُتخطّى = bypass.
+    const out = execFileSync(
+      'git',
+      ['diff', '--cached', '--name-only', '--diff-filter=AMR', '-z'],
+      { encoding: 'utf-8' }
+    );
+    return out.split('\0').filter(Boolean);
   } catch {
     return [];
   }
@@ -106,7 +111,7 @@ function getStagedFiles(): string[] {
 
 function getAllRepoFiles(): string[] {
   try {
-    const out = execSync('git ls-files -z', { encoding: 'utf-8' });
+    const out = execFileSync('git', ['ls-files', '-z'], { encoding: 'utf-8' });
     return out.split('\0').filter(Boolean);
   } catch {
     return [];
@@ -122,7 +127,12 @@ type Hit = { file: string; line: number; pattern: string };
 function readContent(file: string, mode: 'staged' | 'worktree'): string | null {
   if (mode === 'staged') {
     try {
-      return execSync(`git show :${file}`, { encoding: 'utf-8', maxBuffer: 64 * 1024 * 1024 });
+      // 🤖 NOTE: execFileSync بـ array — لا shell interpolation.
+      // اسم ملف فيه $()/;/spaces لن يُفسَّر من قبل bash.
+      return execFileSync('git', ['show', `:${file}`], {
+        encoding: 'utf-8',
+        maxBuffer: 64 * 1024 * 1024,
+      });
     } catch {
       return null; // الملف ليس في الـ index أو binary
     }

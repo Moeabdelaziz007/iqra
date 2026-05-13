@@ -22,7 +22,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 const PULSES = '.iqra/pulses.jsonl';
 const CYCLE_FILE = '.iqra/cycle.txt';
@@ -104,10 +104,12 @@ function shouldSkip(filePath: string): boolean {
 
 function getStagedFiles(): string[] {
   try {
-    const out = execSync('git diff --cached --name-only --diff-filter=AR', {
-      encoding: 'utf-8',
-    });
-    return out.split('\n').filter(Boolean);
+    const out = execFileSync(
+      'git',
+      ['diff', '--cached', '--name-only', '--diff-filter=AR', '-z'],
+      { encoding: 'utf-8' }
+    );
+    return out.split('\0').filter(Boolean);
   } catch {
     return [];
   }
@@ -116,7 +118,7 @@ function getStagedFiles(): string[] {
 function getAllRepoFiles(): string[] {
   try {
     // -z يستخدم NUL بدل \n ولا يقتبس أحرف Unicode (octal escapes).
-    const out = execSync('git ls-files -z', { encoding: 'utf-8' });
+    const out = execFileSync('git', ['ls-files', '-z'], { encoding: 'utf-8' });
     return out.split('\0').filter(Boolean);
   } catch {
     return [];
