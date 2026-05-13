@@ -12,7 +12,7 @@
 // tracked under #H8 (cross-repo bridge), which is where the signature
 // layer also lives.
 
-package main
+package engine
 
 import (
 	"context"
@@ -49,7 +49,7 @@ var (
 )
 
 // setCheckpointDir is called from main() once per process start.
-func setCheckpointDir(dir string) {
+func SetCheckpointDir(dir string) {
 	checkpointDirMu.Lock()
 	defer checkpointDirMu.Unlock()
 	if dir != "" {
@@ -99,8 +99,7 @@ func WriteCheckpoint(c AgentCheckpoint) (string, error) {
 		return "", fmt.Errorf("atomic rename checkpoint: %w", err)
 	}
 
-	abs, _ := filepath.Abs(final)
-	return abs, nil
+	return filepath.Abs(final)
 }
 
 // LoadCheckpoint reads a previously-written checkpoint from disk. Returns
@@ -132,7 +131,7 @@ func LoadCheckpoint(path string) (AgentCheckpoint, error) {
 // The result is logged. Pushing the resumed result through an actual
 // output channel (HTTP POST, message bus, etc.) is left to the caller,
 // because the engine has no opinion on where the data goes.
-func replayCheckpoint(ctx context.Context, path string) error {
+func ReplayCheckpoint(ctx context.Context, path string) error {
 	c, err := LoadCheckpoint(path)
 	if err != nil {
 		return err
@@ -154,7 +153,10 @@ func replayCheckpoint(ctx context.Context, path string) error {
 		Summary:         calculateSummary(combined),
 	}
 
-	body, _ := json.MarshalIndent(merged, "", "  ")
+	body, err := json.MarshalIndent(merged, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshal merged result: %w", err)
+	}
 	fmt.Printf("resumed batch result:\n%s\n", string(body))
 	return nil
 }

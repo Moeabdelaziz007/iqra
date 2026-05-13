@@ -2,7 +2,7 @@
 // Parallel Resonance Engine — محرك الرنين المتوازي
 // "وَإِن مِّن شَيْءٍ إِلَّا يُسَبِّحُ بِحَمْدِهِ" — الإسراء: 44
 
-package main
+package engine
 
 import (
 	"context"
@@ -115,30 +115,34 @@ func ProcessBatchParallelContext(ctx context.Context, req BatchAnalysisRequest) 
 		maxWorkers = runtime.NumCPU()
 	}
 
-	jobs := make(chan SurahData, len(req.Surahs))
+	// jobs carries slice indices (not SurahData) so that a request
+	// containing two SurahData entries with the same .Number is still
+	// tracked correctly: completion is keyed by the unique position in
+	// req.Surahs, not by the user-supplied surah number which is not
+	// guaranteed to be unique.
+	jobs := make(chan int, len(req.Surahs))
 	results := make(chan ParallelResult, len(req.Surahs))
 
-	// completedIDs records surah numbers as soon as a worker emits a
-	// result. We read it during checkpoint construction to figure out
-	// which surahs still need to run on resume.
+	// completed records which indices have been processed.
 	var (
-		completedIDsMu sync.Mutex
-		completedIDs   = make(map[int]bool, len(req.Surahs))
+		completedMu sync.Mutex
+		completed   = make(map[int]bool, len(req.Surahs))
 	)
 
 	var wg sync.WaitGroup
 	for w := 0; w < maxWorkers; w++ {
 		wg.Add(1)
-		go workerCtx(ctx, w, jobs, results, &req, &wg, &completedIDsMu, completedIDs)
+		go workerCtx(ctx, w, jobs, results, &req, &wg, &completedMu, completed)
 	}
 
-	// Dispatcher: feeds the worker pool. Aborts dispatching if ctx
-	// cancels so we don't queue surahs that will only be dropped.
+	// Dispatcher: feeds the worker pool with indices into req.Surahs.
+	// Aborts dispatching if ctx cancels so we don't queue indices that
+	// will only be dropped.
 	go func() {
 		defer close(jobs)
-		for _, surah := range req.Surahs {
+		for i := range req.Surahs {
 			select {
-			case jobs <- surah:
+			case jobs <- i:
 			case <-ctx.Done():
 				return
 			}
@@ -156,24 +160,25 @@ func ProcessBatchParallelContext(ctx context.Context, req BatchAnalysisRequest) 
 	}
 
 	// If we exited because of cancellation, persist a checkpoint with
-	// every surah that didn't get processed.
+	// every surah that didn't get processed. Iterate by index so
+	// duplicate surah numbers in the input do not collapse.
 	if ctx.Err() != nil {
-		completedIDsMu.Lock()
+		completedMu.Lock()
 		pending := make([]SurahData, 0)
-		completed := make([]int, 0, len(completedIDs))
-		for _, s := range req.Surahs {
-			if completedIDs[s.Number] {
-				completed = append(completed, s.Number)
+		completedNums := make([]int, 0, len(completed))
+		for i, s := range req.Surahs {
+			if completed[i] {
+				completedNums = append(completedNums, s.Number)
 			} else {
 				pending = append(pending, s)
 			}
 		}
-		completedIDsMu.Unlock()
+		completedMu.Unlock()
 
 		if len(pending) > 0 {
 			cp := AgentCheckpoint{
 				Request:         req,
-				CompletedSurahs: completed,
+				CompletedSurahs: completedNums,
 				PendingSurahs:   pending,
 				PartialResults:  allResults,
 				Reason:          fmt.Sprintf("context cancelled: %v", ctx.Err()),
@@ -201,10 +206,14 @@ func ProcessBatchParallelContext(ctx context.Context, req BatchAnalysisRequest) 
 // workerCtx is the context-aware worker. Each iteration is preceded by a
 // non-blocking select on ctx.Done() so a worker that has already drained
 // its current surah does not pick up a new one after cancellation.
+//
+// The job channel carries a slice index into req.Surahs (not the
+// SurahData itself) so duplicate SurahData.Number values in the input
+// are tracked correctly.
 func workerCtx(
 	ctx context.Context,
 	id int,
-	jobs <-chan SurahData,
+	jobs <-chan int,
 	results chan<- ParallelResult,
 	req *BatchAnalysisRequest,
 	wg *sync.WaitGroup,
@@ -216,14 +225,15 @@ func workerCtx(
 		select {
 		case <-ctx.Done():
 			return
-		case surah, ok := <-jobs:
+		case idx, ok := <-jobs:
 			if !ok {
 				return
 			}
+			surah := req.Surahs[idx]
 			result := processSurah(surah, req)
 			results <- result
 			completedMu.Lock()
-			completed[surah.Number] = true
+			completed[idx] = true
 			completedMu.Unlock()
 		}
 	}

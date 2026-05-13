@@ -2,7 +2,7 @@
 // Persistent Homology — Topological Data Analysis
 // "وَكُلُّ شَيْءٍ عِندَهُ بِمِقْدَارٍ" — الرعد: 8
 
-package main
+package engine
 
 import (
 	"math"

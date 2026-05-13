@@ -9,7 +9,7 @@
 //     these thresholds rather than exact values so small revisions don't
 //     break the suite.
 
-package main
+package engine
 
 const (
 	// QuranFractalDimension is the box-counting fractal dimension empirically

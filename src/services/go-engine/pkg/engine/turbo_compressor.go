@@ -2,7 +2,7 @@
 // TurboQuant — Extreme Compression for Embeddings
 // ICLR 2026 — 6x compression without accuracy loss
 
-package main
+package engine
 
 import (
 	"math"
@@ -18,11 +18,31 @@ type TurboQuantResult struct {
 	ReconstructionError float64   `json:"reconstruction_error"`
 }
 
+// MaxQuantBits is the upper bound on the bits parameter accepted by
+// TurboQuantCompress. The Compressed field of TurboQuantResult is
+// []int8, whose byte layout addresses exactly 2^8 = 256 codebook
+// levels via the uint8 reinterpret-cast used in DecompressTurboQuant.
+// Allowing bits > 8 would silently truncate any codebook index >= 256
+// to its low 8 bits during the int8 cast, producing data corruption on
+// decompress with no error surface. To go beyond 8 bits, both
+// TurboQuantResult.Compressed and the matching decompression path
+// would need to widen first.
+const MaxQuantBits = 8
+
 // TurboQuantCompress compresses embeddings using quantization
-// Implements TurboQuant algorithm from ICLR 2026
+// Implements TurboQuant algorithm from ICLR 2026.
+//
+// bits is clamped to (0, MaxQuantBits]. A non-positive bits defaults to
+// MaxQuantBits (8); a bits > MaxQuantBits is clamped down to MaxQuantBits.
+// The clamp is deliberate rather than an error return because the JSON
+// API contract has no error channel here; callers that need >8-bit
+// fidelity should grow the schema (see MaxQuantBits doc).
 func TurboQuantCompress(embedding []float64, bits int) TurboQuantResult {
 	if bits <= 0 {
-		bits = 8 // Default: 8-bit quantization
+		bits = MaxQuantBits // Default: 8-bit quantization
+	}
+	if bits > MaxQuantBits {
+		bits = MaxQuantBits
 	}
 
 	// 1. Calculate min/max for normalization
@@ -53,13 +73,17 @@ func TurboQuantCompress(embedding []float64, bits int) TurboQuantResult {
 				nearest = j
 			}
 		}
+		// See DecompressTurboQuant for the int8/uint8 reinterpret-cast
+		// rationale: storing codebook indices > 127 in int8 is fine on
+		// the wire, but we must round-trip via uint8 when indexing back.
 		compressed[i] = int8(nearest)
 	}
 
-	// 4. Calculate reconstruction error
+	// 4. Calculate reconstruction error using the same uint8-reinterpret
+	// path that DecompressTurboQuant uses, so the round-trip is honest.
 	reconstructed := make([]float64, len(embedding))
 	for i, idx := range compressed {
-		reconstructed[i] = codebook[idx]
+		reconstructed[i] = codebook[uint8(idx)]
 	}
 	reconError := meanSquaredError(embedding, reconstructed)
 
@@ -137,11 +161,20 @@ func QJLCompress(embedding []float64) []int8 {
 }
 
 // DecompressTurboQuant reconstructs embedding from compressed form
+// DecompressTurboQuant reverses TurboQuantCompress. The compressed field
+// is typed as []int8 for JSON compactness, but TurboQuantCompress stores
+// codebook indices in 0..2^bits-1; for bits=8 the index range is 0..255
+// which does NOT fit in int8 (max 127). The on-disk byte representation
+// is identical between int8 and uint8, so we reinterpret-cast each entry
+// via uint8(idx) before indexing the codebook. Without this conversion
+// any 8-bit compression with an index >= 128 would panic on lookup with
+// "index out of range [-N]".
 func DecompressTurboQuant(compressed []int8, codebook []float64) []float64 {
 	reconstructed := make([]float64, len(compressed))
 	for i, idx := range compressed {
-		if int(idx) < len(codebook) {
-			reconstructed[i] = codebook[idx]
+		ui := uint8(idx) // reinterpret the int8 byte as an unsigned index
+		if int(ui) < len(codebook) {
+			reconstructed[i] = codebook[ui]
 		}
 	}
 	return reconstructed

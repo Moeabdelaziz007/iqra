@@ -62,8 +62,19 @@ jobs:
           # Defence-in-depth: even with .gitignore, fail CI if anyone
           # ever re-commits a compiled binary. Patterns mirror the
           # entries in the repo-root .gitignore for src/services/go-engine.
+          # Includes the post-#H5 cmd/server/ location, plus the legacy
+          # top-level paths so an old branch rebased here also fails CI
+          # rather than silently checking in 9MB.
           shopt -s nullglob
-          for f in go-engine iqra-engine engine *.exe *.test; do
+          # `server` at module root is what `go build ./cmd/server` emits
+          # when run from src/services/go-engine. cmd/server/server is what
+          # the same command emits when run from inside cmd/server itself.
+          # We must cover both because either invocation is plausible from
+          # docs, package.json scripts, or a developer's muscle memory.
+          for f in \
+              server go-engine iqra-engine engine \
+              cmd/server/server cmd/server/go-engine \
+              *.exe *.test cmd/server/*.exe cmd/server/*.test; do
             if [ -f "$f" ] && file "$f" | grep -qE 'ELF|Mach-O|PE32'; then
               echo "::error::Compiled binary $f committed to the repo. Delete it; CI builds the binary on-demand."
               exit 1

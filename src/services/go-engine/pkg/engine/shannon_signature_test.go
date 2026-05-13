@@ -1,7 +1,7 @@
 // بسم الله الرحمن الرحيم
 // Correctness tests for detectQuranSignature's NaN-safety contract.
 
-package main
+package engine
 
 import (
 	"math"

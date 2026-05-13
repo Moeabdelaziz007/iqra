@@ -1,7 +1,7 @@
 // بسم الله الرحمن الرحيم
 // Correctness tests for the corpus-opt-in LID path in ProcessBatchParallel.
 
-package main
+package engine
 
 import (
 	"strings"

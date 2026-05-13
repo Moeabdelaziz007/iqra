@@ -1,3 +1,7 @@
+// Package main is the HTTP entry point for the IQRA Go engine. All
+// analyser logic lives in the importable library at iqra/engine/pkg/engine;
+// this binary is thin: argument parsing, signal handling, HTTP routing,
+// and JSON marshalling around the engine's public API.
 package main
 
 import (
@@ -14,6 +18,8 @@ import (
 	"runtime"
 	"syscall"
 	"time"
+
+	"iqra/engine/pkg/engine"
 )
 
 // shutdownGracePeriod is the absolute time budget for in-flight requests
@@ -93,7 +99,7 @@ func resonanceHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	result := CalculateResonance(req.Input)
+	result := engine.CalculateResonance(req.Input)
 	json.NewEncoder(w).Encode(Response{
 		Status:  "success",
 		Message: "Topological Curiosity Resonance Evaluated",
@@ -106,7 +112,7 @@ func batchAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	var req BatchAnalysisRequest
+	var req engine.BatchAnalysisRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -119,7 +125,7 @@ func batchAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 	if bc, ok := r.Context().Value(rootCtxKey{}).(context.Context); ok {
 		ctx = bc
 	}
-	result := ProcessBatchParallelContext(ctx, req)
+	result := engine.ProcessBatchParallelContext(ctx, req)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(Response{
 		Status:  "success",
@@ -145,7 +151,7 @@ func lidAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 	if req.K <= 0 {
 		req.K = 7
 	}
-	result := CalculateLID(req.Embedding, req.References, req.K)
+	result := engine.CalculateLID(req.Embedding, req.References, req.K)
 	json.NewEncoder(w).Encode(Response{
 		Status:  "success",
 		Message: "LID Analysis Complete",
@@ -165,7 +171,7 @@ func shannonHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	result := CalculateShannonHEL(req.Text)
+	result := engine.CalculateShannonHEL(req.Text)
 	json.NewEncoder(w).Encode(Response{
 		Status:  "success",
 		Message: "Shannon H_EL Analysis Complete",
@@ -190,11 +196,11 @@ func compressionHandler(w http.ResponseWriter, r *http.Request) {
 	var result interface{}
 	switch req.Method {
 	case "polar":
-		result = PolarQuantCompress(req.Embedding)
+		result = engine.PolarQuantCompress(req.Embedding)
 	case "qjl":
-		result = QJLCompress(req.Embedding)
+		result = engine.QJLCompress(req.Embedding)
 	default:
-		result = TurboQuantCompress(req.Embedding, req.Bits)
+		result = engine.TurboQuantCompress(req.Embedding, req.Bits)
 	}
 	json.NewEncoder(w).Encode(Response{
 		Status:  "success",
@@ -219,7 +225,7 @@ func homologyHandler(w http.ResponseWriter, r *http.Request) {
 	if req.Threshold <= 0 {
 		req.Threshold = 0.5
 	}
-	result := CalculatePersistentHomology(req.Embedding, req.Threshold)
+	result := engine.CalculatePersistentHomology(req.Embedding, req.Threshold)
 	json.NewEncoder(w).Encode(Response{
 		Status:  "success",
 		Message: "Persistent Homology Analysis Complete",
@@ -259,7 +265,7 @@ func main() {
 	// Optional resume: load pending surahs from a prior checkpoint and
 	// replay them as if they had just arrived on /batch/analyze.
 	if *resumeFrom != "" {
-		if err := replayCheckpoint(rootCtx, *resumeFrom); err != nil {
+		if err := engine.ReplayCheckpoint(rootCtx, *resumeFrom); err != nil {
 			log.Printf("resume failed: %v", err)
 		} else {
 			log.Printf("resumed checkpoint: %s", *resumeFrom)
@@ -290,7 +296,7 @@ func main() {
 			return context.WithValue(rootCtx, rootCtxKey{}, rootCtx)
 		},
 	}
-	setCheckpointDir(*checkpointDir)
+	engine.SetCheckpointDir(*checkpointDir)
 
 	fmt.Printf("🌙 IQRA Go Engine starting on %s...\n", addr)
 	fmt.Printf("📊 Parallel Processing: %d CPUs available\n", runtime.NumCPU())
@@ -334,7 +340,7 @@ func runCLIMode(mode, input string) {
 			fmt.Printf(`{"error": "%v"}`, err)
 			return
 		}
-		result := CalculateShannonHEL(req.Text)
+		result := engine.CalculateShannonHEL(req.Text)
 		json.NewEncoder(os.Stdout).Encode(result)
 	case "homology":
 		var req struct {
@@ -345,7 +351,7 @@ func runCLIMode(mode, input string) {
 			fmt.Printf(`{"error": "%v"}`, err)
 			return
 		}
-		result := CalculatePersistentHomology(req.Embedding, req.Threshold)
+		result := engine.CalculatePersistentHomology(req.Embedding, req.Threshold)
 		json.NewEncoder(os.Stdout).Encode(result)
 	default:
 		fmt.Printf(`{"error": "unknown mode %s"}`, mode)

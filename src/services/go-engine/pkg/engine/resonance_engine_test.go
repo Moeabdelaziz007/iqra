@@ -15,7 +15,7 @@
 // return an error. These tests verify that the regex compiles (it is var-
 // initialized) and produces correct output.
 
-package main
+package engine
 
 import (
 	"strings"

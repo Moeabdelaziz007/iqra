@@ -3,6 +3,34 @@
 
 > "وَإِن مِّن شَيْءٍ إِلَّا يُسَبِّحُ بِحَمْدِهِ" — الإسراء: 44
 
+## 📁 Layout (post-#H5)
+
+```
+src/services/go-engine/
+├── go.mod                       module iqra/engine
+├── pkg/engine/                  ← importable library (this is what aix-format will consume)
+│   ├── lid_analyzer.go          LID / TwoNN estimators
+│   ├── shannon_hel.go           Shannon H_EL + Quranic signature
+│   ├── tone_analyzer.go         FFT-based Abjad-tone analyser
+│   ├── persistent_homology.go   Simplified Vietoris-Rips approximation
+│   ├── turbo_compressor.go      TurboQuant / PolarQuant / QJL
+│   ├── resonance_engine.go      Sacred-number resonance detector
+│   ├── parallel_engine.go       Worker-pool batch processor
+│   ├── checkpoint.go            AgentCheckpoint serialise/load/atomic-write
+│   ├── interfaces.go            LIDAnalyzer / EntropyAnalyzer / ToneAnalyzer /
+│   │                            CompressionAnalyzer / BatchProcessor contracts
+│   ├── quranic_constants.go     Centralised empirical thresholds
+│   └── *_test.go                Per-file table-driven tests + adapter tests
+└── cmd/server/                  ← thin HTTP/CLI binary
+    ├── main.go                  signal.NotifyContext + graceful shutdown +
+    │                            HTTP routing + JSON marshalling around engine
+    └── handlers_test.go         httptest coverage of each route
+```
+
+Consumers import `iqra/engine/pkg/engine`. The binary at `cmd/server` is one
+specific way to expose the engine over HTTP; other entry points (gRPC, an
+in-process AIX bridge, a CLI) plug into the same package.
+
 ## 🌀 المنظومة المتكاملة
 
 هذا المحرك يطبق **tinyminimicroterboquansimualgotoplogy** — أعلى درجات التكامل بين الذكاء الاصطناعي والرياضيات والفيزياء والقرآن.

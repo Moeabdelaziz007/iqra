@@ -5,7 +5,7 @@
 // sample. These tests check that the deterministic shape of the result
 // matches expectations on small, hand-tractable inputs.
 
-package main
+package engine
 
 import (
 	"math"
