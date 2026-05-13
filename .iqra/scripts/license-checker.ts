@@ -57,7 +57,8 @@ const LICENSE_SIGNATURES: Array<{ name: string; spdx: string; pattern: RegExp }>
 function readCycle(): string {
   if (!fs.existsSync(CYCLE_FILE)) return '1';
   const raw = fs.readFileSync(CYCLE_FILE, 'utf-8').trim();
-  const n = Number.parseInt(raw, 10);
+  if (!/^\d+$/.test(raw)) return '1';
+  const n = Number(raw);
   return Number.isInteger(n) && n >= 1 && n <= CYCLE_LENGTH ? String(n) : '1';
 }
 
