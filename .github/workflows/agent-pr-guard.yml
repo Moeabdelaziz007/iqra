@@ -53,9 +53,13 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          # نحسب الإجمالي بدون lockfiles/binaries/generated
-          ADDED=$(git diff --numstat "$BASE_SHA...$HEAD_SHA" -- ':(exclude)*.lock' ':(exclude)package-lock.json' ':(exclude)*.min.*' | awk 'NF==3 && $1!="-" {sum+=$1} END {print sum+0}')
-          REMOVED=$(git diff --numstat "$BASE_SHA...$HEAD_SHA" -- ':(exclude)*.lock' ':(exclude)package-lock.json' ':(exclude)*.min.*' | awk 'NF==3 && $2!="-" {sum+=$2} END {print sum+0}')
+          # نحسب الإجمالي بدون lockfiles/binaries/generated.
+          # 🤖 NOTE: --numstat ينتج '<added>\t<removed>\t<path>' بـ TAB صريح.
+          # awk الافتراضي يقسّم بأي whitespace، فمسار فيه مسافات (e.g. 'x y.txt')
+          # يجعل NF=4 ويُحذف من المجموع. نُفرض FS="\t" فيُحسب الـ path كحقل واحد
+          # بصرف النظر عن الـ spaces. الـ binary diffs تظهر بـ '-' في $1 و $2 فنتجاهلها.
+          ADDED=$(git diff --numstat "$BASE_SHA...$HEAD_SHA" -- ':(exclude)*.lock' ':(exclude)package-lock.json' ':(exclude)*.min.*' | awk -F'\t' 'NF==3 && $1!="-" {sum+=$1} END {print sum+0}')
+          REMOVED=$(git diff --numstat "$BASE_SHA...$HEAD_SHA" -- ':(exclude)*.lock' ':(exclude)package-lock.json' ':(exclude)*.min.*' | awk -F'\t' 'NF==3 && $2!="-" {sum+=$2} END {print sum+0}')
           TOTAL=$((ADDED + REMOVED))
           echo "added=$ADDED" >> "$GITHUB_OUTPUT"
           echo "removed=$REMOVED" >> "$GITHUB_OUTPUT"
