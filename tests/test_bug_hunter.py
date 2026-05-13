@@ -990,7 +990,13 @@ class TestFixCommitsAdditional(unittest.TestCase):
         self.assertEqual(len(results), 1)
 
     def test_git_called_with_correct_date_arguments(self):
-        """_git must receive --since and --until with ISO-formatted dates."""
+        """_git must receive --since and --until with time-qualified bounds.
+
+        _fix_commits passes an inclusive --since at 00:00:00 on the
+        first day of the window and an exclusive --until one second
+        before midnight on the upper bound day, so a commit at exactly
+        the start of the next month is not double-counted.
+        """
         call_args = []
 
         def capture(*args):
@@ -1000,8 +1006,8 @@ class TestFixCommitsAdditional(unittest.TestCase):
         with patch.object(bug_hunter, "_git", side_effect=capture):
             _fix_commits(date(2024, 5, 1), date(2024, 6, 1))
 
-        self.assertIn("--since=2024-05-01", call_args)
-        self.assertIn("--until=2024-06-01", call_args)
+        self.assertIn("--since=2024-05-01 00:00:00", call_args)
+        self.assertIn("--until=2024-05-31 23:59:59", call_args)
 
     def test_result_preserves_git_log_order(self):
         """Commits are returned in the order they appear in git log output."""
