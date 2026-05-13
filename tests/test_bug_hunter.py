@@ -198,8 +198,8 @@ class TestTokenRe(unittest.TestCase):
     """TOKEN_RE extracts identifiers of 3+ chars starting with a letter."""
 
     def test_short_word_excluded(self):
-        # "ab" is only 2 chars.
-        self.assertEqual(TOKEN_RE.findall("ab cd"), ["cd"])
+        # TOKEN_RE requires 3+ chars; both "ab" and "cd" are excluded.
+        self.assertEqual(TOKEN_RE.findall("ab cd"), [])
 
     def test_single_char_excluded(self):
         self.assertEqual(TOKEN_RE.findall("x y"), [])
@@ -209,8 +209,9 @@ class TestTokenRe(unittest.TestCase):
         self.assertIn("vector_engine", tokens)
 
     def test_hyphen_allowed(self):
+        # TOKEN_RE permits internal hyphens, so "auto-fix" is one token.
         tokens = TOKEN_RE.findall("auto-fix")
-        self.assertIn("auto", tokens)  # hyphen terminates at "auto"
+        self.assertIn("auto-fix", tokens)
 
     def test_digit_in_middle_allowed(self):
         tokens = TOKEN_RE.findall("llm7model")
@@ -537,14 +538,29 @@ class TestRender(unittest.TestCase):
 
 
 class TestGit(unittest.TestCase):
-    def test_returns_empty_string_on_called_process_error(self):
+    def test_raises_runtime_error_on_nonzero_exit(self):
+        # _git uses subprocess.run(check=False) and raises RuntimeError
+        # on non-zero exit; it does not swallow errors into "".
         import subprocess
-        with patch("subprocess.check_output", side_effect=subprocess.CalledProcessError(1, "git")):
-            result = bug_hunter._git("log")
-        self.assertEqual(result, "")
+        cp = subprocess.CompletedProcess(
+            args=["git", "log"],
+            returncode=1,
+            stdout="",
+            stderr="fatal: bad revision",
+        )
+        with patch("subprocess.run", return_value=cp):
+            with self.assertRaises(RuntimeError):
+                bug_hunter._git("log")
 
     def test_returns_output_on_success(self):
-        with patch("subprocess.check_output", return_value="abc\n"):
+        import subprocess
+        cp = subprocess.CompletedProcess(
+            args=["git", "log", "--oneline"],
+            returncode=0,
+            stdout="abc\n",
+            stderr="",
+        )
+        with patch("subprocess.run", return_value=cp):
             result = bug_hunter._git("log", "--oneline")
         self.assertEqual(result, "abc\n")
 
