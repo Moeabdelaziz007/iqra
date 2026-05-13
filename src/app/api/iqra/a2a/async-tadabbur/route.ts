@@ -64,28 +64,50 @@ export async function POST(req: NextRequest) {
     status: 'queued',
   };
 
-  let persisted = false;
+  // Durable persistence is required to honor a 202 Accepted. A signed
+  // queue id that no consumer can recover is worse than a 5xx: peers
+  // poll forever for a result that will never exist.
+  //
+  // Source of truth: Upstash Redis (edge-safe REST API). Local fs is
+  // strictly a best-effort debug tail and does NOT count toward
+  // durability. In a serverless / Edge instance the disk is ephemeral
+  // anyway, so treating it as durable would re-introduce silent loss.
+  let durablyPersisted = false;
+  const redisConfigured = !!(
+    process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+  );
 
-  // Primary: durable Redis queue (portable across Node/Edge/Workers).
-  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  if (redisConfigured) {
     try {
       const { Redis } = await import('@upstash/redis');
       const redis = new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL,
-        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+        url: process.env.UPSTASH_REDIS_REST_URL!,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN!,
       });
       await redis.lpush('iqra:tadabbur_queue', JSON.stringify(envelope));
       await redis.hset('iqra:tadabbur', { [tadabbur_id]: JSON.stringify(envelope) });
-      persisted = true;
+      durablyPersisted = true;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       appendToTrustChain('A2A:ASYNC_TADABBUR:REDIS_FAIL', tadabbur_id, msg.slice(0, 200), 0.2);
     }
   }
 
-  // Secondary (Node only, best-effort): local tail for offline debugging.
-  // We probe for node:fs/promises dynamically so the bundler treats this
-  // as a conditional import and Edge builds skip it cleanly.
+  if (!durablyPersisted) {
+    const reason = redisConfigured ? 'redis write failed' : 'no durable backend configured';
+    appendToTrustChain('A2A:ASYNC_TADABBUR:DROPPED', tadabbur_id, reason, 0.0);
+    return NextResponse.json(
+      {
+        error: 'tadabbur queue unavailable',
+        detail: 'durable persistence (Upstash Redis) is required; configure UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN',
+      },
+      { status: 503 },
+    );
+  }
+
+  // Non-durable secondary write for offline debugging only. Failures
+  // here NEVER affect the response — the work item is already safe in
+  // Redis at this point.
   if (!isEdgeRuntime()) {
     try {
       const fs = await import('fs/promises');
@@ -93,21 +115,10 @@ export async function POST(req: NextRequest) {
       const dir = path.join(process.cwd(), '.iqra');
       await fs.mkdir(dir, { recursive: true });
       await fs.appendFile(path.join(dir, 'tadabbur_queue.jsonl'), JSON.stringify(envelope) + '\n');
-      persisted = persisted || true;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      appendToTrustChain('A2A:ASYNC_TADABBUR:LOCAL_PERSIST_FAIL', tadabbur_id, msg.slice(0, 200), 0.2);
+      appendToTrustChain('A2A:ASYNC_TADABBUR:LOCAL_TAIL_FAIL', tadabbur_id, msg.slice(0, 200), 0.2);
     }
-  }
-
-  if (!persisted) {
-    // No durable backend AND fs unavailable — return 503 so the peer
-    // knows the work was NOT accepted, rather than silently dropping it.
-    appendToTrustChain('A2A:ASYNC_TADABBUR:DROPPED', tadabbur_id, 'no durable backend', 0.0);
-    return NextResponse.json(
-      { error: 'tadabbur queue unavailable; configure UPSTASH_REDIS_REST_URL' },
-      { status: 503 },
-    );
   }
 
   appendToTrustChain('A2A:ASYNC_TADABBUR:QUEUED', tadabbur_id, intent.slice(0, 200), 1.0);

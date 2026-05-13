@@ -23,14 +23,33 @@ import { canonicalizeJSON } from './canonical';
 import { codec } from './ed25519_signer';
 import type { AIXTrustChain, AIXTrustChainEntry, DID } from './types';
 
-/** IQRA's TrustChainEntry shape (mirrors `06-security/security.ts`). */
+/**
+ * IQRA's TrustChainEntry shape (mirrors `06-security/security.ts`).
+ *
+ * The authoritative shape uses `auditHash` (not `hash`), `inputHash`
+ * + `outputHash` (not `input` + `output`), and `safetyScore` (not
+ * `score`). The mapper still accepts the legacy/loose names as
+ * optional aliases so historical exports keep working, but for any
+ * real IQRA entry it MUST read the canonical fields so the chained
+ * `auditHash` is preserved end-to-end. Recomputing a fresh hash from
+ * a subset of fields would silently break audit traceability across
+ * IQRA ↔ AIX.
+ */
 export interface IQRATrustChainEntry {
-  type?: string;
+  // Canonical fields (IQRA security.ts)
   action?: string;
+  auditHash?: string;
+  inputHash?: string;
+  outputHash?: string;
+  safetyScore?: number;
+  timestamp?: number;
+  intention?: string;
+
+  // Legacy aliases (older exports / hand-built records)
+  type?: string;
   input?: string;
   output?: string;
   score?: number;
-  timestamp?: number;
   hash?: string;
   prev_hash?: string;
 }
@@ -42,13 +61,19 @@ function isFullSha256(s: unknown): s is string {
 }
 
 function recomputeHash(entry: IQRATrustChainEntry): string {
-  // Use the same fields IQRA hashed historically, but in canonical
-  // form so two runtimes agree on the digest.
+  // Last-resort recomputation when an entry truly has no auditHash AND
+  // no legacy hash to mirror. We include both the canonical and
+  // legacy field aliases so a derived hash is at least stable across
+  // export reruns of the same input.
   const canonical = canonicalizeJSON({
     action: entry.action ?? entry.type ?? '',
+    inputHash: entry.inputHash ?? '',
+    outputHash: entry.outputHash ?? '',
     input: entry.input ?? '',
     output: entry.output ?? '',
-    score: typeof entry.score === 'number' ? entry.score : 0,
+    safetyScore: typeof entry.safetyScore === 'number'
+      ? entry.safetyScore
+      : (typeof entry.score === 'number' ? entry.score : 0),
     timestamp: typeof entry.timestamp === 'number' ? entry.timestamp : 0,
   });
   return codec.bytesToHex(sha256(new TextEncoder().encode(canonical)));
@@ -77,10 +102,28 @@ function inferHumanApproved(action: string): boolean {
   return a.startsWith('SHURA:') || a.includes(':APPROVED') || a.includes(':HUMAN_OK');
 }
 
+/**
+ * Pick the strongest hash signal the entry carries.
+ *
+ * Order of preference (high → low):
+ *   1) auditHash      — canonical IQRA chained hash (security.ts)
+ *   2) hash           — legacy alias on hand-built / older exports
+ *   3) recomputeHash  — derived last resort
+ *
+ * This preserves the original IQRA audit value when present, so the
+ * AIX TrustChain section is byte-for-byte traceable back to the IQRA
+ * security log instead of being silently re-derived.
+ */
+function pickPayloadHash(entry: IQRATrustChainEntry): string {
+  if (isFullSha256(entry.auditHash)) return (entry.auditHash as string).toLowerCase();
+  if (isFullSha256(entry.hash)) return (entry.hash as string).toLowerCase();
+  return recomputeHash(entry);
+}
+
 /** Translate one IQRA entry to one AIX entry. */
 export function mapEntry(entry: IQRATrustChainEntry, actorDID: DID): AIXTrustChainEntry {
   const action = entry.action ?? entry.type ?? 'UNKNOWN';
-  const payload_hash = isFullSha256(entry.hash) ? (entry.hash as string).toLowerCase() : recomputeHash(entry);
+  const payload_hash = pickPayloadHash(entry);
   return {
     action,
     actor_did: actorDID,
@@ -94,15 +137,15 @@ export function mapEntry(entry: IQRATrustChainEntry, actorDID: DID): AIXTrustCha
 /**
  * Translate the full IQRA chain to an AIX TrustChain section. Preserves
  * the chronological order from the input. The first entry's prev_hash
- * stays as supplied (typically `GENESIS_HASH`).
+ * defaults to GENESIS_HASH; subsequent entries point at the previous
+ * entry's `payload_hash` so the section is self-consistent regardless
+ * of how the source log was assembled.
  */
 export function mapChain(entries: IQRATrustChainEntry[], actorDID: DID): AIXTrustChain {
   let prev = GENESIS_HASH;
   const out: AIXTrustChainEntry[] = [];
   for (const raw of entries) {
     const mapped = mapEntry(raw, actorDID);
-    // Force prev_hash continuity so the section is self-consistent
-    // even if the source log had gaps.
     mapped.prev_hash = prev;
     out.push(mapped);
     prev = mapped.payload_hash;
