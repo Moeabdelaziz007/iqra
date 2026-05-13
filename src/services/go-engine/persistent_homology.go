@@ -111,7 +111,7 @@ func calculatePersistence(data []float64) []float64 {
 	// Calculate gaps (persistence intervals)
 	for i := 1; i < len(sorted); i++ {
 		gap := sorted[i] - sorted[i-1]
-		if gap > 0.01 { // Threshold for significant features
+		if gap > PersistenceMinGap { // Threshold for significant features
 			persistence = append(persistence, gap)
 		}
 	}
@@ -204,8 +204,13 @@ func detectFractalStructure(persistence []float64) bool {
 		persistence,
 	)
 
-	// Fractal if α ≈ 1.44 (Quranic fractal dimension)
-	return math.Abs(alpha-1.44) < 0.2
+	// Fractal if α ≈ QuranFractalDimension. The loose tolerance is used
+	// here because the power-law exponent estimator has higher variance
+	// than the box-counting estimator used in shannon_hel.go.
+	if math.IsNaN(alpha) || math.IsInf(alpha, 0) {
+		return false
+	}
+	return math.Abs(alpha-QuranFractalDimension) < QuranFractalToleranceLoose
 }
 
 // autocorrelation calculates autocorrelation at given lag

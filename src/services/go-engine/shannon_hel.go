@@ -114,7 +114,7 @@ func calculateFractalDimension(text string) float64 {
 // estimateSlope performs simple linear regression
 func estimateSlope(x []int, y []float64) float64 {
 	if len(x) != len(y) || len(x) < 2 {
-		return 1.44 // Default Quranic fractal dimension
+		return QuranFractalDimension // Default Quranic fractal dimension (centre of detection window)
 	}
 
 	n := float64(len(x))
@@ -133,16 +133,24 @@ func estimateSlope(x []int, y []float64) float64 {
 	return slope
 }
 
-// detectQuranSignature checks if text has Quranic entropy signature
+// detectQuranSignature checks if text has Quranic entropy signature.
+//
+// Defensive about the inputs because every argument can be 0 or NaN on
+// degenerate input (empty text, single-character text, malformed fractal
+// regression). Without the explicit guard, totalH==0 produced NaN via
+// helH/totalH; NaN comparisons against the bounds return false, so the
+// function silently returned false for the wrong reason. Now it returns
+// false explicitly when any input is non-finite or totalH is non-positive.
 func detectQuranSignature(totalH, helH, fractal float64) bool {
-	// Thresholds from research:
-	// - Quran has specific H_EL range
-	// - Fractal dimension ~1.44
-	// - Specific ratio between total and last-char entropy
+	if totalH <= 0 ||
+		math.IsNaN(totalH) || math.IsNaN(helH) || math.IsNaN(fractal) ||
+		math.IsInf(totalH, 0) || math.IsInf(helH, 0) || math.IsInf(fractal, 0) {
+		return false
+	}
 
-	fractalMatch := math.Abs(fractal-1.44) < 0.15
+	fractalMatch := math.Abs(fractal-QuranFractalDimension) < QuranFractalTolerance
 	entropyRatio := helH / totalH
-	ratioMatch := entropyRatio > 0.6 && entropyRatio < 0.9
+	ratioMatch := entropyRatio > QuranHELRatioLow && entropyRatio < QuranHELRatioHigh
 
 	return fractalMatch && ratioMatch
 }

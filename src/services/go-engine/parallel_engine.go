@@ -207,7 +207,7 @@ func processSurah(surah SurahData, req *BatchAnalysisRequest) ParallelResult {
 		}
 
 		// Check for 1/f pink noise
-		if homology.TopologicalNoise > 0.9 && homology.TopologicalNoise < 1.1 {
+		if homology.TopologicalNoise > PinkNoiseLow && homology.TopologicalNoise < PinkNoiseHigh {
 			result.Discoveries = append(result.Discoveries, "PINK_NOISE_1/f")
 		}
 	}
@@ -248,11 +248,11 @@ func calculateOverallResonance(result ParallelResult) float64 {
 	}
 
 	if result.HomologyAnalysis != nil {
-		// Fractal structures have high resonance
+		// Fractal structures contribute more to the resonance signal.
 		if result.HomologyAnalysis.IsFractal {
-			resonance += 0.9
+			resonance += OverallResonanceFractalBonus
 		} else {
-			resonance += 0.5
+			resonance += OverallResonanceBaseline
 		}
 		count++
 	}
@@ -279,7 +279,7 @@ func calculateSummary(results []ParallelResult) AnalysisSummary {
 		totalResonance += result.OverallResonance
 		totalDiscoveries += len(result.Discoveries)
 
-		if result.OverallResonance > 0.7 {
+		if result.OverallResonance > HighResonanceThreshold {
 			summary.HighResonanceSurahs = append(summary.HighResonanceSurahs, result.SurahNumber)
 		}
 
