@@ -19,7 +19,13 @@ import (
 
 	"iqra/engine/pkg/lifecycle"
 	"iqra/engine/pkg/observability"
+	"iqra/engine/pkg/policy"
 )
+
+// policyEngine is initialized in main() and shared across HTTP handlers.
+// nil means the engine never started successfully; the policy endpoint
+// returns 503 in that case rather than fail-open.
+var policyEngine *policy.Engine
 
 type Response struct {
 	Status  string      `json:"status"`
@@ -88,6 +94,34 @@ func resonanceHandler(w http.ResponseWriter, r *http.Request) {
 		Message: "Topological Curiosity Resonance Evaluated",
 		Data:    result,
 	})
+}
+
+// policyEvaluateHandler exposes the Phase 5b OPA policy engine over HTTP so
+// TypeScript callers in the IQRA runtime can run a fast pre-flight check
+// before paying the cost of the full DAMIR pipeline. Body is policy.Input
+// JSON, response is policy.Decision JSON, never both. On any engine error
+// the handler still returns a fail-closed Deny decision (the engine itself
+// embeds the fail-closed shape) but emits a 200 so the caller's contract
+// stays uniform; the response body's outcome=deny is the gate.
+func policyEvaluateHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	if policyEngine == nil {
+		http.Error(w, "policy engine not initialized", http.StatusServiceUnavailable)
+		return
+	}
+	var input policy.Input
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "bad request: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+	decision, _ := policyEngine.Evaluate(r.Context(), input)
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(decision); err != nil {
+		log.Printf("[policy] encode error: %v", err)
+	}
 }
 
 // makeBatchHandler returns an HTTP handler closed over the engine's root
@@ -314,6 +348,17 @@ func main() {
 		log.Printf("[otel] init error (continuing without tracing): %v", err)
 	}
 
+	// Compile the Phase 5b OPA policy bundle once at boot. A compile error
+	// is fatal: running with a broken policy is worse than refusing to
+	// start because it silently relaxes the guard. The compiled query is
+	// shared across all goroutines via the engine's internal RWMutex.
+	engine, policyErr := policy.New(rootCtx)
+	if policyErr != nil {
+		log.Fatalf("❌ Policy engine failed to compile: %v", policyErr)
+	}
+	policyEngine = engine
+	log.Println("[policy] OPA bundle compiled and ready")
+
 	mux := http.NewServeMux()
 	mux.Handle("/health", instrument("health", healthHandler))
 	mux.Handle("/fourier/transform", instrument("fourier.transform", fourierHandler))
@@ -326,6 +371,9 @@ func main() {
 	mux.Handle("/shannon/analyze", instrument("shannon.analyze", shannonHandler))
 	mux.Handle("/compression/compress", instrument("compression.compress", compressionHandler))
 	mux.Handle("/homology/analyze", instrument("homology.analyze", homologyHandler))
+	// Phase 5b: stateless OPA policy evaluator. Callers POST a policy.Input
+	// JSON document; the response is a policy.Decision (allow/warn/deny).
+	mux.Handle("/policy/evaluate", instrument("policy.evaluate", policyEvaluateHandler))
 
 	addr := fmt.Sprintf("127.0.0.1:%s", *port)
 	srv := &http.Server{
