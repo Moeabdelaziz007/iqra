@@ -26,6 +26,9 @@ vi.mock('fs', async (importOriginal) => {
     writeFileSync: vi.fn(),
     appendFileSync: vi.fn(),
     mkdirSync: vi.fn(),
+    // logToHadith reads the existing file to skip duplicate hashes;
+    // tests that take the append path must stub this too.
+    readFileSync: vi.fn().mockReturnValue(''),
   };
 });
 
@@ -48,13 +51,24 @@ const mockFs = fs as unknown as {
   existsSync: ReturnType<typeof vi.fn>;
   writeFileSync: ReturnType<typeof vi.fn>;
   appendFileSync: ReturnType<typeof vi.fn>;
+  readFileSync: ReturnType<typeof vi.fn>;
 };
 
+// Freeze the clock for the whole suite. `generateCommitMessage` and
+// `logToHadith` both embed the current date/time, so without a fixed
+// clock the date-stamp assertion can flake when the test runs across a
+// UTC day boundary in CI. The frozen instant is picked inside 2026 so
+// it is unambiguous in any tz.
+const FROZEN_NOW = new Date('2026-05-13T12:00:00.000Z');
+
 beforeEach(() => {
+  vi.useFakeTimers();
+  vi.setSystemTime(FROZEN_NOW);
   vi.resetAllMocks();
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.restoreAllMocks();
 });
 
@@ -96,9 +110,10 @@ describe('IQRAStoryteller.generateCommitMessage() — static', () => {
   });
 
   it('includes the current date stamp in Reference line', () => {
-    const today = new Date().toISOString().slice(0, 10);
+    // Date is taken from the frozen clock set in beforeEach(); this
+    // assertion is now stable across midnight UTC boundaries in CI.
     const msg = IQRAStoryteller.generateCommitMessage('Test');
-    expect(msg).toContain(`Reference: ${today}`);
+    expect(msg).toContain('Reference: 2026-05-13');
   });
 
   it('never throws for any input type', () => {
@@ -142,11 +157,16 @@ describe('IQRAStoryteller.logToHadith() — static', () => {
 
   it('includes ISO timestamp in the appended line', () => {
     mockFs.existsSync.mockReturnValue(true);
+    // Storyteller reads HADITH.md first to check for duplicates; return
+    // an empty existing file so the append path is reached and the
+    // assertion below sees the expected appendFileSync call.
+    mockFs.readFileSync.mockReturnValue('');
 
     IQRAStoryteller.logToHadith('xyz', 'summary');
 
     const appendArg = mockFs.appendFileSync.mock.calls[0][1] as string;
-    expect(appendArg).toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+    // Frozen clock = 2026-05-13T12:00:00.000Z (set in beforeEach).
+    expect(appendArg).toContain('2026-05-13T12:00:00.000Z');
   });
 
   it('includes the summary text in the written line', () => {
