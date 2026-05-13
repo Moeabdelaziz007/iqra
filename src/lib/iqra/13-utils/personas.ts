@@ -236,10 +236,16 @@ export const PERSONA_REGISTRY: Record<string, Persona> = {
 };
 
 /**
- * Gets a persona by ID, falling back to core if not found.
+ * Gets a persona by ID, accepting either the namespaced form
+ * (`iqra-core`) or the bare form (`core`). Falls back to `iqra-core`
+ * when nothing matches so callers never need to handle a null
+ * persona — the AIX exporter contract requires a real persona.
  */
 export function getPersona(id: string): Persona {
-  return PERSONA_REGISTRY[id] || PERSONA_REGISTRY['iqra-core'];
+  if (!id) return PERSONA_REGISTRY['iqra-core'];
+  if (PERSONA_REGISTRY[id]) return PERSONA_REGISTRY[id];
+  const namespaced = id.startsWith('iqra-') ? id : `iqra-${id}`;
+  return PERSONA_REGISTRY[namespaced] || PERSONA_REGISTRY['iqra-core'];
 }
 
 /**
@@ -259,4 +265,136 @@ export function getPersonaSystemPrompt(id: string): string {
  */
 export function getPersonaAxiomDID(id: string): AxiomDID {
   return toAxiomDID(id.replace(/^iqra-/, ''));
+}
+
+// ── AIX manifest section builders ────────────────────────────────────────────
+//
+// Centralizes the IQRA persona → AIX manifest mapping so the CLI
+// (`aix_export.ts`) and the runtime endpoint (`agent-card.json/route.ts`)
+// stay byte-identical. Two consumers used to inline this logic; any
+// schema drift between them would silently break peer discovery.
+
+/** RFC 4122 v4 UUID pattern. Single source of truth used by every consumer. */
+export const UUID_V4_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/**
+ * Resolve the AIX `meta.id` for a persona.
+ *
+ *   1. If `IQRA_IDENTITY_UUID` env var is set, trim it and require it
+ *      to be a valid RFC 4122 v4 UUID. Empty / whitespace / non-v4
+ *      values fail loudly rather than silently emitting an invalid
+ *      `meta.id` into a signed manifest.
+ *   2. Otherwise fall back to the persona's pre-baked stable UUID.
+ *
+ * The validation is centralized here so the CLI export, the agent-card
+ * route, and any future emitter cannot drift on what counts as a
+ * legal manifest id.
+ */
+export function resolveAIXMetaId(persona: Persona): string {
+  const envValue = process.env.IQRA_IDENTITY_UUID?.trim();
+  if (envValue) {
+    if (!UUID_V4_RE.test(envValue)) {
+      throw new Error(
+        `IQRA_IDENTITY_UUID must be a valid RFC 4122 v4 UUID (got: ${JSON.stringify(envValue)})`,
+      );
+    }
+    return envValue;
+  }
+  // persona.uuid is enforced v4 at module load via the unit test in
+  // src/lib/iqra/14-aix/__tests__/personas_uuid.test.ts. Trust it here.
+  return persona.uuid;
+}
+
+/** Endpoint entry as serialized into the AIX `apis.endpoints` array. */
+export interface AIXEndpointEntry {
+  method: 'GET' | 'POST';
+  url: string;
+  purpose: string;
+}
+
+/** Skill entry as serialized into the AIX `skills.tools` array. */
+export interface AIXSkillEntry {
+  name: string;
+  layer: string;
+}
+
+/** Complete AIX-flavoured projection of one persona, ready to drop into manifest. */
+export interface PersonaAIXProjection {
+  /** Persona's bare id (e.g. `core`, `researcher`). */
+  bareId: string;
+  /** Stable RFC 4122 v4 UUID for meta.id. */
+  metaId: string;
+  /** Per-persona homepage URL on the given domain. */
+  homepage: string;
+  /** Tags for meta.tags (capability-anchored). */
+  tags: string[];
+  /** Real persona instructions for persona.instructions. */
+  instructions: string;
+  /** Behavioural constraints for persona.constraints. */
+  constraints: string[];
+  /** security.capabilities — derived from tools + a2a methods. */
+  securityCapabilities: string[];
+  /** security.compliance — constitutional documents the persona honors. */
+  securityCompliance: string[];
+  /** apis section payload. */
+  apis: Record<string, unknown>;
+  /** skills.tools array, or undefined when the persona ships no tools. */
+  skills: AIXSkillEntry[] | undefined;
+  /** IQRA architectural layers the persona touches. */
+  layers: string[];
+}
+
+/**
+ * Project a persona into the AIX manifest sections it can populate.
+ * Pure function: deterministic for the same `(persona, domain)`.
+ * Centralized so the CLI and the web endpoint emit identical bytes.
+ */
+export function projectPersonaForAIX(persona: Persona, domain: string): PersonaAIXProjection {
+  const bareId = persona.id.replace(/^iqra-/, '');
+
+  const endpoints: AIXEndpointEntry[] = persona.aixCapabilities.endpoints.map((e) => ({
+    method: e.method,
+    url: `https://${domain}${e.path}`,
+    purpose: e.purpose,
+  }));
+
+  const apis: Record<string, unknown> = {
+    endpoints,
+    a2a: {
+      protocol: 'axiom-a2a-v1',
+      methods: persona.aixCapabilities.a2a_methods,
+    },
+  };
+  if (persona.aixCapabilities.mcp_servers?.length) {
+    apis['mcp_servers'] = persona.aixCapabilities.mcp_servers;
+  }
+
+  const skills: AIXSkillEntry[] | undefined =
+    persona.aixCapabilities.tools.length > 0
+      ? persona.aixCapabilities.tools.map((tool) => ({
+          name: tool,
+          layer: 'iqra/12-infrastructure/tools_registry',
+        }))
+      : undefined;
+
+  const securityCapabilities = persona.aixCapabilities.tools.concat(
+    persona.aixCapabilities.a2a_methods.map((m) => `a2a:${m}`),
+  );
+
+  const constraints = persona.aixCapabilities.compliance.map((c) => `Honor ${c}`);
+
+  return {
+    bareId,
+    metaId: persona.uuid,
+    homepage: `https://${domain}/agents/${bareId}`,
+    tags: persona.aixTags,
+    instructions: persona.aixInstructions,
+    constraints,
+    securityCapabilities,
+    securityCompliance: persona.aixCapabilities.compliance,
+    apis,
+    skills,
+    layers: persona.aixCapabilities.layers,
+  };
 }

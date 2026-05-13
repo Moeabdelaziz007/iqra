@@ -28,7 +28,7 @@ import {
   AIX_FORMAT_VERSION,
 } from '#aix/index';
 import { SovereignDID } from '#security/did';
-import { PERSONA_REGISTRY } from '#utils/personas';
+import { getPersona, projectPersonaForAIX, resolveAIXMetaId } from '#utils/personas';
 
 function readPrivateKey(): Uint8Array | null {
   const b64 = process.env.IQRA_IDENTITY_PRIVATE_KEY_B64URL?.trim();
@@ -48,52 +48,24 @@ async function cmdKeygen(): Promise<number> {
 }
 
 async function cmdEmit(personaId: string): Promise<number> {
-  // Resolve persona by short ('core') or namespaced ('iqra-core') id.
-  const candidates = [personaId, personaId.startsWith('iqra-') ? personaId : `iqra-${personaId}`];
-  const persona =
-    candidates.map((c) => PERSONA_REGISTRY[c]).find((p) => p !== undefined) ??
-    PERSONA_REGISTRY['iqra-core'];
-  const bareId = persona.id.replace(/^iqra-/, '');
+  // Persona resolution + AIX projection are both centralized in
+  // #utils/personas so the CLI and the runtime endpoint cannot drift.
+  const persona = getPersona(personaId);
+  const projection = projectPersonaForAIX(persona, AXIOM_AUTHORITY);
 
   const persisted = readPrivateKey();
   const bundle = persisted
-    ? SovereignDID.fromPrivateKey(bareId, AXIOM_AUTHORITY, persisted)
-    : await SovereignDID.generateBundle(bareId, AXIOM_AUTHORITY);
+    ? SovereignDID.fromPrivateKey(projection.bareId, AXIOM_AUTHORITY, persisted)
+    : await SovereignDID.generateBundle(projection.bareId, AXIOM_AUTHORITY);
 
-  // Per-persona meta.id: precedence is env override > persona.uuid (stable
-  // pre-baked UUID v4). Falling back to a zero-UUID would land the same
-  // id on every agent and break manifest identity.
-  const metaId = process.env.IQRA_IDENTITY_UUID ?? persona.uuid;
-
-  // Real, capability-grounded tags + skills section per persona.
-  const tags = persona.aixTags;
-  const securityCapabilities = persona.aixCapabilities.tools.concat(
-    persona.aixCapabilities.a2a_methods.map((m) => `a2a:${m}`),
-  );
-
-  // Apis block: every endpoint becomes an entry in AIX `apis` section.
-  const apis: Record<string, unknown> = {
-    endpoints: persona.aixCapabilities.endpoints.map((e) => ({
-      method: e.method,
-      url: `https://${AXIOM_AUTHORITY}${e.path}`,
-      purpose: e.purpose,
-    })),
-    a2a: {
-      protocol: 'axiom-a2a-v1',
-      methods: persona.aixCapabilities.a2a_methods,
-    },
-  };
-  if (persona.aixCapabilities.mcp_servers && persona.aixCapabilities.mcp_servers.length > 0) {
-    (apis as any).mcp_servers = persona.aixCapabilities.mcp_servers;
-  }
-
-  const skills = persona.aixCapabilities.tools.map((tool) => ({
-    name: tool,
-    layer: 'iqra/12-infrastructure/tools_registry',
-  }));
+  // Env override > persona.uuid. Validation is centralized in
+  // resolveAIXMetaId so a malformed IQRA_IDENTITY_UUID (empty,
+  // whitespace, non-v4) fails loudly here rather than silently
+  // emitting an invalid id into a signed manifest.
+  const metaId = resolveAIXMetaId(persona);
 
   const manifest = exportManifest({
-    owner_id: bareId,
+    owner_id: projection.bareId,
     publicKey: bundle.publicKey,
     meta: {
       version: IQRA_VERSION,
@@ -104,28 +76,25 @@ async function cmdEmit(personaId: string): Promise<number> {
       created: process.env.IQRA_IDENTITY_CREATED ?? new Date().toISOString(),
       author: 'Mohamed Abdelaziz — AMRIKYY AI Solutions',
       license: 'MIT',
-      // Per-persona discovery page rooted on the sovereign authority.
-      homepage: `https://${AXIOM_AUTHORITY}/agents/${bareId}`,
+      homepage: projection.homepage,
       repository: 'https://github.com/Moeabdelaziz007/iqra',
       framework: 'iqra',
       language: 'ar+en',
       runtime_version: IQRA_VERSION,
-      tags,
+      tags: projection.tags,
     },
     persona: {
       role: persona.role,
       style: 'sovereign',
       tone: 'reverent',
-      // Real persona instructions — the contractual surface, NOT a
-      // recopy of meta.description or the system prompt.
-      instructions: persona.aixInstructions,
-      constraints: persona.aixCapabilities.compliance.map((c) => `Honor ${c}`),
+      instructions: projection.instructions,
+      constraints: projection.constraints,
     },
     verification: { status: 'sovereign', trust_level: 3 },
     security: {
       level: 3,
-      capabilities: securityCapabilities,
-      compliance: persona.aixCapabilities.compliance,
+      capabilities: projection.securityCapabilities,
+      compliance: projection.securityCompliance,
     },
     pi_network: process.env.PI_APP_ID
       ? {
@@ -136,17 +105,15 @@ async function cmdEmit(personaId: string): Promise<number> {
       : undefined,
   });
 
-  // Attach the richer optional sections directly. exportManifest's
-  // typed input only covers the required + commonly-built sections;
-  // these are passed through to the AIX schema's open sections.
-  manifest.apis = apis;
-  if (skills.length > 0) manifest.skills = { tools: skills };
+  // Attach the richer optional sections from the same projection.
+  manifest.apis = projection.apis;
+  if (projection.skills) manifest.skills = { tools: projection.skills };
 
   const signed = signManifest(manifest, bundle.privateKey);
 
   const outDir = path.join(process.cwd(), '.iqra', 'aix');
   fs.mkdirSync(outDir, { recursive: true });
-  const outPath = path.join(outDir, `manifest-${bareId}.aix.json`);
+  const outPath = path.join(outDir, `manifest-${projection.bareId}.aix.json`);
   fs.writeFileSync(outPath, JSON.stringify(signed, null, 2));
   console.log(`✅ AIX manifest emitted → ${outPath}`);
   console.log(`   identity: ${signed.identity_layer.id}`);
