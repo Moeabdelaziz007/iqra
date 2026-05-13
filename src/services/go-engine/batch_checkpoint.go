@@ -14,6 +14,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
@@ -84,7 +85,14 @@ func (o *BatchOrchestrator) Run(
 	startTime := time.Now()
 	accumulated := append([]ParallelResult{}, previousResults...)
 	totalSurahs := len(req.Surahs)
-	requestBlob, _ := json.Marshal(req)
+	// Serialize the request payload at job start. If this ever fails we
+	// abort the run rather than silently saving a checkpoint with an empty
+	// RequestRaw that would later make ResumeFromCheckpoint return
+	// "missing request payload" with no useful trace back to the cause.
+	requestBlob, marshalErr := json.Marshal(req)
+	if marshalErr != nil {
+		return BatchAnalysisResponse{}, fmt.Errorf("batch_checkpoint: marshal request for job %s: %w", jobID, marshalErr)
+	}
 	lastIndex := resumeFrom
 
 	// Persist an initial checkpoint so the resume path works even if the
