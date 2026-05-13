@@ -17,11 +17,16 @@
 /AGENTS.md                              @Moeabdelaziz007
 
 # ── المنفست (الـ 14 طبقة + الدساتير) ────────────────────────────────
+# 🤖 NOTE: نسجّل الصيغتين — diacritic (canonical) و ASCII fallback — لأن
+# CODEOWNERS pattern matching path-exact (يدعم *? فقط، لا regex).
+# لو فاتنا أحد الصيغتين، rename لـ alias قد يُفلت من المراجعة.
 /src/lib/iqra/00-manifest/              @Moeabdelaziz007
-/iqra-core/DAST*.md                     @Moeabdelaziz007
-/iqra-core/MITHAQ*.md                   @Moeabdelaziz007
-/iqra-core/MURAQABAH.md                 @Moeabdelaziz007
+/iqra-core/DASTŪR.md                    @Moeabdelaziz007
+/iqra-core/DASTUR.md                    @Moeabdelaziz007
+/iqra-core/MĪTHĀQ.md                    @Moeabdelaziz007
+/iqra-core/MITHAQ.md                    @Moeabdelaziz007
 /iqra-core/MURĀQABAH.md                 @Moeabdelaziz007
+/iqra-core/MURAQABAH.md                 @Moeabdelaziz007
 /iqra-core/FITRAH.md                    @Moeabdelaziz007
 /iqra-core/RULES.md                     @Moeabdelaziz007
 /iqra-core/POWERS.md                    @Moeabdelaziz007

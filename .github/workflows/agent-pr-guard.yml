@@ -108,14 +108,38 @@ jobs:
 
           # 🤖 NOTE: نُميّز بين modification لملف سيادي *موجود* (يحتاج إذن)
           # و *creation* لملف جديد (يُسمَح: هكذا نبني الحوكمة أول مرة).
-          # نفحص كل ملف محمي تغيّر: لو كان موجوداً في BASE → modification → نحجب
-          # لو لم يكن موجوداً في BASE → creation → نسمح.
-          CHANGED=$(git diff --name-only --diff-filter=AMDR "$BASE_SHA...$HEAD_SHA")
-          echo "Changed files:"
-          echo "$CHANGED" | sed 's/^/  - /'
+          # نستخدم --name-status -M لالتقاط renames بـ R<score> oldpath newpath.
+          # هذا يحمي من ثغرة: rename لملف سيادي إلى اسم غير محمي.
+          # كلا الـ paths (src + dst) يُمرّران للـ regex.
+          STATUS=$(git diff --name-status -M "$BASE_SHA...$HEAD_SHA")
+          echo "Changed files (with status):"
+          echo "$STATUS" | sed 's/^/  /'
           echo ""
 
-          PROTECTED_HITS=$(echo "$CHANGED" | grep -E "$PROTECTED" || true)
+          # نحوّل status output إلى قائمة paths مع نوع التغيير المنطقي:
+          # A path  → ADD (creation)
+          # M path  → MOD
+          # D path  → DEL (لـ ملف كان محمياً → MOD)
+          # R### old new → كلاهما يُفحَص: old (كأنه DEL) + new (كأنه ADD)
+          # 🤖 NOTE: IFS=tab صريح عبر printf لضمان عمله في كل shells (GH bash + sh).
+          TAB=$(printf '\t')
+          NL=$(printf '\n')
+          CANDIDATES=""
+          while IFS="$TAB" read -r status p1 p2; do
+            [ -z "$status" ] && continue
+            case "$status" in
+              R*)
+                # rename: نفحص الـ source path (إن كان محمياً، فقد نقله = MOD)
+                # و الـ destination (إن كان محمياً، فهو ملف سيادي جديد).
+                CANDIDATES="${CANDIDATES}${p1}${NL}${p2}${NL}"
+                ;;
+              *)
+                CANDIDATES="${CANDIDATES}${p1}${NL}"
+                ;;
+            esac
+          done <<< "$STATUS"
+
+          PROTECTED_HITS=$(echo "$CANDIDATES" | grep -E "$PROTECTED" || true)
           if [ -z "$PROTECTED_HITS" ]; then
             echo "✅ لا ملفات محمية في الـ diff."
             exit 0
