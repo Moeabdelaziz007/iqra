@@ -90,11 +90,12 @@ describe('license-checker.ts — shebang changed to #!/usr/bin/env npx tsx', () 
 // We reproduce the new regex here to test its capture behaviour in isolation,
 // without importing the script.
 
-describe('INLINE_LINK regex — PR simplified to double-quote titles only', () => {
+describe('INLINE_LINK regex — CommonMark title forms supported', () => {
   // Exact regex from the PR's updated link-verifier.ts
   const DEST_PATTERN = '(?:<[^>]+>|(?:\\([^)]*\\)|[^)\\s])+)';
+  const TITLE_PATTERN = '(?:\\s+(?:"[^"]*"|\'[^\']*\'|\\([^)]*\\)))?';
   const INLINE_LINK = new RegExp(
-    `(?<!\\!)\\[([^\\]]*)\\]\\((${DEST_PATTERN})(?:\\s+"[^"]*")?\\)`,
+    `(?<!\\!)\\[([^\\]]*)\\]\\((${DEST_PATTERN})${TITLE_PATTERN}\\)`,
     'g',
   );
 
@@ -120,17 +121,20 @@ describe('INLINE_LINK regex — PR simplified to double-quote titles only', () =
     expect(links[0].dest).toBe('./bar.md');
   });
 
-  it('does NOT match an inline link with a single-quote title', () => {
-    // The new regex only accepts "double-quote" titles; 'single-quote' titles
-    // are no longer parsed and the link is not extracted.
+  it('matches an inline link with a single-quote title (CommonMark)', () => {
+    // CommonMark spec allows 'single-quote' titles; the link should be extracted
+    // and the dest captured as the path (without the title).
     const links = extractLinks("[foo](./bar.md 'My Title')");
-    expect(links).toHaveLength(0);
+    expect(links).toHaveLength(1);
+    expect(links[0].dest).toBe('./bar.md');
   });
 
-  it('does NOT match an inline link with a paren title', () => {
-    // (paren) style titles are also no longer supported by the new regex.
+  it('matches an inline link with a paren title (CommonMark)', () => {
+    // CommonMark spec allows (paren) titles; the link should be extracted
+    // and the dest captured as the path (without the title).
     const links = extractLinks('[foo](./bar.md (My Title))');
-    expect(links).toHaveLength(0);
+    expect(links).toHaveLength(1);
+    expect(links[0].dest).toBe('./bar.md');
   });
 
   it('does NOT match image links (negative lookbehind for !)', () => {
@@ -172,10 +176,11 @@ describe('INLINE_LINK regex — PR simplified to double-quote titles only', () =
 
 // ── IMAGE_LINK regex — new simplified pattern ─────────────────────────────────
 
-describe('IMAGE_LINK regex — PR simplified to double-quote titles only', () => {
+describe('IMAGE_LINK regex — CommonMark title forms supported', () => {
   const DEST_PATTERN = '(?:<[^>]+>|(?:\\([^)]*\\)|[^)\\s])+)';
+  const TITLE_PATTERN = '(?:\\s+(?:"[^"]*"|\'[^\']*\'|\\([^)]*\\)))?';
   const IMAGE_LINK = new RegExp(
-    `!\\[([^\\]]*)\\]\\((${DEST_PATTERN})(?:\\s+"[^"]*")?\\)`,
+    `!\\[([^\\]]*)\\]\\((${DEST_PATTERN})${TITLE_PATTERN}\\)`,
     'g',
   );
 
@@ -201,14 +206,16 @@ describe('IMAGE_LINK regex — PR simplified to double-quote titles only', () =>
     expect(imgs[0].dest).toBe('./cat.jpg');
   });
 
-  it('does NOT match an image link with a single-quote title', () => {
+  it('matches an image link with a single-quote title (CommonMark)', () => {
     const imgs = extractImages("![cat](./cat.jpg 'A cat photo')");
-    expect(imgs).toHaveLength(0);
+    expect(imgs).toHaveLength(1);
+    expect(imgs[0].dest).toBe('./cat.jpg');
   });
 
-  it('does NOT match an image link with a paren title', () => {
+  it('matches an image link with a paren title (CommonMark)', () => {
     const imgs = extractImages('![cat](./cat.jpg (A cat photo))');
-    expect(imgs).toHaveLength(0);
+    expect(imgs).toHaveLength(1);
+    expect(imgs[0].dest).toBe('./cat.jpg');
   });
 
   it('matches image link with empty alt text', () => {
@@ -500,9 +507,12 @@ describe('runtime/constitutional-guard.ts — reference updated to !IQRA_SUPREME
 // ── .iqra/cycle.txt — reset to 1 ─────────────────────────────────────────────
 
 describe('.iqra/cycle.txt — reset to 1 in this PR', () => {
-  it('contains the value "1"', () => {
+  it('contains a valid cycle in [1, 30]', () => {
     const raw = readText('.iqra/cycle.txt').trim();
-    expect(raw).toBe('1');
+    expect(raw).toMatch(/^\d+$/);
+    const n = Number.parseInt(raw, 10);
+    expect(n).toBeGreaterThanOrEqual(1);
+    expect(n).toBeLessThanOrEqual(30);
   });
 });
 

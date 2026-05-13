@@ -952,7 +952,7 @@ describe('regression — .iqra/scripts/ shebang is correct', () => {
   for (const script of SCRIPTS) {
     it(`${path.basename(script)} starts with npx tsx shebang`, () => {
       const firstLine = readText(script).split('\n')[0];
-      expect(firstLine).toBe('#!/usr/bin/env npx tsx');
+      expect(firstLine).toBe('#!/usr/bin/env -S npx tsx');
     });
   }
 });
