@@ -44,7 +44,7 @@ added to this file MUST also follow the schema.
 
 ---
 
-### ✅ [HISTORICAL_RESOLVED] | 2026-05-13
+### ✅ [HISTORICAL_RESOLVED] | 2026-05-13 | test-suite stale loop
 
 - **Code**: `MITHAQ_VIOLATION`, `HALLUCINATION_DETECTED`, `CONNECTION_FAILURE`
 - **Message**: 36 stale entries previously read as a recurring loop
@@ -59,7 +59,7 @@ added to this file MUST also follow the schema.
 
 ---
 
-### ✅ [HISTORICAL_RESOLVED] | 2026-05-13
+### ✅ [HISTORICAL_RESOLVED] | 2026-05-13 | pre-Echo369 GOOGLE_GENERATE failures
 
 - **Code**: `CONNECTION_FAILURE`
 - **Message**: 14 stale `GOOGLE_GENERATE` entries
