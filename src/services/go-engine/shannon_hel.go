@@ -150,7 +150,7 @@ func detectQuranSignature(totalH, helH, fractal float64) bool {
 
 	fractalMatch := math.Abs(fractal-QuranFractalDimension) < QuranFractalTolerance
 	entropyRatio := helH / totalH
-	ratioMatch := entropyRatio > QuranHELRatioLow && entropyRatio < QuranHELRatioHigh
+	ratioMatch := entropyRatio >= QuranHELRatioLow && entropyRatio <= QuranHELRatioHigh
 
 	return fractalMatch && ratioMatch
 }
