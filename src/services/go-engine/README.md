@@ -245,6 +245,44 @@ GET /health
 - **ذاكرة**: ضغط 6x يوفر 83% من الذاكرة
 - **دقة**: LID + Shannon + Homology = رنين دقيق
 
+## 📈 Observability (Phase 5a)
+
+The engine ships with OpenTelemetry tracing in `pkg/observability/`. Spans are
+emitted for every HTTP route and for the heavy compute paths (resonance, LID,
+Shannon, homology, batch, compression) so the TS<->Go bridge latency and the
+DAMIR throughput are measurable from day one.
+
+**Defaults are silent.** With no environment variables set the engine installs
+a NoOp tracer; zero spans are produced, zero overhead, zero log spam.
+
+**Enable OTLP export to a collector:**
+
+```bash
+export OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4318"
+# optional: send only traces, or set per-signal endpoints
+# export OTEL_EXPORTER_OTLP_TRACES_ENDPOINT="http://collector:4318/v1/traces"
+go run . -port=8082
+```
+
+**Enable stdout export for local debugging:**
+
+```bash
+export OTEL_STDOUT=true
+go run . -port=8082
+```
+
+**Force disable even with OTLP set (useful in CI):**
+
+```bash
+export OTEL_DISABLED=true
+```
+
+Every span carries the canonical AIX Stack identity attributes
+(`service.name=iqra-go-engine`, `aix.stack.codename=Echo369`,
+`aix.stack.spec=AIX/1.0`, `aix.layer=L2`, `aix.authority=axiomid.app`) so the
+spans are recognisable in cross-service traces without needing collector-side
+rewrites.
+
 ## 🤲 الدعاء
 
 ```

@@ -1,14 +1,23 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"runtime"
+	"syscall"
 	"time"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/attribute"
+
+	"iqra/engine/pkg/observability"
 )
 
 type Response struct {
@@ -69,7 +78,10 @@ func resonanceHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	_, span := observability.Tracer().Start(r.Context(), "CalculateResonance")
+	span.SetAttributes(attribute.Int("input.length", len(req.Input)))
 	result := CalculateResonance(req.Input)
+	span.End()
 	json.NewEncoder(w).Encode(Response{
 		Status:  "success",
 		Message: "Topological Curiosity Resonance Evaluated",
@@ -87,7 +99,14 @@ func batchAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	_, span := observability.Tracer().Start(r.Context(), "ProcessBatchParallel")
+	span.SetAttributes(attribute.Int("batch.surahs.requested", len(req.Surahs)))
 	result := ProcessBatchParallel(req)
+	span.SetAttributes(
+		attribute.Int("batch.surahs.processed", result.ProcessedSurahs),
+		attribute.Int64("batch.duration.ms", int64(result.TotalTimeMs)),
+	)
+	span.End()
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(Response{
 		Status:  "success",
@@ -113,7 +132,14 @@ func lidAnalysisHandler(w http.ResponseWriter, r *http.Request) {
 	if req.K <= 0 {
 		req.K = 7
 	}
+	_, span := observability.Tracer().Start(r.Context(), "CalculateLID")
+	span.SetAttributes(
+		attribute.Int("lid.embedding.dim", len(req.Embedding)),
+		attribute.Int("lid.references.count", len(req.References)),
+		attribute.Int("lid.k", req.K),
+	)
 	result := CalculateLID(req.Embedding, req.References, req.K)
+	span.End()
 	json.NewEncoder(w).Encode(Response{
 		Status:  "success",
 		Message: "LID Analysis Complete",
@@ -133,7 +159,10 @@ func shannonHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	_, span := observability.Tracer().Start(r.Context(), "CalculateShannonHEL")
+	span.SetAttributes(attribute.Int("shannon.text.length", len(req.Text)))
 	result := CalculateShannonHEL(req.Text)
+	span.End()
 	json.NewEncoder(w).Encode(Response{
 		Status:  "success",
 		Message: "Shannon H_EL Analysis Complete",
@@ -155,6 +184,16 @@ func compressionHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	method := req.Method
+	if method == "" {
+		method = "turbo"
+	}
+	_, span := observability.Tracer().Start(r.Context(), "CompressionDispatch")
+	span.SetAttributes(
+		attribute.String("compression.method", method),
+		attribute.Int("compression.embedding.dim", len(req.Embedding)),
+		attribute.Int("compression.bits", req.Bits),
+	)
 	var result interface{}
 	switch req.Method {
 	case "polar":
@@ -164,6 +203,7 @@ func compressionHandler(w http.ResponseWriter, r *http.Request) {
 	default:
 		result = TurboQuantCompress(req.Embedding, req.Bits)
 	}
+	span.End()
 	json.NewEncoder(w).Encode(Response{
 		Status:  "success",
 		Message: "Compression Complete",
@@ -187,12 +227,25 @@ func homologyHandler(w http.ResponseWriter, r *http.Request) {
 	if req.Threshold <= 0 {
 		req.Threshold = 0.5
 	}
+	_, span := observability.Tracer().Start(r.Context(), "CalculatePersistentHomology")
+	span.SetAttributes(
+		attribute.Int("homology.embedding.dim", len(req.Embedding)),
+		attribute.Float64("homology.threshold", req.Threshold),
+	)
 	result := CalculatePersistentHomology(req.Embedding, req.Threshold)
+	span.End()
 	json.NewEncoder(w).Encode(Response{
 		Status:  "success",
 		Message: "Persistent Homology Analysis Complete",
 		Data:    result,
 	})
+}
+
+// instrument wraps an http.HandlerFunc with OpenTelemetry auto-instrumentation.
+// The operation argument becomes the root span name and is also used as the
+// otelhttp route label so trace dashboards can group spans per endpoint.
+func instrument(operation string, h http.HandlerFunc) http.Handler {
+	return otelhttp.NewHandler(h, operation, otelhttp.WithSpanOptions())
 }
 
 func main() {
@@ -206,23 +259,68 @@ func main() {
 		return
 	}
 
-	http.HandleFunc("/health", healthHandler)
-	http.HandleFunc("/fourier/transform", fourierHandler)
-	http.HandleFunc("/resonance/evaluate", resonanceHandler)
-	http.HandleFunc("/evolve/cycle", evolveHandler)
-	http.HandleFunc("/batch/analyze", batchAnalysisHandler)
-	http.HandleFunc("/lid/analyze", lidAnalysisHandler)
-	http.HandleFunc("/shannon/analyze", shannonHandler)
-	http.HandleFunc("/compression/compress", compressionHandler)
-	http.HandleFunc("/homology/analyze", homologyHandler)
+	// Init OpenTelemetry early so even startup logs/spans are captured.
+	rootCtx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	shutdownOTel, err := observability.Init(rootCtx)
+	if err != nil {
+		log.Printf("[otel] init error (continuing without tracing): %v", err)
+	}
+
+	mux := http.NewServeMux()
+	mux.Handle("/health", instrument("health", healthHandler))
+	mux.Handle("/fourier/transform", instrument("fourier.transform", fourierHandler))
+	mux.Handle("/resonance/evaluate", instrument("resonance.evaluate", resonanceHandler))
+	mux.Handle("/evolve/cycle", instrument("evolve.cycle", evolveHandler))
+	mux.Handle("/batch/analyze", instrument("batch.analyze", batchAnalysisHandler))
+	mux.Handle("/lid/analyze", instrument("lid.analyze", lidAnalysisHandler))
+	mux.Handle("/shannon/analyze", instrument("shannon.analyze", shannonHandler))
+	mux.Handle("/compression/compress", instrument("compression.compress", compressionHandler))
+	mux.Handle("/homology/analyze", instrument("homology.analyze", homologyHandler))
 
 	addr := fmt.Sprintf("127.0.0.1:%s", *port)
+	srv := &http.Server{
+		Addr:              addr,
+		Handler:           mux,
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+
 	fmt.Printf("🌙 IQRA Go Engine starting on %s...\n", addr)
 	fmt.Printf("📊 Parallel Processing: %d CPUs available\n", runtime.NumCPU())
 
-	if err := http.ListenAndServe(addr, nil); err != nil {
-		log.Fatalf("❌ Failed to start server: %v", err)
+	serverErr := make(chan error, 1)
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			serverErr <- err
+		}
+		close(serverErr)
+	}()
+
+	select {
+	case err := <-serverErr:
+		log.Fatalf("❌ Server failed: %v", err)
+	case <-rootCtx.Done():
+		log.Println("[main] shutdown signal received, draining...")
 	}
+
+	// Server drain (short ceiling so OTEL flush gets its own budget).
+	shutCtx, cancelShut := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancelShut()
+	if err := srv.Shutdown(shutCtx); err != nil {
+		log.Printf("[main] server shutdown error: %v", err)
+	}
+
+	// OTEL flush. Use a fresh context so it is not already cancelled.
+	if shutdownOTel != nil {
+		otelCtx, cancelOTel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancelOTel()
+		if err := shutdownOTel(otelCtx); err != nil {
+			log.Printf("[otel] shutdown error: %v", err)
+		}
+	}
+
+	log.Println("[main] shutdown complete")
 }
 
 func runCLIMode(mode, input string) {
