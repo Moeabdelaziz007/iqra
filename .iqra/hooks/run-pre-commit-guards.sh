@@ -31,22 +31,32 @@ if ! command -v npx >/dev/null 2>&1; then
   exit 1
 fi
 
+# 🤖 NOTE: تخطّي كل شيء لو لا staged files (مثل commit --amend بدون تعديل،
+# أو تشغيل يدوي للتجربة). يوفّر startup الـ Node.js + tsx (~ ثانيتين).
+if [ -z "$(git diff --cached --name-only)" ]; then
+  echo "✅ [IQRA] لا توجد ملفات staged — تخطّي الـ guards."
+  exit 0
+fi
+
+# 🤖 NOTE: --no-install يجبر npx على استخدام tsx من node_modules المحلي
+# فقط — يمنع تحميل من الـ internet أثناء commit (بطيء، يفشل offline،
+# يطلب موافقة المستخدم). tsx معرّف في devDependencies فمن المفترض أنه موجود.
 FAIL=0
 
 echo "🛡️ [IQRA] name-validator..."
-if ! npx tsx .iqra/hooks/name-validator.ts; then
+if ! npx --no-install tsx .iqra/hooks/name-validator.ts; then
   echo "❌ [IQRA] name-validator رفض الـ commit"
   FAIL=1
 fi
 
 echo "🛡️ [IQRA] secret-guard..."
-if ! npx tsx .iqra/hooks/secret-guard.ts; then
+if ! npx --no-install tsx .iqra/hooks/secret-guard.ts; then
   echo "❌ [IQRA] secret-guard رفض الـ commit"
   FAIL=1
 fi
 
 echo "🛡️ [IQRA] size-guard..."
-if ! npx tsx .iqra/hooks/size-guard.ts; then
+if ! npx --no-install tsx .iqra/hooks/size-guard.ts; then
   echo "❌ [IQRA] size-guard رفض الـ commit"
   FAIL=1
 fi
