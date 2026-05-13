@@ -27,7 +27,7 @@ jobs:
     name: npm audit
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

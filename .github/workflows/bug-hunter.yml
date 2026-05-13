@@ -22,7 +22,7 @@ jobs:
     name: Hunt last month's fixes
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           # Need full history to see last month's commits.
           fetch-depth: 0
