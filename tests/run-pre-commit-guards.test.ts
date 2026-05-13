@@ -2,18 +2,23 @@
  * Tests for .iqra/hooks/run-pre-commit-guards.sh
  *
  * Covers:
- *  - Static structure: shebang, set -u, key guard variables present in source
- *  - IQRA_SKIP_GUARDS=1 escape hatch → exits 0 immediately
- *  - No staged files (empty git diff --cached) → exits 0 immediately
- *  - tsx binary absent → exits 1 with error message
- *  - All three guards pass → exits 0
- *  - name-validator fails → commit rejected, exits 1
- *  - secret-guard fails → commit rejected, exits 1
- *  - size-guard fails → commit rejected, exits 1
- *  - Multiple guards fail → all three run to completion, exits 1
- *  - Rejection message includes escape-hatch hint
- *  - IQRA_SKIP_GUARDS=0 → guards are NOT skipped
- *  - IQRA_SKIP_GUARDS unset → guards are NOT skipped (default 0)
+ *  - Static source-level assertions (shebang, structure, guard invocations)
+ *  - Functional subprocess tests exercising all exit paths:
+ *      1. IQRA_SKIP_GUARDS=1  → exit 0 (skip path)
+ *      2. No staged files     → exit 0 (no-op path)
+ *      3. tsx binary missing  → exit 1 (install prompt path)
+ *      4. All guards pass     → exit 0 (happy path)
+ *      5. One guard fails     → exit 1, remaining guards still run
+ *      6. All guards fail     → exit 1, all three guards still run (no short-circuit)
+ *
+ * Functional tests spin up a temporary directory that contains:
+ *   - A fake `git` wrapper (controls `git diff --cached --name-only` output)
+ *   - A fake `tsx` binary under node_modules/.bin/tsx (controls guard outcomes)
+ *   - Fake hook scripts (.iqra/hooks/name-validator.ts, secret-guard.ts, size-guard.ts)
+ *     that exit 0 (pass) or exit 1 (fail) as needed per test.
+ *
+ * The script is invoked with `sh <absolute-path>` so it runs from any working
+ * directory; PATH is prepended with the fake-bin dir so our fake `git` wins.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -28,11 +33,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const SCRIPT = path.join(ROOT, '.iqra/hooks/run-pre-commit-guards.sh');
 
-// ── helpers ──────────────────────────────────────────────────────────────────
-
-function readText(relPath: string): string {
-  return fs.readFileSync(path.join(ROOT, relPath), 'utf-8');
+function readScript(): string {
+  return fs.readFileSync(SCRIPT, 'utf-8');
 }
+
+// ── helpers for functional tests ─────────────────────────────────────────────
 
 interface RunResult {
   status: number;
@@ -40,105 +45,90 @@ interface RunResult {
   stderr: string;
 }
 
-interface RunOpts {
-  /** Extra env vars merged into the subprocess environment. */
-  env?: Record<string, string>;
-  /**
-   * Lines that `git diff --cached --name-only` should emit.
-   * Pass an empty string to simulate no staged files.
-   */
-  stagedFiles?: string;
-  /**
-   * Per-hook exit codes for the fake tsx binary.
-   * Keys are the basename of the hook .ts file without extension.
-   * Defaults to 0 (success) for each hook not listed.
-   */
-  tsxExitCodes?: {
-    'name-validator'?: number;
-    'secret-guard'?: number;
-    'size-guard'?: number;
-  };
-  /** If true, the tsx binary is not created (simulates missing install). */
-  omitTsx?: boolean;
-}
-
-let tmpDir = '';
-
 /**
- * Spin up an isolated temp directory acting as a fake project root,
- * wire fake `git` and `tsx` binaries, then run the orchestrator script.
+ * Set up a temporary working directory with controlled fake binaries.
+ *
+ * @param stagedFiles  Lines that `git diff --cached --name-only` should print.
+ *                     Pass an empty string to simulate "no staged files".
+ * @param guardResults Map from guard basename to exit code (0 = pass, 1 = fail).
+ *                     Defaults to all passing (exit 0).
+ * @param installTsx   Whether to create a fake tsx binary (default true).
  */
-function runScript(opts: RunOpts = {}): RunResult {
-  const {
-    env = {},
-    stagedFiles = 'src/foo.ts',
-    tsxExitCodes = {},
-    omitTsx = false,
-  } = opts;
+function setupTmpEnv(
+  stagedFiles: string,
+  guardResults: Record<string, number> = {},
+  installTsx = true,
+): string {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'iqra-guards-test-'));
 
-  // ── fake git binary ────────────────────────────────────────────────────────
-  // Responds to `git diff --cached --name-only` with configurable output.
-  const fakeBinDir = path.join(tmpDir, 'bin');
-  fs.mkdirSync(fakeBinDir, { recursive: true });
+  // -- fake git binary --------------------------------------------------------
+  const fakeBinDir = path.join(tmpDir, 'fake-bin');
+  fs.mkdirSync(fakeBinDir);
 
   const fakeGit = path.join(fakeBinDir, 'git');
-  // Only handle the specific subcommand the script uses; pass everything else
-  // through to the real git so the script's set -u doesn't trip.
+  // Print staged files when called with "diff --cached --name-only", otherwise
+  // forward to real git so other git calls (if any) still work.
   fs.writeFileSync(
     fakeGit,
     [
       '#!/bin/sh',
-      'if [ "$1 $2 $3 $4" = "diff --cached --name-only" ]; then',
-      `  printf '%s' '${stagedFiles}'`,
-      '  exit 0',
-      'fi',
-      // Fall through to the real git for any other invocation
-      `exec "$(command -v git)" "$@"`,
-    ].join('\n')
+      `if [ "$1" = "diff" ] && [ "$2" = "--cached" ] && [ "$3" = "--name-only" ]; then`,
+      `  printf '%s' '${stagedFiles.replace(/'/g, "'\\''")}'`,
+      `  exit 0`,
+      `fi`,
+      // fallback: real git (if available)
+      `exec "$(which git 2>/dev/null || echo /usr/bin/git)" "$@"`,
+    ].join('\n'),
   );
   fs.chmodSync(fakeGit, 0o755);
 
-  // ── fake tsx binary ────────────────────────────────────────────────────────
-  // Lives at ./node_modules/.bin/tsx relative to cwd (the temp dir).
-  if (!omitTsx) {
-    const fakeTsxDir = path.join(tmpDir, 'node_modules', '.bin');
-    fs.mkdirSync(fakeTsxDir, { recursive: true });
+  // -- fake tsx binary --------------------------------------------------------
+  if (installTsx) {
+    const tsxBinDir = path.join(tmpDir, 'node_modules', '.bin');
+    fs.mkdirSync(tsxBinDir, { recursive: true });
 
-    const exitCode = (hook: string): number =>
-      (tsxExitCodes as Record<string, number>)[hook] ?? 0;
-
-    const nameCode = exitCode('name-validator');
-    const secretCode = exitCode('secret-guard');
-    const sizeCode = exitCode('size-guard');
-
-    // The script calls: tsx .iqra/hooks/<name>.ts
-    // We key on the last path component without extension.
-    const fakeTsx = path.join(fakeTsxDir, 'tsx');
+    const fakeTsx = path.join(tsxBinDir, 'tsx');
+    // The script calls:  "$TSX_BIN" .iqra/hooks/<guard>.ts
+    // We use $1 (the script path basename-equivalent) to decide exit code.
+    const cases = Object.entries(guardResults)
+      .map(([name, code]) => `  *${name}*) exit ${code} ;;`)
+      .join('\n');
     fs.writeFileSync(
       fakeTsx,
       [
         '#!/bin/sh',
-        'HOOK=$(basename "$1" .ts)',
-        `if [ "$HOOK" = "name-validator" ]; then exit ${nameCode}; fi`,
-        `if [ "$HOOK" = "secret-guard" ];   then exit ${secretCode}; fi`,
-        `if [ "$HOOK" = "size-guard" ];     then exit ${sizeCode}; fi`,
-        'exit 0',
-      ].join('\n')
+        'case "$1" in',
+        cases || '  *) exit 0 ;;',
+        !cases ? '' : '  *) exit 0 ;;',
+        'esac',
+      ]
+        .filter(Boolean)
+        .join('\n'),
     );
     fs.chmodSync(fakeTsx, 0o755);
   }
 
-  // ── run the orchestrator ───────────────────────────────────────────────────
+  // -- fake hook TypeScript files (tsx just needs the path argument) -----------
+  const hooksDir = path.join(tmpDir, '.iqra', 'hooks');
+  fs.mkdirSync(hooksDir, { recursive: true });
+  for (const hook of ['name-validator.ts', 'secret-guard.ts', 'size-guard.ts']) {
+    fs.writeFileSync(path.join(hooksDir, hook), '// fake hook\n');
+  }
+
+  return tmpDir;
+}
+
+function runScript(tmpDir: string, env: Record<string, string> = {}): RunResult {
   const result = spawnSync('sh', [SCRIPT], {
     cwd: tmpDir,
     env: {
       ...process.env,
-      PATH: `${fakeBinDir}:${process.env.PATH}`,
+      PATH: `${path.join(tmpDir, 'fake-bin')}:${process.env.PATH ?? '/usr/bin:/bin'}`,
+      IQRA_SKIP_GUARDS: '0', // default off; individual tests override
       ...env,
     },
     encoding: 'utf-8',
   });
-
   return {
     status: result.status ?? 1,
     stdout: result.stdout ?? '',
@@ -146,268 +136,470 @@ function runScript(opts: RunOpts = {}): RunResult {
   };
 }
 
-// ── test lifecycle ────────────────────────────────────────────────────────────
+// ── 1. Static source-level assertions ────────────────────────────────────────
 
-beforeEach(() => {
-  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'iqra-guards-test-'));
-});
-
-afterEach(() => {
-  fs.rmSync(tmpDir, { recursive: true, force: true });
-});
-
-// ══ Static / structural tests ════════════════════════════════════════════════
-
-describe('run-pre-commit-guards.sh — static structure', () => {
-  it('file exists at the expected path', () => {
-    expect(fs.existsSync(SCRIPT)).toBe(true);
-  });
-
-  it('is executable (owner has execute bit)', () => {
-    const mode = fs.statSync(SCRIPT).mode;
-    // 0o100 = owner execute
-    expect(mode & 0o100).toBeTruthy();
-  });
-
-  it('shebang is #!/bin/sh (POSIX-portable, not bash)', () => {
-    const firstLine = readText('.iqra/hooks/run-pre-commit-guards.sh').split('\n')[0];
+describe('run-pre-commit-guards.sh — shebang and portability', () => {
+  it('first line is #!/bin/sh (POSIX portable shebang)', () => {
+    const firstLine = readScript().split('\n')[0];
     expect(firstLine).toBe('#!/bin/sh');
   });
 
-  it('sets -u (undefined-variable safety)', () => {
-    const src = readText('.iqra/hooks/run-pre-commit-guards.sh');
-    expect(src).toContain('set -u');
-  });
-
-  it('references IQRA_SKIP_GUARDS escape-hatch env var', () => {
-    const src = readText('.iqra/hooks/run-pre-commit-guards.sh');
-    expect(src).toContain('IQRA_SKIP_GUARDS');
-  });
-
-  it('checks git diff --cached --name-only for staged files', () => {
-    const src = readText('.iqra/hooks/run-pre-commit-guards.sh');
-    expect(src).toContain('git diff --cached --name-only');
-  });
-
-  it('uses ./node_modules/.bin/tsx as the tsx binary path', () => {
-    const src = readText('.iqra/hooks/run-pre-commit-guards.sh');
-    expect(src).toContain('./node_modules/.bin/tsx');
-  });
-
-  it('runs all three hooks: name-validator, secret-guard, size-guard', () => {
-    const src = readText('.iqra/hooks/run-pre-commit-guards.sh');
-    expect(src).toContain('name-validator.ts');
-    expect(src).toContain('secret-guard.ts');
-    expect(src).toContain('size-guard.ts');
-  });
-
-  it('accumulates failures (FAIL variable) rather than short-circuiting on first error', () => {
-    const src = readText('.iqra/hooks/run-pre-commit-guards.sh');
-    expect(src).toContain('FAIL=');
-    // The final exit-code check is separate from the per-hook checks
-    expect(src).toMatch(/FAIL.*ne.*0/);
+  it('uses set -u to catch undefined variable references', () => {
+    expect(readScript()).toContain('set -u');
   });
 });
 
-// ══ Functional tests ══════════════════════════════════════════════════════════
+// ── 2. Static: IQRA_SKIP_GUARDS escape hatch ─────────────────────────────────
 
-describe('run-pre-commit-guards.sh — IQRA_SKIP_GUARDS escape hatch', () => {
+describe('run-pre-commit-guards.sh — IQRA_SKIP_GUARDS escape hatch in source', () => {
+  it('source checks IQRA_SKIP_GUARDS variable', () => {
+    expect(readScript()).toContain('IQRA_SKIP_GUARDS');
+  });
+
+  it('source uses ":-0" default so unset variable is treated as "0"', () => {
+    expect(readScript()).toContain('${IQRA_SKIP_GUARDS:-0}');
+  });
+
+  it('source exits 0 when guard is skipped', () => {
+    // The skip branch must exit 0 (not 1)
+    const src = readScript();
+    // Find the skip block: after IQRA_SKIP_GUARDS check, exit 0
+    expect(src).toMatch(/IQRA_SKIP_GUARDS.*[\s\S]*?exit 0/);
+  });
+});
+
+// ── 3. Static: staged-files early-exit ───────────────────────────────────────
+
+describe('run-pre-commit-guards.sh — staged-files early-exit in source', () => {
+  it('uses "git diff --cached --name-only" to check staged files', () => {
+    expect(readScript()).toContain('git diff --cached --name-only');
+  });
+
+  it('wraps git diff in $() for command substitution', () => {
+    expect(readScript()).toContain('$(git diff --cached --name-only)');
+  });
+
+  it('exits 0 (not 1) when no staged files are found', () => {
+    // Both occurrences of the staged-files check should exit 0
+    const src = readScript();
+    const lines = src.split('\n');
+    // Find lines that contain the staged-files guard pattern and verify exit 0 follows
+    const emptyCheckIdx = lines.findIndex((l) => l.includes('git diff --cached --name-only'));
+    expect(emptyCheckIdx).toBeGreaterThan(-1);
+    // Within the next 3 lines after the check, exit 0 should appear
+    const followingLines = lines.slice(emptyCheckIdx, emptyCheckIdx + 4).join('\n');
+    expect(followingLines).toContain('exit 0');
+  });
+});
+
+// ── 4. Static: tsx binary resolution ─────────────────────────────────────────
+
+describe('run-pre-commit-guards.sh — tsx binary resolution in source', () => {
+  it('uses ./node_modules/.bin/tsx (direct, not npx)', () => {
+    expect(readScript()).toContain('./node_modules/.bin/tsx');
+  });
+
+  it('does NOT call tsx via npx', () => {
+    // npx tsx is slower and subject to resolution issues; direct path is preferred
+    expect(readScript()).not.toMatch(/npx\s+tsx/);
+  });
+
+  it('stores tsx path in TSX_BIN variable', () => {
+    expect(readScript()).toContain('TSX_BIN=');
+  });
+
+  it('exits 1 when tsx binary is not executable', () => {
+    const src = readScript();
+    // The check uses [ ! -x "$TSX_BIN" ] and exits 1
+    expect(src).toContain('! -x "$TSX_BIN"');
+    expect(src).toMatch(/! -x "\$TSX_BIN"[\s\S]*?exit 1/);
+  });
+});
+
+// ── 5. Static: guard invocation sequence ─────────────────────────────────────
+
+describe('run-pre-commit-guards.sh — guard invocation in source', () => {
+  it('invokes name-validator.ts', () => {
+    expect(readScript()).toContain('.iqra/hooks/name-validator.ts');
+  });
+
+  it('invokes secret-guard.ts', () => {
+    expect(readScript()).toContain('.iqra/hooks/secret-guard.ts');
+  });
+
+  it('invokes size-guard.ts', () => {
+    expect(readScript()).toContain('.iqra/hooks/size-guard.ts');
+  });
+
+  it('invokes all three guards in the correct order', () => {
+    const src = readScript();
+    const nameIdx = src.indexOf('name-validator.ts');
+    const secretIdx = src.indexOf('secret-guard.ts');
+    const sizeIdx = src.indexOf('size-guard.ts');
+    expect(nameIdx).toBeLessThan(secretIdx);
+    expect(secretIdx).toBeLessThan(sizeIdx);
+  });
+
+  it('initialises FAIL=0 before running guards', () => {
+    expect(readScript()).toContain('FAIL=0');
+  });
+
+  it('does NOT use "exit" immediately on first guard failure (no short-circuit)', () => {
+    const src = readScript();
+    // Verify that after name-validator failure block, the script continues to
+    // secret-guard and size-guard (i.e., there is no `exit 1` directly inside
+    // the individual guard failure `if` blocks — only FAIL=1 is set).
+    //
+    // Strategy: locate the name-validator failure block and confirm it sets
+    // FAIL=1 without an exit statement inside it.
+    const nameValidatorBlock = src.match(
+      /name-validator[\s\S]*?then\s*([\s\S]*?)fi\s*\n/,
+    );
+    expect(nameValidatorBlock).not.toBeNull();
+    const blockBody = nameValidatorBlock![1];
+    expect(blockBody).toContain('FAIL=1');
+    expect(blockBody).not.toContain('exit');
+  });
+
+  it('exits 1 with rejection message when FAIL is non-zero', () => {
+    const src = readScript();
+    expect(src).toContain('FAIL" -ne 0');
+    expect(src).toMatch(/FAIL.*-ne 0[\s\S]*?exit 1/);
+  });
+
+  it('exits 0 with clean message when all guards pass', () => {
+    const src = readScript();
+    // The final success exit
+    const lines = src.split('\n');
+    const lastExitLine = [...lines].reverse().find((l) => l.trim().startsWith('exit '));
+    expect(lastExitLine?.trim()).toBe('exit 0');
+  });
+});
+
+// ── 6. Functional: skip path (IQRA_SKIP_GUARDS=1) ────────────────────────────
+
+describe('run-pre-commit-guards.sh (functional) — IQRA_SKIP_GUARDS=1 skip path', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = setupTmpEnv('src/foo.ts\n');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
   it('exits 0 when IQRA_SKIP_GUARDS=1', () => {
-    const r = runScript({ env: { IQRA_SKIP_GUARDS: '1' } });
-    expect(r.status).toBe(0);
+    const result = runScript(tmpDir, { IQRA_SKIP_GUARDS: '1' });
+    expect(result.status).toBe(0);
   });
 
-  it('prints a skip warning when IQRA_SKIP_GUARDS=1', () => {
-    const r = runScript({ env: { IQRA_SKIP_GUARDS: '1' } });
-    expect(r.stdout).toContain('IQRA_SKIP_GUARDS');
+  it('prints a skip warning message when IQRA_SKIP_GUARDS=1', () => {
+    const result = runScript(tmpDir, { IQRA_SKIP_GUARDS: '1' });
+    expect(result.stdout).toContain('IQRA_SKIP_GUARDS=1');
   });
 
-  it('does NOT skip when IQRA_SKIP_GUARDS=0', () => {
-    // With staged files and all guards passing, exit is still 0 —
-    // what matters is the code path runs (tsx binary must exist).
-    const r = runScript({ env: { IQRA_SKIP_GUARDS: '0' } });
-    // Guards ran and all passed → exit 0
-    expect(r.status).toBe(0);
-    // The skip message must NOT appear
-    expect(r.stdout).not.toContain('Guards skipped');
+  it('does NOT run any guards when IQRA_SKIP_GUARDS=1 (tsx not invoked)', () => {
+    // Replace tsx with a script that records invocations
+    const tsxBin = path.join(tmpDir, 'node_modules', '.bin', 'tsx');
+    const logFile = path.join(tmpDir, 'tsx-invocations.log');
+    fs.writeFileSync(
+      tsxBin,
+      `#!/bin/sh\necho "tsx called: $@" >> '${logFile}'\nexit 0\n`,
+    );
+    fs.chmodSync(tsxBin, 0o755);
+
+    runScript(tmpDir, { IQRA_SKIP_GUARDS: '1' });
+    expect(fs.existsSync(logFile)).toBe(false);
   });
 
-  it('does NOT skip when IQRA_SKIP_GUARDS is unset (default 0)', () => {
-    // Remove the variable from the environment entirely.
-    const envWithoutSkip = { ...process.env };
-    delete envWithoutSkip['IQRA_SKIP_GUARDS'];
+  it('IQRA_SKIP_GUARDS="" (empty string) does NOT trigger the skip path', () => {
+    // Only the literal value "1" should trigger skipping
+    const result = runScript(tmpDir, { IQRA_SKIP_GUARDS: '' });
+    // Script continues past skip check — exits 0 only because guards pass
+    expect(result.stdout).not.toContain('IQRA_SKIP_GUARDS=1');
+  });
 
-    const result = spawnSync('sh', [SCRIPT], {
-      cwd: tmpDir,
-      env: {
-        ...envWithoutSkip,
-        PATH: `${path.join(tmpDir, 'bin')}:${process.env.PATH}`,
-      },
-      encoding: 'utf-8',
-    });
-
-    // tsx binary not created yet → will fail with tsx-missing error, not skip
-    expect(result.stdout ?? '').not.toContain('Guards skipped');
+  it('IQRA_SKIP_GUARDS=0 does NOT trigger the skip path', () => {
+    const result = runScript(tmpDir, { IQRA_SKIP_GUARDS: '0' });
+    expect(result.stdout).not.toContain('IQRA_SKIP_GUARDS=1');
   });
 });
 
-describe('run-pre-commit-guards.sh — no staged files', () => {
-  it('exits 0 when git diff --cached returns nothing', () => {
-    const r = runScript({ stagedFiles: '' });
-    expect(r.status).toBe(0);
+// ── 7. Functional: no staged files path ──────────────────────────────────────
+
+describe('run-pre-commit-guards.sh (functional) — no staged files', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    // Empty string → git diff --cached --name-only prints nothing
+    tmpDir = setupTmpEnv('');
   });
 
-  it('prints a skip message when there are no staged files', () => {
-    const r = runScript({ stagedFiles: '' });
-    // Message contains Arabic or "staged" indicator
-    expect(r.stdout).toMatch(/staged|Staged/i);
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('does not invoke tsx when there are no staged files', () => {
-    // Even with tsx missing, the exit should be 0 when nothing is staged.
-    const r = runScript({ stagedFiles: '', omitTsx: true });
-    expect(r.status).toBe(0);
-  });
-});
-
-describe('run-pre-commit-guards.sh — tsx binary absent', () => {
-  it('exits 1 when node_modules/.bin/tsx does not exist', () => {
-    const r = runScript({ omitTsx: true });
-    expect(r.status).toBe(1);
+  it('exits 0 when there are no staged files', () => {
+    const result = runScript(tmpDir);
+    expect(result.status).toBe(0);
   });
 
-  it('prints an error message mentioning tsx when binary is missing', () => {
-    const r = runScript({ omitTsx: true });
-    expect(r.stdout).toContain('tsx');
+  it('prints a "no staged files" message', () => {
+    const result = runScript(tmpDir);
+    // Both Arabic and the key phrase appear in the output
+    expect(result.stdout).toMatch(/staged/i);
   });
 
-  it('mentions npm install in the error message', () => {
-    const r = runScript({ omitTsx: true });
-    expect(r.stdout).toContain('npm install');
-  });
-});
+  it('does NOT invoke tsx when there are no staged files', () => {
+    const tsxBin = path.join(tmpDir, 'node_modules', '.bin', 'tsx');
+    const logFile = path.join(tmpDir, 'tsx-invocations.log');
+    fs.writeFileSync(
+      tsxBin,
+      `#!/bin/sh\necho "tsx called: $@" >> '${logFile}'\nexit 0\n`,
+    );
+    fs.chmodSync(tsxBin, 0o755);
 
-describe('run-pre-commit-guards.sh — all guards pass', () => {
-  it('exits 0 when all three hooks succeed', () => {
-    const r = runScript(); // default: all hooks return 0
-    expect(r.status).toBe(0);
-  });
-
-  it('prints a success message when all guards are clean', () => {
-    const r = runScript();
-    expect(r.stdout).toMatch(/✅|guards|clean/i);
-  });
-
-  it('announces each hook before running it', () => {
-    const r = runScript();
-    expect(r.stdout).toContain('name-validator');
-    expect(r.stdout).toContain('secret-guard');
-    expect(r.stdout).toContain('size-guard');
+    runScript(tmpDir);
+    expect(fs.existsSync(logFile)).toBe(false);
   });
 });
 
-describe('run-pre-commit-guards.sh — individual guard failures', () => {
-  it('exits 1 when name-validator fails', () => {
-    const r = runScript({ tsxExitCodes: { 'name-validator': 1 } });
-    expect(r.status).toBe(1);
+// ── 8. Functional: tsx binary missing ────────────────────────────────────────
+
+describe('run-pre-commit-guards.sh (functional) — tsx binary missing', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    // installTsx=false → no tsx binary created
+    tmpDir = setupTmpEnv('src/foo.ts\n', {}, false);
   });
 
-  it('prints rejection message when name-validator fails', () => {
-    const r = runScript({ tsxExitCodes: { 'name-validator': 1 } });
-    expect(r.stdout).toContain('name-validator');
-    expect(r.stdout).toMatch(/رفض|reject/i);
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('exits 1 when secret-guard fails', () => {
-    const r = runScript({ tsxExitCodes: { 'secret-guard': 1 } });
-    expect(r.status).toBe(1);
+  it('exits 1 when tsx is not present in node_modules/.bin', () => {
+    const result = runScript(tmpDir);
+    expect(result.status).toBe(1);
   });
 
-  it('prints rejection message when secret-guard fails', () => {
-    const r = runScript({ tsxExitCodes: { 'secret-guard': 1 } });
-    expect(r.stdout).toContain('secret-guard');
-    expect(r.stdout).toMatch(/رفض|reject/i);
+  it('prints a message directing user to run npm install', () => {
+    const result = runScript(tmpDir);
+    expect(result.stdout).toMatch(/npm install/i);
   });
 
-  it('exits 1 when size-guard fails', () => {
-    const r = runScript({ tsxExitCodes: { 'size-guard': 1 } });
-    expect(r.status).toBe(1);
-  });
-
-  it('prints rejection message when size-guard fails', () => {
-    const r = runScript({ tsxExitCodes: { 'size-guard': 1 } });
-    expect(r.stdout).toContain('size-guard');
-    expect(r.stdout).toMatch(/رفض|reject/i);
+  it('does NOT produce a clean "guards passed" message when tsx is missing', () => {
+    const result = runScript(tmpDir);
+    // The success message must NOT appear
+    expect(result.stdout).not.toMatch(/guards.*clean|clean.*guards/i);
   });
 });
 
-describe('run-pre-commit-guards.sh — multiple guard failures', () => {
+// ── 9. Functional: all guards pass ───────────────────────────────────────────
+
+describe('run-pre-commit-guards.sh (functional) — all guards pass', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    // All guards exit 0 by default (no guardResults overrides)
+    tmpDir = setupTmpEnv('src/foo.ts\n');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('exits 0 when all three guards succeed', () => {
+    const result = runScript(tmpDir);
+    expect(result.status).toBe(0);
+  });
+
+  it('prints a success / clean message', () => {
+    const result = runScript(tmpDir);
+    // The script echoes "✅ [IQRA] كل guards نظيفة."
+    expect(result.stdout).toContain('[IQRA]');
+  });
+
+  it('does NOT print a rejection message when all guards pass', () => {
+    const result = runScript(tmpDir);
+    expect(result.stdout).not.toMatch(/مرفوض|IQRA_SKIP_GUARDS/);
+  });
+
+  it('invokes all three guards', () => {
+    const logFile = path.join(tmpDir, 'tsx-invocations.log');
+    const tsxBin = path.join(tmpDir, 'node_modules', '.bin', 'tsx');
+    fs.writeFileSync(
+      tsxBin,
+      `#!/bin/sh\necho "$1" >> '${logFile}'\nexit 0\n`,
+    );
+    fs.chmodSync(tsxBin, 0o755);
+
+    runScript(tmpDir);
+
+    const invocations = fs.existsSync(logFile)
+      ? fs.readFileSync(logFile, 'utf-8')
+      : '';
+    expect(invocations).toContain('name-validator.ts');
+    expect(invocations).toContain('secret-guard.ts');
+    expect(invocations).toContain('size-guard.ts');
+  });
+});
+
+// ── 10. Functional: single guard fails ───────────────────────────────────────
+
+describe('run-pre-commit-guards.sh (functional) — single guard failure', () => {
+  let tmpDir: string;
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('exits 1 when only name-validator fails', () => {
+    tmpDir = setupTmpEnv('src/BadName.ts\n', { 'name-validator.ts': 1 });
+    const result = runScript(tmpDir);
+    expect(result.status).toBe(1);
+  });
+
+  it('exits 1 when only secret-guard fails', () => {
+    tmpDir = setupTmpEnv('src/foo.ts\n', { 'secret-guard.ts': 1 });
+    const result = runScript(tmpDir);
+    expect(result.status).toBe(1);
+  });
+
+  it('exits 1 when only size-guard fails', () => {
+    tmpDir = setupTmpEnv('src/foo.ts\n', { 'size-guard.ts': 1 });
+    const result = runScript(tmpDir);
+    expect(result.status).toBe(1);
+  });
+
+  it('prints a commit rejection message on failure', () => {
+    tmpDir = setupTmpEnv('src/foo.ts\n', { 'secret-guard.ts': 1 });
+    const result = runScript(tmpDir);
+    expect(result.stdout).toContain('[IQRA]');
+    // Rejection message should mention IQRA_SKIP_GUARDS as the escape hatch
+    expect(result.stdout).toContain('IQRA_SKIP_GUARDS');
+  });
+});
+
+// ── 11. Functional: no short-circuit — all guards run even on failure ─────────
+
+describe('run-pre-commit-guards.sh (functional) — no short-circuit on failure', () => {
+  let tmpDir: string;
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('runs all three guards even when name-validator fails', () => {
+    tmpDir = setupTmpEnv('src/BadFile.ts\n', { 'name-validator.ts': 1 });
+    const logFile = path.join(tmpDir, 'tsx-invocations.log');
+    const tsxBin = path.join(tmpDir, 'node_modules', '.bin', 'tsx');
+
+    fs.writeFileSync(
+      tsxBin,
+      [
+        '#!/bin/sh',
+        `echo "$1" >> '${logFile}'`,
+        // name-validator exits 1, others exit 0
+        'case "$1" in',
+        '  *.iqra/hooks/name-validator.ts*|*name-validator.ts) exit 1 ;;',
+        '  *) exit 0 ;;',
+        'esac',
+      ].join('\n'),
+    );
+    fs.chmodSync(tsxBin, 0o755);
+
+    runScript(tmpDir);
+
+    const invocations = fs.existsSync(logFile)
+      ? fs.readFileSync(logFile, 'utf-8')
+      : '';
+    // Despite name-validator failing, the other two must still have been called
+    expect(invocations).toContain('secret-guard.ts');
+    expect(invocations).toContain('size-guard.ts');
+  });
+
+  it('runs all three guards even when all three fail', () => {
+    tmpDir = setupTmpEnv('src/BadFile.ts\n');
+    const logFile = path.join(tmpDir, 'tsx-invocations.log');
+    const tsxBin = path.join(tmpDir, 'node_modules', '.bin', 'tsx');
+
+    fs.writeFileSync(
+      tsxBin,
+      `#!/bin/sh\necho "$1" >> '${logFile}'\nexit 1\n`,
+    );
+    fs.chmodSync(tsxBin, 0o755);
+
+    const result = runScript(tmpDir);
+
+    expect(result.status).toBe(1);
+    const invocations = fs.existsSync(logFile)
+      ? fs.readFileSync(logFile, 'utf-8')
+      : '';
+    expect(invocations).toContain('name-validator.ts');
+    expect(invocations).toContain('secret-guard.ts');
+    expect(invocations).toContain('size-guard.ts');
+  });
+
   it('exits 1 when all three guards fail', () => {
-    const r = runScript({
-      tsxExitCodes: { 'name-validator': 1, 'secret-guard': 1, 'size-guard': 1 },
+    tmpDir = setupTmpEnv('src/foo.ts\n', {
+      'name-validator.ts': 1,
+      'secret-guard.ts': 1,
+      'size-guard.ts': 1,
     });
-    expect(r.status).toBe(1);
-  });
-
-  it('runs all three guards even when earlier ones fail (no short-circuit)', () => {
-    // If the script short-circuited on name-validator failure, neither
-    // secret-guard nor size-guard would appear in the output.
-    const r = runScript({
-      tsxExitCodes: { 'name-validator': 1, 'secret-guard': 1, 'size-guard': 1 },
-    });
-    expect(r.stdout).toContain('name-validator');
-    expect(r.stdout).toContain('secret-guard');
-    expect(r.stdout).toContain('size-guard');
-  });
-
-  it('prints each individual rejection when multiple guards fail', () => {
-    const r = runScript({
-      tsxExitCodes: { 'name-validator': 1, 'secret-guard': 1, 'size-guard': 1 },
-    });
-    // Each rejection message should appear exactly once
-    const nameCount = (r.stdout.match(/name-validator/g) ?? []).length;
-    const secretCount = (r.stdout.match(/secret-guard/g) ?? []).length;
-    const sizeCount = (r.stdout.match(/size-guard/g) ?? []).length;
-    expect(nameCount).toBeGreaterThanOrEqual(2); // announce + reject
-    expect(secretCount).toBeGreaterThanOrEqual(2);
-    expect(sizeCount).toBeGreaterThanOrEqual(2);
-  });
-
-  it('shows final rejection banner with IQRA_SKIP_GUARDS hint when guards fail', () => {
-    const r = runScript({
-      tsxExitCodes: { 'name-validator': 1 },
-    });
-    expect(r.stdout).toContain('IQRA_SKIP_GUARDS');
-  });
-
-  it('exits 1 when only the last guard (size-guard) fails', () => {
-    // Regression: ensure the FAIL accumulator works even for the last hook.
-    const r = runScript({ tsxExitCodes: { 'size-guard': 1 } });
-    expect(r.status).toBe(1);
+    const result = runScript(tmpDir);
+    expect(result.status).toBe(1);
   });
 });
 
-describe('run-pre-commit-guards.sh — boundary / regression cases', () => {
-  it('runs guards when IQRA_SKIP_GUARDS is set to something other than "1"', () => {
-    // Only the literal string "1" should trigger the skip.
-    const r = runScript({ env: { IQRA_SKIP_GUARDS: 'true' } });
-    // guards run and succeed → exit 0, but skip message absent
-    expect(r.stdout).not.toContain('Guards skipped');
+// ── 12. Functional: regression — escape hatch message mentions the flag ───────
+
+describe('run-pre-commit-guards.sh (functional) — escape hatch instructions on failure', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = setupTmpEnv('src/foo.ts\n', { 'name-validator.ts': 1 });
   });
 
-  it('succeeds for a single staged file (typical commit scenario)', () => {
-    const r = runScript({ stagedFiles: 'src/lib/my-feature.ts' });
-    expect(r.status).toBe(0);
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('succeeds for multiple staged files', () => {
-    const r = runScript({ stagedFiles: 'src/a.ts\nsrc/b.ts\nsrc/c.ts' });
-    expect(r.status).toBe(0);
+  it('rejection output mentions IQRA_SKIP_GUARDS=1 as the emergency bypass', () => {
+    const result = runScript(tmpDir);
+    expect(result.stdout).toContain('IQRA_SKIP_GUARDS=1');
+  });
+});
+
+// ── 13. Static: README documents the new script ───────────────────────────────
+
+describe('.iqra/README.md — documents run-pre-commit-guards.sh', () => {
+  const readmeText = fs.readFileSync(
+    path.join(ROOT, '.iqra/README.md'),
+    'utf-8',
+  );
+
+  it('README lists run-pre-commit-guards.sh in the directory tree', () => {
+    expect(readmeText).toContain('run-pre-commit-guards.sh');
   });
 
-  it('final success message does not appear when any guard fails', () => {
-    const r = runScript({ tsxExitCodes: { 'secret-guard': 1 } });
-    // "✅ [IQRA] كل guards نظيفة." should NOT appear
-    expect(r.stdout).not.toMatch(/كل guards نظيفة/);
+  it('README documents the IQRA_SKIP_GUARDS=1 escape hatch', () => {
+    expect(readmeText).toContain('IQRA_SKIP_GUARDS=1');
+  });
+
+  it('README provides the husky integration command', () => {
+    expect(readmeText).toContain('sh .iqra/hooks/run-pre-commit-guards.sh');
+  });
+
+  it('README mentions that the script is for husky pre-commit integration', () => {
+    expect(readmeText.toLowerCase()).toContain('husky');
+  });
+
+  it('README describes the orchestrator role (runs 3 hooks in sequence)', () => {
+    // The README should mention that all three hooks run
+    expect(readmeText).toContain('name-validator');
+    expect(readmeText).toContain('secret-guard');
+    expect(readmeText).toContain('size-guard');
   });
 });
