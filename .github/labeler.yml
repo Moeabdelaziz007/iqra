@@ -1,0 +1,68 @@
+# Path-based PR labels for actions/labeler@v5.
+# Labels are created on demand if they don't exist.
+
+area:brain:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/lib/iqra/01-core/**
+
+area:quran:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/lib/iqra/04-quran/**
+          - quran_local.db
+
+area:skills:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/lib/iqra/08-skills/**
+
+area:topology:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/lib/iqra/10-topology/**
+
+area:memory:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/lib/iqra/03-memory/**
+
+area:security:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/lib/iqra/06-security/**
+
+area:llm:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/lib/iqra/07-llm/**
+
+area:trading:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/lib/iqra/11-trading/**
+
+area:tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - tests/**
+          - "**/*.test.ts"
+          - "**/*.test.js"
+
+area:docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+          - docs-out/**
+
+area:ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/**
+          - scripts/**
+
+area:deps:
+  - changed-files:
+      - any-glob-to-any-file:
+          - package.json
+          - package-lock.json

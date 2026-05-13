@@ -6,7 +6,7 @@ import { execSync } from 'child_process';
  * 🛠️ IQRA DevOops Integrity Check
  * 
  * النية: التأكد من نزاهة الكود وعدم وجود بيانات وهمية (mocks) أو أنماط غير سيادية.
- * المرجع: !IQRA_SUPREME.md - "لا كذب، لا Mock، لا اختراع".
+ * المرجع: IQRA_SUPREME.md - "لا كذب، لا Mock، لا اختراع".
  */
 
 const TARGET_DIRS = ['src/lib/iqra', 'src/scripts_v2', 'runtime', 'src/worker.ts'];

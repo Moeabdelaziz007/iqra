@@ -1,0 +1,71 @@
+name: PR Triage
+
+# Two zero-cost triage loops in one workflow:
+#   1. Auto-Tagger: labels new/updated PRs by changed-file paths via
+#      actions/labeler@v5 driven by .github/labeler.yml.
+#   2. Welcome Bot: posts a one-time greeting on a contributor's first
+#      ever PR. Uses GitHub's API to count prior PRs from the author;
+#      no external service.
+#
+# Both steps are safe by design: labels are additive, the welcome
+# comment is posted at most once per author.
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  # actions/labeler@v5 needs issues: write to create any area:* label
+  # that does not already exist in the repo. Without this, the first
+  # run that encounters a missing label fails with "Resource not
+  # accessible by integration" and the labels silently degrade.
+  issues: write
+
+jobs:
+  triage:
+    name: Label + welcome
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Label by path
+        uses: actions/labeler@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          sync-labels: true
+
+      - name: Welcome first-time contributors
+        if: github.event.action == 'opened'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const author = context.payload.pull_request.user.login;
+            // Skip bots: GitHub adds a [bot] suffix and sets user.type === 'Bot'.
+            if (context.payload.pull_request.user.type === 'Bot') {
+              core.info(`Skipping welcome for bot ${author}`);
+              return;
+            }
+            const { data: priorPRs } = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${context.repo.owner}/${context.repo.repo} is:pr author:${author}`,
+              per_page: 2,
+            });
+            if (priorPRs.total_count > 1) {
+              core.info(`${author} already has ${priorPRs.total_count} PRs; skipping welcome`);
+              return;
+            }
+            const body = [
+              `### Welcome to IQRA, @${author} 🌱`,
+              ``,
+              `This looks like your first pull request here. A few things to know:`,
+              ``,
+              `- The repo is a self-evolving AI identity core. Many changes touch the constitutional runtime under \`src/lib/iqra/\`; the Schema Sentinel and Tribunal workflows will run automatically on this PR.`,
+              `- CI uses Vitest (\`npm test\`). If the test job fails, check the logs and push a fix; CI autofix may pick up routine failures.`,
+              `- Commits are signed by the constitutional bot. Please don't \`git config user.*\` inside the workflow.`,
+              ``,
+              `Jazak Allahu khairan for contributing.`,
+            ].join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body,
+            });

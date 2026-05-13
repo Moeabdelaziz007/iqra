@@ -62,7 +62,14 @@ jobs:
           fi
 
       - name: 🧠 Run IQRA Growth Cycle
-        run: npx tsx .iqra/scripts/run-cycle.ts
+        id: cycle
+        run: |
+          # 🤖 NOTE: نلتقط الدورة الـ *مكتملة* قبل التشغيل، لأن run-cycle.ts
+          # يكتب الدورة التالية إلى cycle.txt عند نجاحه. بدون هذا الالتقاط،
+          # رسالة الـ commit ستحمل cycle+1 بينما الـ artifacts من cycle.
+          COMPLETED_CYCLE=$(tr -d '[:space:]' < .iqra/cycle.txt)
+          echo "completed_cycle=$COMPLETED_CYCLE" >> "$GITHUB_OUTPUT"
+          npx tsx .iqra/scripts/run-cycle.ts
 
       - name: Commit growth artifacts
         run: |
@@ -81,8 +88,11 @@ jobs:
             exit 0
           fi
 
-          CYCLE=$(cat .iqra/cycle.txt | tr -d '[:space:]')
-          git commit -m "🧠 IQRA growth cycle → $CYCLE [skip ci]"
+          # COMPLETED = الدورة التي وَلّدت هذه الـ artifacts (التقطت قبل run-cycle)
+          # NEXT = الدورة الجديدة المكتوبة في cycle.txt الآن.
+          COMPLETED='${{ steps.cycle.outputs.completed_cycle }}'
+          NEXT=$(tr -d '[:space:]' < .iqra/cycle.txt)
+          git commit -m "🧠 IQRA growth cycle $COMPLETED done → next $NEXT [skip ci]"
 
           # rebase قبل push لأن main قد تحرّك بين checkout و push (workflows متوازية).
           # محاولات قليلة لتجاوز السباقات النادرة.

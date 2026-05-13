@@ -708,11 +708,14 @@ describe('readCycle() logic — validation of cycle counter reading', () => {
   let tmpDir: string;
   let cycleFile: string;
 
-  // Mirror of the readCycle() implemented in each script.
+  // Mirror of the strict readCycle() implemented in each script.
+  // 🤖 NOTE: digits-only check بدل Number.parseInt — يطابق سلوك السكريبتات
+  // التي ترفض '15.5' و '12abc' صراحة.
   function readCycle(filePath: string): string {
     if (!fs.existsSync(filePath)) return '1';
     const raw = fs.readFileSync(filePath, 'utf-8').trim();
-    const n = Number.parseInt(raw, 10);
+    if (!/^\d+$/.test(raw)) return '1';
+    const n = Number(raw);
     return Number.isInteger(n) && n >= 1 && n <= CYCLE_LENGTH ? String(n) : '1';
   }
 
@@ -776,9 +779,14 @@ describe('readCycle() logic — validation of cycle counter reading', () => {
 
   it('returns "1" for floating-point value like "15.5"', () => {
     fs.writeFileSync(cycleFile, '15.5');
-    // parseInt('15.5') → 15, which IS an integer and in range → should return '15'
-    // This matches the actual behaviour: Number.parseInt truncates the decimal.
-    expect(readCycle(cycleFile)).toBe('15');
+    // 🤖 NOTE: السكريبتات تستخدم digits-only regex /^\d+$/ فترفض '15.5'.
+    // كان السلوك السابق lax (parseInt → 15) لكنه يخالف contract الصارم.
+    expect(readCycle(cycleFile)).toBe('1');
+  });
+
+  it('returns "1" for partial numeric like "12abc"', () => {
+    fs.writeFileSync(cycleFile, '12abc');
+    expect(readCycle(cycleFile)).toBe('1');
   });
 
   it('trims surrounding whitespace before parsing', () => {
@@ -937,9 +945,12 @@ describe('regression — .iqra/scripts/ shebang is correct', () => {
   ];
 
   for (const script of SCRIPTS) {
-    it(`${path.basename(script)} starts with npx tsx shebang`, () => {
+    it(`${path.basename(script)} starts with executable tsx shebang`, () => {
       const firstLine = readText(script).split('\n')[0];
-      expect(firstLine).toBe('#!/usr/bin/env npx tsx');
+      // 🤖 NOTE: نقبل صيغة `env -S npx tsx` فقط — الصيغة الوحيدة القابلة
+      // للتنفيذ المباشر على Linux (GNU env يحتاج -S لتقسيم args).
+      // الصيغة القديمة `env npx tsx` كانت تفشل بـ "No such file or directory".
+      expect(firstLine).toBe('#!/usr/bin/env -S npx tsx');
     });
   }
 });

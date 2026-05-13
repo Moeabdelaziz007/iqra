@@ -1,4 +1,4 @@
-#!/usr/bin/env npx tsx
+#!/usr/bin/env -S npx tsx
 /**
  * IQRA Growth Engine — Cycle Runner (المنسق)
  *

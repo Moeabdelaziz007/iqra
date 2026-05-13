@@ -1,4 +1,4 @@
-#!/usr/bin/env npx tsx
+#!/usr/bin/env -S npx tsx
 /**
  * IQRA Backup Smart — الذاكرة طويلة الأمد
  *
@@ -56,7 +56,11 @@ function* walkSync(dir: string): Generator<string> {
 function readCycle(): string {
   if (!fs.existsSync(CYCLE_FILE)) return '1';
   const raw = fs.readFileSync(CYCLE_FILE, 'utf-8').trim();
-  const n = Number.parseInt(raw, 10);
+  // 🤖 NOTE: parseInt يقبل '12abc' كـ 12 و '15.5' كـ 15. نطابق سلوك
+  // run-cycle.ts الصارم: digits-only فقط. تباين هذه الـ helpers مع
+  // الـ orchestrator يخلق نبضات بأرقام دورات مختلفة لنفس الحدث.
+  if (!/^\d+$/.test(raw)) return '1';
+  const n = Number(raw);
   return Number.isInteger(n) && n >= 1 && n <= CYCLE_LENGTH ? String(n) : '1';
 }
 

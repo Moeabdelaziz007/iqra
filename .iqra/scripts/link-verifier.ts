@@ -1,4 +1,4 @@
-#!/usr/bin/env npx tsx
+#!/usr/bin/env -S npx tsx
 /**
  * IQRA Link Verifier — مدقق الروابط
  *
@@ -33,8 +33,59 @@ const SKIP_PREFIXES = ['.iqra/memory'];
 // regex مع تكرار محدود.
 // pattern: <...> أو سلسلة غير-)/whitespace قد تحوي () متوازنة على مستوى واحد.
 const DEST_PATTERN = '(?:<[^>]+>|(?:\\([^)]*\\)|[^)\\s])+)';
-const INLINE_LINK = new RegExp(`(?<!\\!)\\[([^\\]]*)\\]\\((${DEST_PATTERN})(?:\\s+"[^"]*")?\\)`, 'g');
-const IMAGE_LINK = new RegExp(`!\\[([^\\]]*)\\]\\((${DEST_PATTERN})(?:\\s+"[^"]*")?\\)`, 'g');
+// 🤖 NOTE: CommonMark يدعم 3 صيغ للـ title:
+//   "double"   'single'   (paren)
+// السابق كان يقبل "double" فقط، فروابط بـ 'title' أو (title) تُفقَد كلياً.
+const TITLE_PATTERN = '(?:\\s+(?:"[^"]*"|\'[^\']*\'|\\([^)]*\\)))?';
+const INLINE_LINK = new RegExp(`(?<!\\!)\\[([^\\]]*)\\]\\((${DEST_PATTERN})${TITLE_PATTERN}\\)`, 'g');
+const IMAGE_LINK = new RegExp(`!\\[([^\\]]*)\\]\\((${DEST_PATTERN})${TITLE_PATTERN}\\)`, 'g');
+
+// 🤖 NOTE: يعيد مصفوفة boolean بطول lines.length:
+// inCodeBlock[i] === true يعني أن السطر داخل fenced/indented code block.
+//
+// fenced: السطر يبدأ بـ (مع 0..3 spaces) ثم ``` أو ~~~ بـ 3+ متتالية.
+//   - السطر الأول يفتح، السطر التالي بنفس النوع يقفل.
+//   - السطر السلسلة نفسه (الـ fence) لا يُحسب كـ "داخل" (لأنه ليس link content).
+// indented: السطر يبدأ بـ 4+ spaces أو tab — تقريب محافظ يلتقط معظم الـ code samples
+//   لكنه يخطئ على list continuations العميقة. مقبول للحارس.
+function computeCodeBlockLines(lines: string[]): boolean[] {
+  const out: boolean[] = new Array(lines.length).fill(false);
+  let openFence: string | null = null;
+  let openIndent = 0;
+  const FENCE = /^(\s{0,3})(`{3,}|~{3,})/;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (openFence) {
+      // داخل fenced: مرر حتى نرى fence مطابق
+      const close = line.match(FENCE);
+      if (close && close[2][0] === openFence[0] && close[2].length >= openFence.length) {
+        out[i] = true; // سطر الـ closing fence نفسه يُحسَب داخل الـ block
+        openFence = null;
+      } else {
+        out[i] = true;
+      }
+      continue;
+    }
+
+    const fence = line.match(FENCE);
+    if (fence && fence[1].length < 4) {
+      openFence = fence[2];
+      openIndent = fence[1].length;
+      void openIndent; // reserved لو احتجنا strict indentation match لاحقاً
+      out[i] = true;
+      continue;
+    }
+
+    // indented code block: يبدأ بـ 4+ spaces أو tab، السطر السابق فارغ أو ضمن block.
+    // تقريب: نطبّق فقط على السطور بداية بـ 4 spaces/tab وفيها محتوى.
+    if (/^( {4}|\t)/.test(line) && line.trim().length > 0) {
+      out[i] = true;
+    }
+  }
+
+  return out;
+}
 
 function stripPointyBrackets(target: string): string {
   // <path/to/file.md> → path/to/file.md
@@ -72,7 +123,8 @@ function normalizeRefLabel(label: string): string {
 function readCycle(): string {
   if (!fs.existsSync(CYCLE_FILE)) return '1';
   const raw = fs.readFileSync(CYCLE_FILE, 'utf-8').trim();
-  const n = Number.parseInt(raw, 10);
+  if (!/^\d+$/.test(raw)) return '1';
+  const n = Number(raw);
   return Number.isInteger(n) && n >= 1 && n <= CYCLE_LENGTH ? String(n) : '1';
 }
 
@@ -130,13 +182,22 @@ function checkFile(file: string): Broken[] {
   const fileDir = path.dirname(file);
   const broken: Broken[] = [];
 
+  // 🤖 NOTE: نحدد سطور الـ code blocks مرة واحدة، نستخدمها لـ:
+  //   1. تجاهلها عند بناء refDefs (الـ definitions في code blocks ليست حقيقية).
+  //   2. تجاهلها في الـ scan الرئيسي (الأنماط داخل code blocks أمثلة لا روابط).
+  // ندعم:
+  //   - fenced blocks: ``` أو ~~~  (3+ backticks/tildes في بداية السطر مع indentation < 4)
+  //   - indented blocks: سطور تبدأ بـ 4+ spaces أو tab (تقريب محافظ)
+  const inCodeBlock = computeCodeBlockLines(lines);
+
   // 🤖 NOTE:
   // - CommonMark: عند تكرار [label]: target، التعريف الأول يفوز.
   // - تطبيع الـ label عبر normalizeRefLabel: trim + collapse whitespace + lowercase.
   //   مثال: '[Foo  bar]' ↔ '[foo bar]:' يجب أن يطابقا.
   const refDefs = new Map<string, string>();
-  for (const line of lines) {
-    const m = line.match(REF_DEF);
+  for (let i = 0; i < lines.length; i++) {
+    if (inCodeBlock[i]) continue;
+    const m = lines[i].match(REF_DEF);
     if (m) {
       const key = normalizeRefLabel(m[1]);
       if (!refDefs.has(key)) refDefs.set(key, m[2]);
@@ -179,6 +240,8 @@ function checkFile(file: string): Broken[] {
   }
 
   for (let i = 0; i < lines.length; i++) {
+    // تجاهل سطور code blocks — أمثلة لا روابط حقيقية.
+    if (inCodeBlock[i]) continue;
     const line = lines[i];
 
     // SKIP السطور التي تحوي تعريف مرجع: [foo]: target — لا نريد فحصها كـ shortcut.
