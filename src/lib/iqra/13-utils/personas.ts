@@ -128,8 +128,12 @@ export const PERSONA_REGISTRY: Record<string, Persona> = {
     ],
     aixCapabilities: {
       endpoints: [
+        // Endpoints listed here MUST exist as real route handlers under
+        // `src/app/api/...` with the declared HTTP method. Advertising
+        // a missing route in the manifest causes deterministic 404s
+        // for peers that follow the discovery contract.
         { method: 'POST', path: '/api/iqra/a2a/async-tadabbur', purpose: 'Long-running tadabbur (research) tasks' },
-        { method: 'GET', path: '/api/iqra/topology/hidden', purpose: 'Discover hidden topological resonance' },
+        { method: 'POST', path: '/api/iqra/topology/hidden', purpose: 'Discover hidden topological resonance' },
       ],
       a2a_methods: ['ASYNC_TADABBUR', 'HEARTBEAT_SYNC'],
       tools: ['quran.get_verse', 'quran.compute_shannon', 'system.heartbeat_status'],
@@ -193,7 +197,13 @@ export const PERSONA_REGISTRY: Record<string, Persona> = {
     ],
     aixCapabilities: {
       endpoints: [
-        { method: 'POST', path: '/api/iqra/security/guard', purpose: 'On-demand payload screening' },
+        // The protector serves its screening behaviour through the
+        // shared A2A SYNC_QUERY surface; a peer that wants payload
+        // guarding posts to /api/iqra/a2a/sync-query with this persona
+        // selected. We do NOT advertise a dedicated /security/guard
+        // route until one actually ships, because the manifest is a
+        // discovery contract and a 404 is worse than no advertisement.
+        { method: 'POST', path: '/api/iqra/a2a/sync-query', purpose: 'On-demand payload screening via SYNC_QUERY' },
       ],
       a2a_methods: ['SYNC_QUERY'],
       tools: ['system.heartbeat_status'],
@@ -224,8 +234,12 @@ export const PERSONA_REGISTRY: Record<string, Persona> = {
     ],
     aixCapabilities: {
       endpoints: [
-        { method: 'GET', path: '/api/iqra/audit/window', purpose: 'Replay a TrustChain window' },
-        { method: 'GET', path: '/api/iqra/audit/drift-report', purpose: 'Latest drift report' },
+        // The auditor's TrustChain-replay and drift-report routes are
+        // planned but unimplemented; advertising them now would point
+        // peers at deterministic 404s. Until those routes land, the
+        // auditor exposes only its liveness surface (the same one all
+        // personas share). Track via TODO until /api/iqra/audit/* exists.
+        { method: 'GET', path: '/api/iqra/a2a/heartbeat', purpose: 'Auditor liveness (TrustChain replay endpoints pending)' },
       ],
       a2a_methods: ['HEARTBEAT_SYNC'],
       tools: ['system.heartbeat_status'],

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { resolveBaseUrl, resolveDomain } from '../../_utils/http';
+import { resolveBaseUrl, resolveSignedDomain } from '../../_utils/http';
 import { SovereignDID } from '#security/did';
 import {
   exportManifest,
@@ -30,15 +30,21 @@ import { getPersona, projectPersonaForAIX, resolveAIXMetaId } from '#utils/perso
  */
 export async function GET(req: NextRequest) {
   const baseUrl = resolveBaseUrl(req);
-  const domain = resolveDomain(req);
   const format = req.nextUrl.searchParams.get('format')?.toLowerCase();
   const personaId = req.nextUrl.searchParams.get('persona') ?? 'core';
 
   if (format === 'aix') {
-    return aixManifestResponse(domain, personaId);
+    // SIGNED manifests must NEVER derive their URLs from the request
+    // Host header. A peer that forges Host could otherwise obtain a
+    // signed manifest advertising attacker-chosen URLs and undermine
+    // discovery integrity for every downstream consumer. Use the
+    // pinned signing domain (env > axiomid.app) instead.
+    return aixManifestResponse(resolveSignedDomain(), personaId);
   }
 
-  // Legacy IQRA-shaped card.
+  // Legacy IQRA-shaped card is unsigned, so it is safe to mirror the
+  // request domain for self-discovery on dev / preview deployments.
+  // (Used only via baseUrl, which is already proto-aware.)
   return NextResponse.json({
     name: 'iqra-sovereign',
     version: '1.0.0',
