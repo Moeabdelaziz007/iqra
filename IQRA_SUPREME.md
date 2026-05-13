@@ -7,9 +7,9 @@ IQRA is a **Governed Adaptive Memory Runtime**.
 It is not a prompt; it is a cognitive architecture.
 
 ## 🏛️ Governance Structure
-- **Rules**: Located in [.iqra/rules/](file:///Applications/iqra/.iqra/rules/)
-- **Manifest**: Located in [manifest.yaml](file:///Applications/iqra/.iqra/manifest.yaml)
-- **Knowledge**: Located in [knowledge/](file:///Applications/iqra/knowledge/)
+- **Rules**: [src/lib/iqra/00-manifest/RULES.md](./src/lib/iqra/00-manifest/RULES.md) (see also `IQRA_RULES.md` in the same directory)
+- **Manifest**: [src/lib/iqra/00-manifest/](./src/lib/iqra/00-manifest/) (the active runtime manifest is `runtime_manifest.ts`)
+- **Knowledge**: [src/knowledge_base/](./src/knowledge_base/)
 
 ## 🔄 The 7-Loop Cycle
 Observe → Retrieve → Reason → Validate → Execute → Reflect → Save

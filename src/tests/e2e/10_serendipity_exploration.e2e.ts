@@ -6,6 +6,17 @@ import { IQRAMemory } from '#03-memory/memory';
 import { RewardEngine } from '#rewards/engine';
 import { RewardLedger } from '#rewards/ledger';
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Mission file lives in src/lib/iqra/01-core/missions/. Resolve relative
+// to this test file so the suite runs on any machine, not only the
+// maintainer's prior macOS layout.
+const __dirname_local = path.dirname(fileURLToPath(import.meta.url));
+const MISSION_PATH = path.resolve(
+  __dirname_local,
+  '../../lib/iqra/01-core/missions/test_serendipity.yaml',
+);
 
 describe('Serendipity & Pristine Path E2E', () => {
   
@@ -21,7 +32,7 @@ describe('Serendipity & Pristine Path E2E', () => {
   });
 
   it('should apply a 2.0x multiplier for a Pristine Path', async () => {
-    const loop = new TopologicalLoop('/Applications/iqra/missions/test_serendipity.yaml');
+    const loop = new TopologicalLoop(MISSION_PATH);
     
     // 1. Mock MissionControl to return a set of reports
     const mockReports = [
@@ -82,7 +93,7 @@ describe('Serendipity & Pristine Path E2E', () => {
   });
 
   it('should apply a 1.0x multiplier for a known (previously visited) Path', async () => {
-    const loop = new TopologicalLoop('/Applications/iqra/missions/test_serendipity.yaml');
+    const loop = new TopologicalLoop(MISSION_PATH);
     
     // Mock IQRAMemory to return a value, indicating the path exists
     vi.spyOn(IQRAMemory, 'get').mockResolvedValue(Date.now());
@@ -136,7 +147,7 @@ describe('Serendipity & Pristine Path E2E', () => {
   });
 
   it('should calculate Dynamic Topology Score correctly', async () => {
-    const loop = new TopologicalLoop('/Applications/iqra/missions/test_serendipity.yaml');
+    const loop = new TopologicalLoop(MISSION_PATH);
     
     // 3 implemented, 1 undone -> topology = 3/4 = 0.75
     const mockReports = [
