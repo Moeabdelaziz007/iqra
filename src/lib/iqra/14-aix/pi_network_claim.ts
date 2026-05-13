@@ -121,7 +121,23 @@ export function verifyPiClaim(artifact: PiClaimArtifact): { ok: true } | { ok: f
     return { ok: false, reason: 'DID_DOMAIN_MISMATCH' };
   }
 
+  // Validate the well-known URL ends with the expected path AND its host
+  // matches the claimed domain. The previous suffix-only check accepted
+  // any host (e.g. https://attacker.example/.well-known/pi-claim.json
+  // for a payload that claims domain=axiomid.app), which lets a signed
+  // artifact misdirect verifiers to an attacker-controlled origin.
   if (!artifact.well_known_url.endsWith(`/.well-known/pi-claim.json`)) {
+    return { ok: false, reason: 'BAD_URL' };
+  }
+  try {
+    const url = new URL(artifact.well_known_url);
+    if (url.protocol !== 'https:') {
+      return { ok: false, reason: 'BAD_URL_SCHEME' };
+    }
+    if (url.hostname.toLowerCase() !== domain.toLowerCase()) {
+      return { ok: false, reason: 'URL_HOST_MISMATCH' };
+    }
+  } catch {
     return { ok: false, reason: 'BAD_URL' };
   }
   return { ok: true };

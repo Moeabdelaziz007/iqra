@@ -18,11 +18,38 @@
 
 function escapeString(s: string): string {
   // JSON spec: must escape ", \, control chars (U+0000..U+001F).
-  // Everything else (including non-ASCII) stays as-is so the byte
-  // length matches what other compliant canonicalizers emit.
+  // Non-ASCII characters stay as-is so the canonical byte length
+  // matches what other compliant canonicalizers emit.
+  //
+  // RFC 8785 §3.2.2.2 mandates that an implementation MUST fail when
+  // the input contains an unpaired UTF-16 surrogate. Different
+  // implementations can otherwise disagree on the canonical bytes
+  // (lone high surrogate vs replacement char vs literal) and produce
+  // non-interoperable signatures for the same logical string.
   let out = '"';
   for (let i = 0; i < s.length; i++) {
     const ch = s.charCodeAt(i);
+
+    // High surrogate (D800..DBFF): MUST be followed by a low surrogate.
+    if (ch >= 0xd800 && ch <= 0xdbff) {
+      const next = i + 1 < s.length ? s.charCodeAt(i + 1) : -1;
+      if (next < 0xdc00 || next > 0xdfff) {
+        throw new TypeError(
+          `JCS: lone high surrogate at index ${i} (U+${ch.toString(16).toUpperCase()})`,
+        );
+      }
+      // Pair is valid; emit both code units verbatim and skip the low.
+      out += s[i] + s[i + 1];
+      i++;
+      continue;
+    }
+    // Low surrogate (DC00..DFFF) without a preceding high surrogate.
+    if (ch >= 0xdc00 && ch <= 0xdfff) {
+      throw new TypeError(
+        `JCS: lone low surrogate at index ${i} (U+${ch.toString(16).toUpperCase()})`,
+      );
+    }
+
     if (ch === 0x22) {
       out += '\\"';
     } else if (ch === 0x5c) {
