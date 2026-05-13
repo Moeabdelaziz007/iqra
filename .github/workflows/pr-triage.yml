@@ -2,7 +2,7 @@ name: PR Triage
 
 # Two zero-cost triage loops in one workflow:
 #   1. Auto-Tagger: labels new/updated PRs by changed-file paths via
-#      actions/labeler@v5 driven by .github/labeler.yml.
+#      actions/labeler@v6 driven by .github/labeler.yml.
 #   2. Welcome Bot: posts a one-time greeting on a contributor's first
 #      ever PR. Uses GitHub's API to count prior PRs from the author;
 #      no external service.
@@ -16,7 +16,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
-  # actions/labeler@v5 needs issues: write to create any area:* label
+  # actions/labeler@v6 needs issues: write to create any area:* label
   # that does not already exist in the repo. Without this, the first
   # run that encounters a missing label fails with "Resource not
   # accessible by integration" and the labels silently degrade.
@@ -28,7 +28,7 @@ jobs:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Label by path
-        uses: actions/labeler@v5
+        uses: actions/labeler@v6
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           sync-labels: true
