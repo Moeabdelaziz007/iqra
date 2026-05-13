@@ -1,3 +1,27 @@
+<!-- ════════════════ AIX SOVEREIGN STACK · UNIFIED BRANDING ════════════════ -->
+
+<div align="center">
+  <img src="./assets/aix-stack-header.svg" alt="The AIX Sovereign Stack — L1 PROTOCOL · L2 RUNTIME · L3 MARKETPLACE" width="100%"/>
+</div>
+
+<div align="center">
+
+[![Layer](https://img.shields.io/badge/LAYER-L2%20%C2%B7%20RUNTIME-39FF14?style=for-the-badge&labelColor=050505)](https://github.com/Moeabdelaziz007/iqra)
+[![Stack](https://img.shields.io/badge/AIX%20STACK-v0.369.0-39FF14?style=for-the-badge&labelColor=050505)](https://github.com/Moeabdelaziz007/aix-format)
+[![License](https://img.shields.io/badge/LICENSE-MIT-39FF14?style=for-the-badge&labelColor=050505)](./LICENSE)
+
+</div>
+
+<div align="center">
+
+[**← L1 · PROTOCOL · `aix-format`**](https://github.com/Moeabdelaziz007/aix-format) &nbsp;·&nbsp; **🟢 L2 · RUNTIME · `iqra` · YOU ARE HERE** &nbsp;·&nbsp; [**L3 · MARKETPLACE · `aix-agent-skills` →**](https://github.com/Moeabdelaziz007/aix-agent-skills)
+
+</div>
+
+<br/>
+
+<!-- ════════════════ /AIX SOVEREIGN STACK ════════════════ -->
+
 <div align="center">
 <br/>
 <img src="https://img.shields.io/badge/IQRA-Sovereign%20Intelligence-white?style=for-the-badge&labelColor=black&logoColor=white" alt="IQRA"/>
@@ -28,6 +52,24 @@ IQRA operates through seven recursive layers of intelligence, ensuring every act
 5.  **Prioritize (الأولويات)**: Dynamic resource allocation based on topological resonance.
 6.  **Fix (الإصلاح الذاتي)**: The **Tawbah Loop** for autonomous error correction.
 7.  **Evolve (التطور العضوي)**: Compounding knowledge through the **Pristine Reward Engine**.
+
+---
+
+## 🌐 THE STACK | المنظومة المتكاملة
+
+IQRA is **L2** of the AIX Sovereign Stack — the runtime engine that executes the [`aix-format`](https://github.com/Moeabdelaziz007/aix-format) protocol and consumes skills from the [`aix-agent-skills`](https://github.com/Moeabdelaziz007/aix-agent-skills) marketplace.
+
+<div align="center">
+  <img src="./assets/aix-stack-diagram.svg" alt="AIX Stack Topology — L1 Protocol, L2 Runtime, L3 Marketplace" width="100%"/>
+</div>
+
+| Layer | Repo | Role | Status |
+|:---:|:---|:---|:---:|
+| ⚪ **L1** | [`aix-format`](https://github.com/Moeabdelaziz007/aix-format) | **Protocol** · Universal Agent Passport · DID · Manifest · ABOM · TrustChain | [→ Read](https://github.com/Moeabdelaziz007/aix-format) |
+| 🟢 **L2** | [`iqra`](https://github.com/Moeabdelaziz007/iqra) | **Runtime** · Sovereign AI OS · 7 Loops · MCTS · Damir · MissionControl | **You are here** |
+| ⚪ **L3** | [`aix-agent-skills`](https://github.com/Moeabdelaziz007/aix-agent-skills) | **Marketplace** · 7 Layers · Constitutional · TrustChain | [→ Read](https://github.com/Moeabdelaziz007/aix-agent-skills) |
+
+> The three repositories are **one project in three layers**. The protocol is the contract, the runtime is the engine, the marketplace is the catalog. Same constitution, same TrustChain, same palette, same author.
 
 ---
 
@@ -359,3 +401,20 @@ iqra/
 <br/><br/>
 
 </div>
+
+---
+
+<!-- ════════════════ AIX SOVEREIGN STACK · FOOTER ════════════════ -->
+
+<div align="center">
+
+[**← L1 · PROTOCOL · `aix-format`**](https://github.com/Moeabdelaziz007/aix-format) &nbsp;·&nbsp; **🟢 L2 · RUNTIME · `iqra` · YOU ARE HERE** &nbsp;·&nbsp; [**L3 · MARKETPLACE · `aix-agent-skills` →**](https://github.com/Moeabdelaziz007/aix-agent-skills)
+
+</div>
+
+<div align="center">
+  <img src="./assets/aix-footer-quote.svg" alt="AIX Stack — King isn't Born, he is Made." width="100%"/>
+</div>
+
+<!-- ════════════════ /AIX SOVEREIGN STACK · FOOTER ════════════════ -->
+
