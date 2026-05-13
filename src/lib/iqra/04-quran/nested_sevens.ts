@@ -31,20 +31,69 @@ export class NestedSevensEngine {
   }
 
   /**
-   * Discover hidden resonance in complex structures
+   * Discover hidden resonance in complex structures.
+   *
+   * STUB: until the real Quran pattern mining pipeline (see
+   * `04-quran/pattern_hunter.ts`) is wired up to this entry point,
+   * we derive the score deterministically from the input shape so
+   * the function is reproducible across calls with the same data
+   * rather than emitting fresh noise on every invocation. The
+   * canonical pattern hunter is the source of truth; this is the
+   * shim that keeps the SacredGeometry API stable.
    */
-  static discoverResonance(data: any): number {
-    // Logic to find how close a structure is to Divine proportions
-    // For now, it's a symbolic calculation that will evolve as IQRA learns.
-    const score = Math.random(); // Placeholder for actual pattern mining
+  static discoverResonance(data: unknown): number {
+    // The FNV-1a helper lives on this class, not on SacredGeometry. The
+    // earlier `SacredGeometry.deterministicSeed(...)` call was a typo that
+    // would have failed type-check at compile time and thrown a TypeError
+    // at runtime (SacredGeometry exposes only divineScale + TeslaResonance).
+    const score = NestedSevensEngine.deterministicSeed(data);
     return SacredGeometry.divineScale(score * 100) / 100;
   }
 
   /**
-   * Sacred Pulse: An interval generator that follows 3-6-9-7 patterns
+   * Sacred Pulse: An interval generator that follows 3-6-9-7 patterns.
+   *
+   * STUB-NOTE: the pulse selector previously used Math.random() so two
+   * agents asking for the same baseMs got different intervals. That
+   * defeated the purpose of a shared "sacred pulse". We now rotate
+   * deterministically through the TeslaResonance table based on the
+   * baseMs value itself, so any two callers with the same baseMs see
+   * the same pulse modulation.
    */
   static getSacredInterval(baseMs: number): number {
-    const pulse = SacredGeometry.TeslaResonance[Math.floor(Math.random() * 3)];
+    const idx = Math.abs(Math.floor(baseMs)) % SacredGeometry.TeslaResonance.length;
+    const pulse = SacredGeometry.TeslaResonance[idx];
     return baseMs * pulse * this.DIVINE_PRIME;
+  }
+
+  /**
+   * Deterministic pseudo-random seed in [0, 1) derived from the input.
+   * Uses a 32-bit FNV-1a hash of the JSON serialisation, normalised
+   * to a float. NOT cryptographically strong; the only contract is
+   * reproducibility across calls with the same input.
+   */
+  private static deterministicSeed(data: unknown): number {
+    let str: string;
+    try {
+      if (typeof data === 'string') {
+        str = data;
+      } else {
+        // JSON.stringify returns `undefined` (not throws) for top-level
+        // `undefined`, functions, and symbols. The try/catch alone does
+        // not normalise that path, so check explicitly and fall back to
+        // String(data) which always produces a string.
+        const serialised = JSON.stringify(data);
+        str = serialised ?? String(data);
+      }
+    } catch {
+      str = String(data);
+    }
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 0x01000193);
+    }
+    // Map to [0, 1)
+    return ((h >>> 0) / 0x100000000);
   }
 }
