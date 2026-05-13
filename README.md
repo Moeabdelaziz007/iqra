@@ -14,7 +14,7 @@
 
 <div align="center">
 
-[![Sovereign AI Stack · 1 Human + 12 AI Agents across 5 projects](https://img.shields.io/badge/SOVEREIGN%20AI%20STACK-1%20Human%20%2B%2012%20AI%20Agents%20across%205%20projects-39FF14?style=for-the-badge&labelColor=050505&logo=github&logoColor=39FF14)](#-built-by-1-human--7-ai-agents)
+[![Sovereign AI Stack · 1 Human + 12 AI Agents across 5 projects](https://img.shields.io/badge/SOVEREIGN%20AI%20STACK-1%20Human%20%2B%2012%20AI%20Agents%20across%205%20projects-39FF14?style=for-the-badge&labelColor=050505&logo=github&logoColor=39FF14)](#built-by-1-human--7-ai-agents)
 
 </div>
 
