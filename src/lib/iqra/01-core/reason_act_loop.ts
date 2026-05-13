@@ -533,19 +533,67 @@ export class ReasonActLoop {
     return 'ANALYSIS_RESPONSE';
   }
 
-  private static async performQuranicAnalysis(reasoning: string): Promise<any> {
-    // Placeholder for Quranic analysis
-    return { type: 'quranic_analysis', result: reasoning };
+  // The three action handlers below are deliberately stubbed for now;
+  // they were silent placeholders that returned plausible-looking
+  // payloads, which made it impossible for a caller to tell whether
+  // the cycle actually performed the work or merely echoed the
+  // reasoning back. Each now returns an explicit `stub: true` flag
+  // plus the source location so a downstream consumer (or a test
+  // harness) can detect stub responses and decide whether to escalate
+  // to human review or fall back to the canonical implementation in
+  // the corresponding sovereign layer. Existing tests do not assert
+  // on the new fields, so the behaviour is backward compatible.
+
+  private static async performQuranicAnalysis(reasoning: string): Promise<{
+    type: 'quranic_analysis';
+    result: string;
+    stub: true;
+    canonical_module: string;
+  }> {
+    return {
+      type: 'quranic_analysis',
+      result: reasoning,
+      stub: true,
+      canonical_module: '#quran/pattern_hunter or #quran/surah_analyzer',
+    };
   }
 
-  private static async performMemoryOperation(reasoning: string, context: Partial<ReasonActContext>): Promise<any> {
-    // Placeholder for memory operations
-    return { type: 'memory_operation', result: 'Memory operation completed' };
+  private static async performMemoryOperation(
+    reasoning: string,
+    _context: Partial<ReasonActContext>,
+  ): Promise<{
+    type: 'memory_operation';
+    reasoning_summary: string;
+    result: string;
+    stub: true;
+    canonical_module: string;
+  }> {
+    return {
+      type: 'memory_operation',
+      reasoning_summary: reasoning.slice(0, 120),
+      result: 'Memory operation completed',
+      stub: true,
+      canonical_module: '#memory/memory or #memory/micro_memory',
+    };
   }
 
-  private static async performExternalAction(reasoning: string, context: Partial<ReasonActContext>): Promise<any> {
-    // Placeholder for external actions
-    return { type: 'external_action', result: 'External action completed' };
+  private static async performExternalAction(
+    reasoning: string,
+    _context: Partial<ReasonActContext>,
+  ): Promise<{
+    type: 'external_action';
+    reasoning_summary: string;
+    result: string;
+    stub: true;
+    canonical_module: string;
+  }> {
+    return {
+      type: 'external_action',
+      reasoning_summary: reasoning.slice(0, 120),
+      result: 'External action completed',
+      stub: true,
+      canonical_module: '#workers/execution or #infra/tools_registry',
+    };
   }
 
   private static analyzeReasoningQuality(reasoning: string): { score: number; assessment: string } {
