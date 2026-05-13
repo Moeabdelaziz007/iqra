@@ -128,6 +128,12 @@ export class IQRAStoryteller {
       if (!fs.existsSync(file)) {
         fs.writeFileSync(file, `# IQRA Hadith Trail\n\n${line}`);
       } else {
+        // Idempotent: a marathon may invoke logToHadith multiple times
+        // for the same commit SHA (re-entry, retry, etc). Skip if the
+        // backtick-quoted hash already appears in the file so the trail
+        // does not accumulate duplicates.
+        const content = fs.readFileSync(file, 'utf-8');
+        if (content.includes(`\`${hash}\``)) return;
         fs.appendFileSync(file, line);
       }
     } catch (e) {
