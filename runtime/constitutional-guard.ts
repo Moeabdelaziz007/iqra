@@ -1,7 +1,7 @@
 /**
  * ⚖️ Constitutional Guard — الحارس الدستوري
  * 
- * Enforces the Supreme Constitution (!IQRA_SUPREME.md) and Dastūr.
+ * Enforces the Supreme Constitution (IQRA_SUPREME.md) and Dastūr.
  * Uses DamirConscience for real-time ethical and constitutional validation.
  */
 
