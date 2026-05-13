@@ -9,7 +9,6 @@
 
 // `blessed` is loaded lazily so this script can be type-checked in slim
 // environments where the TUI dependency is intentionally absent.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const blessed: any = await import('blessed' as any).then((m: any) => m.default ?? m).catch(() => {
   console.warn('⚠️ [DASHBOARD] `blessed` not installed; dashboard will not render.');
   process.exit(0);

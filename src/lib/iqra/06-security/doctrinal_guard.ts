@@ -72,17 +72,43 @@ export class DoctrinalGuard {
   static verify(input: DoctrinalCheckInput): DoctrinalVerification {
     const { ayah_text, ayah_ref, claim, domain = 'spiritual' } = input;
 
-    if (!ayah_text || !claim) {
+    if (!ayah_text || !claim || !ayah_ref || !ayah_ref.trim()) {
       return { check: 'FAIL', error_type: 'EMPTY_INPUT' };
     }
 
-    // Rule 1: claim must reference the ayah by ref or by a substring of its text.
-    const refOk = claim.includes(ayah_ref) || claim.includes(ayah_text.slice(0, 12));
-    if (!refOk) {
+    // Rule 1: the claim must be anchored to the verse. A claim qualifies
+    // as anchored when EITHER of these is true:
+    //   (a) it cites the verse reference verbatim (e.g. "2:255"), OR
+    //   (b) it quotes a meaningful contiguous span from the verse text.
+    //
+    // For (b) we look for any continuous quote of >= MIN_QUOTE_CHARS that
+    // appears in the verse, anywhere — not just the first 12 chars — so
+    // valid mid- or end-of-verse quotes pass. The previous slice(0, 12)
+    // check was too brittle and combined with an empty `ayah_ref` was
+    // bypassable (claim.includes('') is always true).
+    const trimmedRef = ayah_ref.trim();
+    const refCited = trimmedRef.length > 0 && claim.includes(trimmedRef);
+    const MIN_QUOTE_CHARS = 8;
+    let quoteCited = false;
+    if (!refCited) {
+      // Sliding-window match: any contiguous slice of the verse text of
+      // length >= MIN_QUOTE_CHARS that the claim contains qualifies.
+      const normVerse = ayah_text.trim();
+      if (normVerse.length >= MIN_QUOTE_CHARS) {
+        for (let start = 0; start + MIN_QUOTE_CHARS <= normVerse.length; start++) {
+          const win = normVerse.slice(start, start + MIN_QUOTE_CHARS);
+          if (claim.includes(win)) {
+            quoteCited = true;
+            break;
+          }
+        }
+      }
+    }
+    if (!refCited && !quoteCited) {
       return {
         check: 'FAIL',
         error_type: 'UNANCHORED_CLAIM',
-        details: 'Claim does not reference the verse by ref or quote.',
+        details: `Claim does not reference the verse by ref (${trimmedRef}) or quote at least ${MIN_QUOTE_CHARS} contiguous characters from it.`,
       };
     }
 

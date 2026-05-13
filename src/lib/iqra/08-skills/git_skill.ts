@@ -31,6 +31,22 @@ function run(cmd: string): string {
   }
 }
 
+/**
+ * Validate a git ref-like token (branch name, ref, SHA). Must:
+ *   - be non-empty
+ *   - contain only [A-Za-z0-9._/-]
+ *   - NOT start with '-' (prevents flag injection like `-f`, `--upload-pack=...`)
+ *   - NOT contain '..' or '@{' (git rev-parse meta sequences)
+ *
+ * Aligned with git's own `check-ref-format` rules, kept tight on purpose.
+ */
+function isSafeRefToken(value: string): boolean {
+  if (!value || typeof value !== 'string') return false;
+  if (value.startsWith('-')) return false;
+  if (value.includes('..') || value.includes('@{')) return false;
+  return /^[A-Za-z0-9._\/-]+$/.test(value);
+}
+
 export class GitSkill {
   /** Current short SHA, empty string if git is unavailable. */
   static head(): string {
@@ -49,10 +65,14 @@ export class GitSkill {
 
   /** Create a new branch from current HEAD and check it out. */
   static createBranch(name: string): boolean {
-    if (!name || /[^a-zA-Z0-9._\/-]/.test(name)) {
+    if (!isSafeRefToken(name)) {
       IQRALogger.warn(`⚠️ [GIT] refusing invalid branch name: ${name}`);
       return false;
     }
+    // Flag injection is prevented at the validator (no leading '-' allowed).
+    // We deliberately do NOT add `--` here because `git checkout -b` treats
+    // the next positional arg as the new branch name and `--` would be
+    // taken as the literal name.
     const out = run(`git checkout -b ${name}`);
     return out !== '';
   }
@@ -68,10 +88,13 @@ export class GitSkill {
 
   /** Hard-revert the working tree to the given ref. Caller must verify ref. */
   static revertTo(ref: string): boolean {
-    if (!/^[a-zA-Z0-9._\/-]+$/.test(ref)) {
+    if (!isSafeRefToken(ref)) {
       IQRALogger.warn(`⚠️ [GIT] refusing invalid ref: ${ref}`);
       return false;
     }
+    // Flag injection is prevented at the validator. `git reset --hard --`
+    // would make the ref a path, not a commit, so the separator is
+    // intentionally omitted here.
     const out = run(`git reset --hard ${ref}`);
     return out !== '';
   }
@@ -87,7 +110,7 @@ export class GitSkill {
    * the named remote branch. Returns true on success.
    */
   static async pushToBranch(branchName: string, message: string): Promise<boolean> {
-    if (!branchName || /[^a-zA-Z0-9._\/-]/.test(branchName)) {
+    if (!isSafeRefToken(branchName)) {
       IQRALogger.warn(`⚠️ [GIT] refusing invalid branch name: ${branchName}`);
       return false;
     }
