@@ -110,15 +110,56 @@ export class RewardLedger {
   // ── Ledger Write ──────────────────────────────────────────────────────────
 
   /**
+   * Read the previous entry's `entry_hash` synchronously, or return
+   * `null` when the ledger is empty / unreadable / malformed. Used by
+   * `record()` (the sync production path) and by `append()` (async)
+   * so both code paths emit hash-chain-valid entries that pass
+   * `verifyIntegrity`.
+   */
+  private static _readLastEntryHashSync(): string | null {
+    if (!fs.existsSync(this.LEDGER_PATH)) return null;
+    let content: string;
+    try {
+      content = fs.readFileSync(this.LEDGER_PATH, 'utf-8');
+    } catch {
+      return null;
+    }
+    // Walk backwards over non-empty lines until one parses; this
+    // tolerates trailing newlines and skips a single corrupt final
+    // line without throwing.
+    const lines = content.split('\n');
+    for (let i = lines.length - 1; i >= 0; i--) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      try {
+        const parsed = JSON.parse(line) as RewardEntry;
+        return parsed.entry_hash ?? null;
+      } catch {
+        continue;
+      }
+    }
+    return null;
+  }
+
+  /**
    * يُسجّل مكافأة جديدة في JSONL
+   *
+   * Populates `prev_hash` (last entry's `entry_hash`, or `null` on the
+   * first ever entry) and `entry_hash` (SHA-256 of the canonical
+   * payload with `prev_hash` included), so entries written via the
+   * production `RewardEngine.grant` path are chain-valid and pass
+   * `verifyIntegrity()` end-to-end.
    */
   static record(entry: Omit<RewardEntry, 'ledger_id' | 'recorded_at'>): string {
     const ledgerId = `rew_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`;
+    const prevHash = this._readLastEntryHashSync();
     const full: RewardEntry = {
       ...entry,
       ledger_id: ledgerId,
       recorded_at: new Date().toISOString(),
+      prev_hash: prevHash,
     };
+    full.entry_hash = this._hashEntry(full);
 
     // كتابة في JSONL (append-only)
     try {
