@@ -47,7 +47,7 @@ added to this file MUST also follow the schema.
 ### ✅ [HISTORICAL_RESOLVED] | 2026-05-13
 
 - **Code**: `MITHAQ_VIOLATION`, `HALLUCINATION_DETECTED`, `CONNECTION_FAILURE`
-- **Message**: 38 stale entries previously read as a recurring loop
+- **Message**: 36 stale entries previously read as a recurring loop
 - **Severity**: HIGH (perceptual, not actual)
 - **Source**: TEST_UNIT (12), ORACLE_CHECK (12), INTEGRITY_SCAN (12)
 - **Status**: resolved
