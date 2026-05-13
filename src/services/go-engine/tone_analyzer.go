@@ -3,6 +3,8 @@ package main
 import (
 	"math"
 	"math/cmplx"
+
+	"gonum.org/v1/gonum/dsp/fourier"
 )
 
 // AbjadMap defines the numerical value of Arabic letters
@@ -59,22 +61,23 @@ func CalculateTone(text string) ToneResult {
 		return ToneResult{}
 	}
 
-	// Simple Discrete Fourier Transform (DFT) for Edge AI efficiency
+	// Real-valued FFT via gonum/dsp/fourier. Returns n/2+1 complex
+	// coefficients, the same shape the previous O(n^2) DFT loop
+	// produced, but in O(n log n) and using a battle-tested
+	// FFTPACK-derived implementation. Spectrum semantics, ordering,
+	// and the DC-bin convention are preserved.
 	n := len(signal)
-	spectrum := make([]float64, n/2+1)
+	fft := fourier.NewFFT(n)
+	coeffs := fft.Coefficients(nil, signal)
+
+	spectrum := make([]float64, len(coeffs))
 	maxPower := 0.0
 	domFreq := 0.0
-
-	for k := 0; k <= n/2; k++ {
-		sum := complex(0, 0)
-		for t := 0; t < n; t++ {
-			angle := 2.0 * math.Pi * float64(k) * float64(t) / float64(n)
-			sum += complex(signal[t], 0) * cmplx.Exp(complex(0, -angle))
-		}
-		power := cmplx.Abs(sum)
+	for k, c := range coeffs {
+		power := cmplx.Abs(c)
 		spectrum[k] = power
-
-		// Ignore the DC component (k=0) for dominant frequency
+		// Ignore the DC component (k=0) when picking the dominant
+		// frequency, exactly as the original DFT did.
 		if k > 0 && power > maxPower {
 			maxPower = power
 			domFreq = float64(k) / float64(n)
@@ -86,4 +89,22 @@ func CalculateTone(text string) ToneResult {
 		ResonancePower:    maxPower,
 		Spectrum:          spectrum,
 	}
+}
+
+// referenceDFT is the previous O(n^2) discrete Fourier transform implementation.
+// Kept here as a slow but exact reference so tone_analyzer_test.go can pin the
+// FFT output to it on small inputs and catch any future library swap that
+// silently changes the spectrum shape. Not used in production.
+func referenceDFT(signal []float64) []complex128 {
+	n := len(signal)
+	out := make([]complex128, n/2+1)
+	for k := 0; k <= n/2; k++ {
+		sum := complex(0, 0)
+		for t := 0; t < n; t++ {
+			angle := 2.0 * math.Pi * float64(k) * float64(t) / float64(n)
+			sum += complex(signal[t], 0) * cmplx.Exp(complex(0, -angle))
+		}
+		out[k] = sum
+	}
+	return out
 }

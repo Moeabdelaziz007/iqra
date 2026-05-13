@@ -54,6 +54,44 @@ func TestCalculateTone_DominantFrequencyIsNormalised(t *testing.T) {
 	}
 }
 
+func TestCalculateTone_FFTMatchesReferenceDFT(t *testing.T) {
+	// Regression guard: the FFT path introduced in #H3 MUST produce the
+	// same spectrum (up to floating-point tolerance) as the original DFT
+	// loop kept in referenceDFT(). If a future library swap breaks this
+	// invariant we want to catch it immediately, not via downstream drift.
+	signal := []float64{1, 2, 1, 2, 1, 2, 1, 2}
+	got := CalculateTone(toAbjadInput(signal))
+	// Convert back via referenceDFT on the same numeric signal so the
+	// comparison stays purely numeric — we are validating the transform,
+	// not the Abjad mapping.
+	ref := referenceDFT(signal)
+	if len(got.Spectrum) != len(ref) {
+		t.Fatalf("spectrum length mismatch: got %d want %d", len(got.Spectrum), len(ref))
+	}
+	for i := range ref {
+		want := math.Sqrt(real(ref[i])*real(ref[i]) + imag(ref[i])*imag(ref[i]))
+		if math.Abs(got.Spectrum[i]-want) > 1e-9 {
+			t.Errorf("bin %d: FFT %v vs DFT %v (diff %v)", i, got.Spectrum[i], want, math.Abs(got.Spectrum[i]-want))
+		}
+	}
+}
+
+// toAbjadInput is a tiny test helper: given a numeric signal, build the
+// shortest Arabic-letter string whose Abjad values reproduce the signal.
+// We piggy-back on letters whose Abjad value matches the signal slot.
+func toAbjadInput(signal []float64) string {
+	// Reverse-lookup Abjad value -> rune. We only need values 1 and 2 for
+	// this regression test; a full table would be a separate helper.
+	valueToRune := map[int]rune{1: 'ا', 2: 'ب'}
+	var out []rune
+	for _, v := range signal {
+		if r, ok := valueToRune[int(v)]; ok {
+			out = append(out, r)
+		}
+	}
+	return string(out)
+}
+
 func TestCalculateTone_ResonancePowerNonNegative(t *testing.T) {
 	cases := []string{
 		"ابجد",
