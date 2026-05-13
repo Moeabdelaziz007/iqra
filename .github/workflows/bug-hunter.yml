@@ -1,0 +1,56 @@
+name: Bug Hunter
+
+# Monthly read-only analysis of fix/bug commits. Writes
+# signals/bug-hunter-YYYY-MM.md and commits it back to main under
+# github-actions[bot] with [skip ci]. Pure read of git log.
+on:
+  schedule:
+    # Second of every month at 05:00 UTC, after security-sentinel
+    # and before any human is awake.
+    - cron: "0 5 2 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bug-hunter
+  cancel-in-progress: false
+
+jobs:
+  hunt:
+    name: Hunt last month's fixes
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Need full history to see last month's commits.
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run bug hunter
+        run: python3 scripts/bug_hunter.py
+
+      - name: Detect changes
+        id: diff
+        run: |
+          if git diff --quiet signals/; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit & push
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add signals/
+          git commit -m "bug-hunter: monthly fix-commit analysis [skip ci]"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git push origin HEAD:main

@@ -1,0 +1,98 @@
+name: Security Sentinel
+
+# Daily npm audit. On the first detection of a new vulnerability,
+# opens a single tracking issue and updates it instead of spamming.
+# Zero cost: pure GitHub Actions + GitHub API + npm.
+on:
+  schedule:
+    # 07:00 UTC daily, after most overnight pushes have settled.
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "package.json"
+      - "package-lock.json"
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: security-sentinel
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    name: npm audit
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Run npm audit (JSON)
+        id: audit
+        run: |
+          # Capture audit output; never fail the job here, we drive
+          # the failure signal through the issue tracker instead.
+          set +e
+          npm audit --json --omit=dev > audit.json
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+          # Pretty summary for the workflow log.
+          if command -v jq >/dev/null; then
+            critical=$(jq '.metadata.vulnerabilities.critical // 0' audit.json)
+            high=$(jq '.metadata.vulnerabilities.high // 0' audit.json)
+            moderate=$(jq '.metadata.vulnerabilities.moderate // 0' audit.json)
+            low=$(jq '.metadata.vulnerabilities.low // 0' audit.json)
+            echo "critical=$critical" >> "$GITHUB_OUTPUT"
+            echo "high=$high" >> "$GITHUB_OUTPUT"
+            echo "moderate=$moderate" >> "$GITHUB_OUTPUT"
+            echo "low=$low" >> "$GITHUB_OUTPUT"
+            echo "::notice::npm audit: $critical critical, $high high, $moderate moderate, $low low"
+          fi
+          exit 0
+
+      - name: Open or update tracking issue
+        if: steps.audit.outputs.critical != '0' || steps.audit.outputs.high != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          title="Security Sentinel: ${{ steps.audit.outputs.critical }} critical / ${{ steps.audit.outputs.high }} high vulnerabilities"
+          body=$(cat <<'EOF'
+          The daily npm audit found dependencies with critical or high severity vulnerabilities.
+
+          - **Critical:** ${{ steps.audit.outputs.critical }}
+          - **High:** ${{ steps.audit.outputs.high }}
+          - **Moderate:** ${{ steps.audit.outputs.moderate }}
+          - **Low:** ${{ steps.audit.outputs.low }}
+
+          Run `npm audit` locally for the full report, or check the workflow artifact.
+
+          This issue is maintained automatically. It will be reopened or updated daily until the count drops to zero. Close it manually only after fixing the underlying dependencies.
+          EOF
+          )
+          # Reuse a single tracking issue by label, never spam.
+          existing=$(gh issue list --label "security-sentinel" --state open --json number --jq '.[0].number' || true)
+          if [ -z "$existing" ]; then
+            gh issue create \
+              --title "$title" \
+              --body "$body" \
+              --label "security-sentinel" \
+              --label "auto-fix"
+          else
+            gh issue edit "$existing" --title "$title" --body "$body"
+            gh issue comment "$existing" --body "Re-checked on $(date -u +%Y-%m-%dT%H:%M:%SZ). Counts above are current."
+          fi
+
+      - name: Upload audit JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-${{ github.run_id }}
+          path: audit.json
+          retention-days: 30
