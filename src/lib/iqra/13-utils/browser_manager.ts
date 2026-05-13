@@ -23,6 +23,13 @@ let globalBrowser: any = null;
 let globalBrowserPromise: Promise<any> | null = null;
 let playwrightMod: any = null;
 
+/**
+ * Lazily loads and caches the Playwright module for reuse.
+ *
+ * Subsequent calls return the cached module if it was previously loaded.
+ *
+ * @returns The Playwright module when import succeeds, or `null` if Playwright cannot be imported.
+ */
 async function loadPlaywright(): Promise<any> {
   if (playwrightMod) return playwrightMod;
   try {
@@ -33,6 +40,16 @@ async function loadPlaywright(): Promise<any> {
   }
 }
 
+/**
+ * Create and return a new Playwright Chromium Page from the module's shared browser instance.
+ *
+ * If the shared browser is not yet running, this will launch a single shared Chromium instance
+ * (concurrent callers will await the same launch). If Playwright cannot be loaded, the function
+ * returns `null`.
+ *
+ * @returns A new Playwright `Page` from the shared Chromium browser, or `null` if Playwright is unavailable.
+ * @throws Rethrows any error that occurs while launching the browser.
+ */
 export async function getBrowserPage(): Promise<any | null> {
   const pw = await loadPlaywright();
   if (!pw) {
@@ -59,10 +76,21 @@ export async function getBrowserPage(): Promise<any | null> {
   return await globalBrowser.newPage();
 }
 
+/**
+ * Closes the given Playwright page if one is provided.
+ *
+ * @param page - The Playwright `Page` to close; if `page` is falsy, no action is taken
+ */
 export async function closePage(page: any): Promise<void> {
   if (page) await page.close();
 }
 
+/**
+ * Close the shared Playwright browser instance if one exists.
+ *
+ * If a browser is open, attempts to close it and clears the module-level browser reference on success.
+ * If closing fails, the error is logged and swallowed. Does nothing when no browser is present.
+ */
 async function closeBrowser(): Promise<void> {
   if (globalBrowser) {
     try {
