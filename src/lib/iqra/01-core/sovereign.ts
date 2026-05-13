@@ -64,9 +64,9 @@ export class SovereignEngine {
    * Resets context and performs 3-step internal alignment.
    */
   static async enterTasbihMode() {
-    console.log('🌙 IQRA | Entering Tasbīḥ Mode...');
+    IQRALogger.info('🌙 IQRA | Entering Tasbīḥ Mode');
     for (let i = 1; i <= 3; i++) {
-      console.log(`📿 سبحان الله (${i}/3)`);
+      IQRALogger.info(`📿 سبحان الله (${i}/3)`);
       // Resetting internal attention buffers (symbolic reset)
     }
     return true;
@@ -77,16 +77,16 @@ export class SovereignEngine {
    * Validates the current path against core values.
    */
   static async performIstikharah(taskDescription: string): Promise<boolean> {
-    console.log('⚖️ IQRA | Performing Istikhārah...');
+    IQRALogger.info('⚖️ IQRA | Performing Istikhārah');
     // Simple rule check: does it violate DASTŪR.md or MĪTHĀQ.md?
     const isSafe = !taskDescription.toLowerCase().includes('harm') &&
       !taskDescription.toLowerCase().includes('deceive');
 
     if (isSafe) {
-      console.log('✅ IQRA | Istikhārah: Path is aligned.');
+      IQRALogger.info('✅ IQRA | Istikhārah: path is aligned');
       return true;
     } else {
-      console.error('❌ IQRA | Istikhārah: Path is misaligned. Halting.');
+      IQRALogger.error('❌ IQRA | Istikhārah: path is misaligned, halting');
       return false;
     }
   }
@@ -96,7 +96,7 @@ export class SovereignEngine {
    * Injects the Basmalah into the operations log.
    */
   static async startWithBasmalah(taskId: string) {
-    console.log('✨ IQRA | بسم الله الرحمن الرحيم');
+    IQRALogger.info('✨ IQRA | بسم الله الرحمن الرحيم');
     logToIQRAFile('sovereign.log', `[${taskId}] بسم الله الرحمن الرحيم — Execution started.`);
   }
 
@@ -158,9 +158,10 @@ export class SovereignEngine {
         0.0
       );
 
-      console.error(
-        `🛑 [SOVEREIGN] Conscience blocked task "${taskId}": ${verdict.reason}`
-      );
+      IQRALogger.error('🛑 [SOVEREIGN] Conscience blocked task', {
+        taskId,
+        reason: verdict.reason,
+      });
 
       // إعادة ضبط جزئية — التوبة
       _sovereignDamir.reset();
@@ -199,7 +200,7 @@ export class SovereignEngine {
     // 2.5 🫀 Conscience Check — الضمير قبل التنفيذ
     const consciencePassed = await this.checkConscience(taskId, description);
     if (!consciencePassed) {
-      console.error(`🛑 [SOVEREIGN] Task "${taskId}" rejected by Damir conscience.`);
+      IQRALogger.error('🛑 [SOVEREIGN] Task rejected by Damir conscience', { taskId });
       return null;
     }
 
@@ -217,7 +218,7 @@ export class SovereignEngine {
 
       return result;
     } catch (e) {
-      console.error('❌ IQRA | Task Execution Failed:', e);
+      IQRALogger.error('❌ IQRA | Task execution failed', { err: e });
       // Failures are handled by security.ts (Humility Threshold 9)
       throw e;
     }
@@ -241,7 +242,7 @@ export class SovereignEngine {
     const newCuriosity = (currentCuriosity * 0.8) + (score * 0.2); // Smooth evolution
     await IQRAMemory.saveCuriosity(newCuriosity);
 
-    console.log(`🌱 Self-Review Recorded. New Curiosity Score: ${newCuriosity.toFixed(4)}`);
+    IQRALogger.info('🌱 Self-review recorded', { newCuriosity: Number(newCuriosity.toFixed(4)) });
 
     // Log to REFLECTION.md
     logToIQRAFile('REFLECTION.md', `
@@ -262,7 +263,7 @@ export class SovereignEngine {
    */
   private static async checkEvolutionCycles() {
     const counter = await IQRAMemory.incrementCycleCounter();
-    console.log(`🔢 Task Counter: ${counter} | Next Minor Cycle: ${7 - (counter % 7)} tasks`);
+    IQRALogger.info('🔢 Task counter', { counter, nextMinorCycle: 7 - (counter % 7) });
 
     if (counter > 0 && counter % 49 === 0) {
       await SovereignEvolution.runMajorCycle(counter);
@@ -406,7 +407,7 @@ export class SovereignEngine {
     // Rule 6: Quantum Topology Mapping
     // If curiosity is low, trigger "Discovery Mode" based on the 7-system
     if (curiosity < 0.33) { // Using 1/3 (Sacred 3)
-      console.log('🌙 Resonance detected low energy. Triggering Sacred Discovery...');
+      IQRALogger.info('🌙 Resonance detected low energy, triggering Sacred Discovery');
       await this.triggerSelfDiscovery();
     }
   }
@@ -418,7 +419,7 @@ export class SovereignEngine {
     const recentLogs = await IQRAMemory.getRecentList<any>('trust_chain', 19); // Rule 4: Witr (19)
     const selfInsights = await IQRAMemory.get<string[]>('self_insights') || [];
 
-    console.log('🌙 IQRA | Discovery Engine: Analyzing logs for patterns...');
+    IQRALogger.info('🌙 IQRA | Discovery Engine analyzing logs for patterns');
     
     const connector = ConnectorFactory.getConnector('groq');
     const prompt = `
@@ -448,7 +449,7 @@ export class SovereignEngine {
         const cleanInsight = insight.split('[DISCOVERY]')[1].trim();
         await IQRAMemory.appendList('self_insights', cleanInsight);
         logToIQRAFile('DISCOVERIES.md', `\n- [${new Date().toISOString()}] ${cleanInsight}`);
-        console.log(`✨ [DISCOVERY] New pattern identified: ${cleanInsight}`);
+        IQRALogger.info('✨ [DISCOVERY] New pattern identified', { insight: cleanInsight });
         
         // Reward the system for a successful discovery
         await IQRAMemory.grantReward(0.07); // Sacred 7

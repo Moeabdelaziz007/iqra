@@ -6,6 +6,7 @@ import { IQRAVoice } from '#utils/voice';
 import { ShuraProtocol } from '#core/shura';
 import { IQRAFilter } from '#security/filter';
 import { TAWBAH } from '#core/tawbah';
+import { IQRALogger } from '#infra/logger';
 
 export class AgentCore {
   /**
@@ -20,14 +21,18 @@ export class AgentCore {
     // Verify Fitrah alignment
     const result = await IQRAFilter.validate(input);
     if (!result.isAllowed) {
-      console.error(`🛡️ [FITRAH] Input rejected: ${result.reason}`);
+      IQRALogger.error('🛡️ [FITRAH] Input rejected', { reason: result.reason });
       return false;
     }
     return true;
   }
 
   private static async basmalah() {
-    console.log('بسم الله الرحمن الرحيم');
+    // The basmala is an invocation, not a debug breadcrumb: ship it at
+    // info level so it survives production NODE_ENV (unlike debug), and
+    // emit it through the central logger so any downstream sink
+    // (Logtail, OTel) sees it as a structured event.
+    IQRALogger.info('بسم الله الرحمن الرحيم');
   }
 
   /**
@@ -65,7 +70,7 @@ export class AgentCore {
 
     // VOICE (Optional/Async)
     if (mode === IQRABrainMode.FAST_RESPONSE) {
-      IQRAVoice.speak(styledResponse).catch(err => console.error('Voice failed:', err));
+      IQRAVoice.speak(styledResponse).catch(err => IQRALogger.error('Voice failed', { err }));
     }
 
     return styledResponse;

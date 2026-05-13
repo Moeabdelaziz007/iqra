@@ -165,8 +165,8 @@ export async function iqraThink({
   mode?: IQRABrainMode;
   options?: Record<string, any>;
 }): Promise<{ response: string; provider: string; reports?: any[] }> {
-  console.log('🚀 [DEBUG] iqraThink started with input:', input);
-  console.log('🛠️ [DEBUG] options:', JSON.stringify(options));
+  IQRALogger.debug('🚀 iqraThink started', { input });
+  IQRALogger.debug('🛠️ iqraThink options', { options });
   
   // 0. Linguistic Compression (Caveman Protocol)
   const cavemanMode = isLocalMode() ? 'ultra' : 'basic';
@@ -245,6 +245,6 @@ export async function iqraThink({
     finalResult.response = "تمت العملية بنجاح، ولكن لم يتم توليد نص مخصص.";
   }
 
-  console.log('🏁 [DEBUG] iqraThink finished with response length:', finalResult.response.length);
+  IQRALogger.debug('🏁 iqraThink finished', { responseLength: finalResult.response.length });
   return finalResult;
 }

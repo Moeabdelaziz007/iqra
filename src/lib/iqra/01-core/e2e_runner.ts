@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { sovereignSync } from '#utils/git-ops';
 import { execSync } from 'child_process';
+import { IQRALogger } from '#infra/logger';
 
 /**
  * 🚀 IQRA E2E Runner (Pure Reality - No Mocks)
@@ -20,8 +21,7 @@ export async function runRealWorkflow(taskDescription: string) {
   // PRE-FLIGHT CHECK: Block if the working tree is dirty
   const status = execSync('git status --porcelain').toString().trim();
   if (status) {
-    console.error('❌ [ITQAN BLOCK] | Uncommitted changes detected. E2E aborted to preserve integrity.');
-    console.log('Status:\n', status);
+    IQRALogger.error('❌ [ITQAN BLOCK] Uncommitted changes detected; E2E aborted to preserve integrity', { status });
     return;
   }
 
@@ -31,11 +31,14 @@ export async function runRealWorkflow(taskDescription: string) {
   await sovereignSync();
   await topology.syncStateWithReality();
 
-  console.log(`🌀 [TOPOLOGY] Starting from state: ${topology.getCurrentState()} with Curvature: ${topology.calculateCurvature()}`);
+  IQRALogger.info('🌀 [TOPOLOGY] Starting workflow', {
+    state: topology.getCurrentState(),
+    curvature: topology.calculateCurvature(),
+  });
 
   return IQRAExecutionLoop.runTask(async () => {
     // 1. REAL EXECUTION: Verify project structure
-    console.log("🛠️ [ITQAN] Verifying project integrity...");
+    IQRALogger.info('🛠️ [ITQAN] Verifying project integrity');
     const files = fs.readdirSync(process.cwd());
     if (!files.includes('FITRAH.md')) throw new Error("Critical File Missing: FITRAH.md");
 
@@ -45,8 +48,8 @@ export async function runRealWorkflow(taskDescription: string) {
     const entry = `\n### E2E Workflow: ${taskDescription}\n- Time: ${timestamp}\n- Curvature: ${topology.calculateCurvature()}\n- Result: Success (Real structural verification)\n`;
     fs.appendFileSync(reflectionPath, entry);
 
-    console.log(topology.transition(true));
-    console.log("✅ [SUCCESS] Real E2E Workflow Completed.");
+    IQRALogger.info('🌀 [TOPOLOGY] Transition', { transition: topology.transition(true) });
+    IQRALogger.info('✅ [SUCCESS] Real E2E workflow completed');
 
     // 3. FINAL SYNC: Push the new reflection and state to the repository
     await sovereignSync();
@@ -60,6 +63,6 @@ export async function runRealWorkflow(taskDescription: string) {
 // Auto-run if executed directly
 if (require.main === module) {
   runRealWorkflow("Verification of Project Sovereign Integrity")
-    .then(() => console.log(IQRACommands.getStatus()))
-    .catch(console.error);
+    .then(() => IQRALogger.info('Status', { status: IQRACommands.getStatus() }))
+    .catch(err => IQRALogger.error('runRealWorkflow failed', { err }));
 }

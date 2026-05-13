@@ -12,6 +12,7 @@
 import fs from 'fs';
 import path from 'path';
 import { IQRAEvolution } from '#evolution/self_evolve';
+import { IQRALogger } from '#infra/logger';
 
 export enum LoopPhase {
   NIYYAH = "NIYYAH",
@@ -30,17 +31,19 @@ export class IQRAExecutionLoop {
     state.honestyIndex = state.honestyIndex ?? 100;
     state.failureHistory = state.failureHistory ?? [];
 
-    console.log(`\n--- 🌙 Cycle ${state.loopCounter} | Honesty ${state.honestyIndex}% ---`);
-    console.log(`🤲 Intention: ${metadata.intention}`);
+    IQRALogger.info(`🌙 Cycle ${state.loopCounter}`, {
+      honestyIndex: state.honestyIndex,
+      intention: metadata.intention,
+    });
 
     try {
       await task();
       state.honestyIndex = Math.min(100, state.honestyIndex + 2);
-      console.log("✅ Task Succeeded.");
+      IQRALogger.info('✅ Task succeeded', { id: metadata.id });
     } catch (error: any) {
       state.honestyIndex = Math.max(0, state.honestyIndex - 5);
       state.failureHistory.push({ task: metadata.intention, error: error.message, time: Date.now() });
-      console.log(`❌ Task Failed: ${error.message}`);
+      IQRALogger.error('❌ Task failed', { id: metadata.id, error: error.message });
 
       // 🔄 Tasbih Reset: Every 3 errors
       if (state.failureHistory.length % 3 === 0) {
@@ -51,7 +54,7 @@ export class IQRAExecutionLoop {
       if (state.loopCounter % 7 === 0) {
         this.extractWisdom(state);
         // Trigger self-evolution cycle asynchronously to not block the main loop
-        IQRAEvolution.runEvolutionCycle().catch(e => console.error("Evolution Error:", e));
+        IQRAEvolution.runEvolutionCycle().catch(e => IQRALogger.error('Evolution cycle failed', { err: e }));
       }
 
       // 🌊 Topological Flood: Rebuild every 40 cycles
@@ -65,29 +68,29 @@ export class IQRAExecutionLoop {
 
   private static metaProactiveAnalysis(state: any) {
     if (state.failureCount >= 3) {
-      console.log("🔍 [PROACTIVE] Analyzing failure patterns...");
+      IQRALogger.info('🔍 [PROACTIVE] Analyzing failure patterns');
       const rule = "\n- [PROACTIVE] Before complex execution, always verify dependencies (Auto-generated due to repeat failure).";
       fs.appendFileSync(path.join(process.cwd(), 'iqra-core/RULES.md'), rule);
-      console.log("🛠️ [ADAPTATION] New rule added to RULES.md proactively.");
+      IQRALogger.info('🛠️ [ADAPTATION] New rule added to RULES.md proactively');
       state.failureCount = 0; // Reset after adaptation
     }
   }
 
   private static tasbihReset(state: any) {
-    console.log("📿 [TASBIH] Re-aligning intention. Clearing failure noise...");
+    IQRALogger.info('📿 [TASBIH] Re-aligning intention, clearing failure noise');
     state.failureHistory = [];
     state.honestyIndex = Math.min(100, (state.honestyIndex || 100) + 10);
   }
 
   private static extractWisdom(state: any) {
-    console.log("📜 [WISDOM] Extracting patterns from the last 7 cycles...");
+    IQRALogger.info('📜 [WISDOM] Extracting patterns from the last 7 cycles');
     const wisdomPath = path.join(process.cwd(), 'WISDOM_7.md');
     const entry = `\n### 💎 Wisdom from Cycle ${state.loopCounter}\n- **Integrity**: ${state.honestyIndex}%\n- **Observation**: System maintained stability through local fluctuations.\n- **Date**: ${new Date().toISOString()}\n`;
     fs.appendFileSync(wisdomPath, entry);
   }
 
   private static topologicalFlood(state: any) {
-    console.log("🌊 [TOPOLOGICAL_FLOOD] Resetting the manifold. Re-seeding from FITRAH.md...");
+    IQRALogger.info('🌊 [TOPOLOGICAL_FLOOD] Resetting the manifold, re-seeding from FITRAH.md');
     // In a real scenario, this might involve clearing caches or deep git clean
     state.loopCounter = 0; // The 40-day reset concept
     this.performTopologicalReset();
@@ -98,7 +101,7 @@ export class IQRAExecutionLoop {
       try {
         return JSON.parse(fs.readFileSync(this.STATE_FILE, 'utf8'));
       } catch (e) {
-        console.error("Error loading state, resetting...");
+        IQRALogger.error('Error loading state, resetting', { err: e });
       }
     }
     return { 
@@ -115,14 +118,14 @@ export class IQRAExecutionLoop {
   }
 
   private static performTopologicalReset() {
-    console.log("✨ [TOPOLOGICAL_RESET] System re-aligning with FITRAH.md...");
+    IQRALogger.info('✨ [TOPOLOGICAL_RESET] System re-aligning with FITRAH.md');
     
     try {
       // 1. Clear memory caches
       const memoryPath = path.join(process.cwd(), '.iqra/memory_cache');
       if (fs.existsSync(memoryPath)) {
         fs.rmSync(memoryPath, { recursive: true, force: true });
-        console.log("🧹 Cleared memory cache");
+        IQRALogger.info('🧹 Cleared memory cache');
       }
       
       // 2. Reset topology state
@@ -135,7 +138,7 @@ export class IQRAExecutionLoop {
       
       const topologyPath = path.join(process.cwd(), '.iqra/topology_state.json');
       fs.writeFileSync(topologyPath, JSON.stringify(topologyState, null, 2));
-      console.log("📊 Reset topology state");
+      IQRALogger.info('📊 Reset topology state');
       
       // 3. Clear reward ledger recent entries
       const rewardLedgerPath = path.join(process.cwd(), '.iqra/reward_ledger.jsonl');
@@ -144,7 +147,7 @@ export class IQRAExecutionLoop {
         // Keep only last 50 entries
         const recentLines = lines.slice(-50);
         fs.writeFileSync(rewardLedgerPath, recentLines.join('\n'));
-        console.log("🏆 Pruned reward ledger (kept last 50 entries)");
+        IQRALogger.info('🏆 Pruned reward ledger', { kept: 50 });
       }
       
       // 4. Reset evolution metrics
@@ -156,7 +159,7 @@ export class IQRAExecutionLoop {
       
       const evolutionPath = path.join(process.cwd(), '.iqra/evolution_state.json');
       fs.writeFileSync(evolutionPath, JSON.stringify(evolutionState, null, 2));
-      console.log("🧬 Reset evolution state");
+      IQRALogger.info('🧬 Reset evolution state');
       
       // 5. Log reset to trust chain
       const resetEntry = {
@@ -169,7 +172,7 @@ export class IQRAExecutionLoop {
       const trustChainPath = path.join(process.cwd(), '.iqra/trust_chain.jsonl');
       if (fs.existsSync(trustChainPath)) {
         fs.appendFileSync(trustChainPath, JSON.stringify(resetEntry) + '\n');
-        console.log("🔗 Logged reset to trust chain");
+        IQRALogger.info('🔗 Logged reset to trust chain');
       }
       
       // 6. Create reset marker for monitoring
@@ -182,10 +185,10 @@ export class IQRAExecutionLoop {
       const markerPath = path.join(process.cwd(), '.iqra/reset_marker.json');
       fs.writeFileSync(markerPath, JSON.stringify(resetMarker, null, 2));
       
-      console.log("✅ [TOPOLOGICAL_RESET] System successfully re-aligned");
+      IQRALogger.info('✅ [TOPOLOGICAL_RESET] System successfully re-aligned');
       
     } catch (error) {
-      console.error("❌ [TOPOLOGICAL_RESET] Failed:", error);
+      IQRALogger.error('❌ [TOPOLOGICAL_RESET] Failed', { err: error });
       // Continue with degraded state rather than failing completely
     }
   }
