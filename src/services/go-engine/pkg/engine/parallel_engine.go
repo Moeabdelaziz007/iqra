@@ -52,7 +52,21 @@ type BatchAnalysisRequest struct {
 	// embeddings (queries and references) MUST share the same dimensionality
 	// and originate from the same embedding model.
 	ReferenceCorpus [][]float64 `json:"reference_corpus,omitempty"`
+	// LIDMethod selects which intrinsic-dimension estimator runs against
+	// ReferenceCorpus. Accepted values:
+	//   - ""        => defaults to "twonn"
+	//   - "twonn"   => Facco 2017 parameter-free estimator (recommended)
+	//   - "mle-k"   => Levina-Bickel MLE on k neighbours (legacy)
+	// The result's LIDResult.Method records the actually-used algorithm
+	// so a downstream verifier can reproduce the number.
+	LIDMethod string `json:"lid_method,omitempty"`
 }
+
+// MinTwoNNCorpusSize is the minimum number of reference points required
+// for the TwoNN estimator to produce a non-degenerate µ = r2/r1. Two
+// points is the algorithmic minimum, but at N=2 the estimator becomes
+// extremely sensitive to noise, so we require slightly more.
+const MinTwoNNCorpusSize = 4
 
 // SurahData represents a single surah for processing
 type SurahData struct {
@@ -274,13 +288,41 @@ func processSurah(surah SurahData, req *BatchAnalysisRequest) ParallelResult {
 	// estimator returns garbage on a collinear point set (see the
 	// BatchAnalysisRequest doc comment for the full explanation).
 	if req.EnableLID && len(surah.Embedding) > 0 {
-		if len(req.ReferenceCorpus) < MinLIDCorpusSize {
+		// Method selection. Empty / "twonn" use the parameter-free
+		// estimator (default for manifest reproducibility); "mle-k"
+		// is the legacy Levina-Bickel path. Unknown values fall back
+		// to twonn and surface a warning so the caller notices.
+		method := req.LIDMethod
+		switch method {
+		case "", "twonn":
+			method = "twonn"
+		case "mle-k":
+			// keep as-is
+		default:
 			result.Warnings = append(result.Warnings, fmt.Sprintf(
-				"LID skipped: needs reference_corpus with >= %d real embeddings, got %d",
-				MinLIDCorpusSize, len(req.ReferenceCorpus),
+				"unknown lid_method %q, falling back to twonn", method,
+			))
+			method = "twonn"
+		}
+
+		// Each estimator has its own corpus floor.
+		minCorpus := MinTwoNNCorpusSize
+		if method == "mle-k" {
+			minCorpus = MinLIDCorpusSize
+		}
+
+		if len(req.ReferenceCorpus) < minCorpus {
+			result.Warnings = append(result.Warnings, fmt.Sprintf(
+				"LID skipped: %s needs reference_corpus with >= %d real embeddings, got %d",
+				method, minCorpus, len(req.ReferenceCorpus),
 			))
 		} else {
-			lid := CalculateLID(surah.Embedding, req.ReferenceCorpus, 7)
+			var lid LIDResult
+			if method == "twonn" {
+				lid = CalculateTwoNN(surah.Embedding, req.ReferenceCorpus)
+			} else {
+				lid = CalculateLID(surah.Embedding, req.ReferenceCorpus, 7)
+			}
 			result.LIDAnalysis = &lid
 			if lid.IsHighResonance {
 				result.Discoveries = append(result.Discoveries, "HIGH_RESONANCE")

@@ -10,13 +10,21 @@ import (
 	"sort"
 )
 
-// LIDResult represents Local Intrinsic Dimension analysis
+// LIDResult represents Local Intrinsic Dimension analysis. The Method
+// field records which estimator produced the LID so that any AIX
+// manifest carrying this result is self-describing — a verifier on a
+// different machine can decide independently whether to trust the
+// number based on the documented properties of the estimator
+// (parameter-free, k-sensitive, etc.).
 type LIDResult struct {
 	LID              float64   `json:"lid"`
 	Resonance        float64   `json:"resonance"`
 	Complexity       float64   `json:"complexity"`
 	NearestNeighbors []float64 `json:"nearest_neighbors"`
 	IsHighResonance  bool      `json:"is_high_resonance"`
+	// Method names the algorithm: "mle-k" (Levina-Bickel maximum
+	// likelihood, sensitive to k) or "twonn" (Facco 2017, parameter-free).
+	Method string `json:"method"`
 }
 
 // CalculateLID computes Local Intrinsic Dimension using k-NN distances
@@ -51,7 +59,8 @@ func CalculateLID(embedding []float64, referenceEmbeddings [][]float64, k int) L
 		Resonance:        resonance,
 		Complexity:       complexity,
 		NearestNeighbors: kNearest,
-		IsHighResonance:  resonance > 0.7, // Threshold from research
+		IsHighResonance:  lid < 5.0,
+		Method:           "mle-k",
 	}
 }
 

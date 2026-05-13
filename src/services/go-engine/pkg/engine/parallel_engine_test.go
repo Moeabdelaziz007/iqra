@@ -53,26 +53,48 @@ func TestProcessBatchParallel_LID_SkipsWhenCorpusMissing(t *testing.T) {
 	}
 }
 
-func TestProcessBatchParallel_LID_SkipsWhenCorpusTooSmall(t *testing.T) {
+func TestProcessBatchParallel_LID_MLESkipsWhenCorpusTooSmall(t *testing.T) {
+	// Explicit MLE-k path: floor is MinLIDCorpusSize (8), so corpus=7
+	// must trigger the skip-with-warning branch.
 	req := BatchAnalysisRequest{
 		Surahs:          []SurahData{makeSurah(1, []float64{0.1, 0.2, 0.3, 0.4})},
 		EnableLID:       true,
+		LIDMethod:       "mle-k",
 		ReferenceCorpus: makeCorpus(MinLIDCorpusSize - 1), // 7 < 8
 	}
 	resp := ProcessBatchParallel(req)
 	r := resp.Results[0]
 	if r.LIDAnalysis != nil {
-		t.Errorf("LIDAnalysis must be nil when corpus is under MinLIDCorpusSize")
+		t.Errorf("LIDAnalysis must be nil when corpus is under MinLIDCorpusSize for mle-k")
 	}
 	if len(r.Warnings) == 0 || !strings.Contains(r.Warnings[0], "LID skipped") {
 		t.Errorf("expected size-floor warning; got %v", r.Warnings)
 	}
 }
 
-func TestProcessBatchParallel_LID_RunsWhenCorpusValid(t *testing.T) {
+func TestProcessBatchParallel_LID_TwoNNSkipsWhenCorpusTooSmall(t *testing.T) {
+	// Default (twonn) path: floor is MinTwoNNCorpusSize (4), so corpus=3
+	// must trigger the skip-with-warning branch.
+	req := BatchAnalysisRequest{
+		Surahs:          []SurahData{makeSurah(1, []float64{0.1, 0.2, 0.3, 0.4})},
+		EnableLID:       true,
+		ReferenceCorpus: makeCorpus(MinTwoNNCorpusSize - 1), // 3 < 4
+	}
+	resp := ProcessBatchParallel(req)
+	r := resp.Results[0]
+	if r.LIDAnalysis != nil {
+		t.Errorf("LIDAnalysis must be nil when corpus is under MinTwoNNCorpusSize for twonn")
+	}
+	if len(r.Warnings) == 0 || !strings.Contains(r.Warnings[0], "LID skipped") {
+		t.Errorf("expected size-floor warning; got %v", r.Warnings)
+	}
+}
+
+func TestProcessBatchParallel_LID_MLEKRunsWithEightOrMoreCorpus(t *testing.T) {
 	req := BatchAnalysisRequest{
 		Surahs:          []SurahData{makeSurah(1, []float64{0.5, -0.5, 0.25, -0.25})},
 		EnableLID:       true,
+		LIDMethod:       "mle-k",
 		ReferenceCorpus: makeCorpus(MinLIDCorpusSize),
 		MaxWorkers:      1,
 	}
@@ -84,8 +106,58 @@ func TestProcessBatchParallel_LID_RunsWhenCorpusValid(t *testing.T) {
 	if r.LIDAnalysis.LID < 1.0 {
 		t.Errorf("MLE LID must be clamped to >= 1, got %v", r.LIDAnalysis.LID)
 	}
+	if r.LIDAnalysis.Method != "mle-k" {
+		t.Errorf("Method: got %q want mle-k", r.LIDAnalysis.Method)
+	}
 	if len(r.LIDAnalysis.NearestNeighbors) != 7 {
 		t.Errorf("default k=7 nearest neighbours, got %d", len(r.LIDAnalysis.NearestNeighbors))
+	}
+}
+
+func TestProcessBatchParallel_LID_TwoNNRunsByDefault(t *testing.T) {
+	req := BatchAnalysisRequest{
+		Surahs:          []SurahData{makeSurah(1, []float64{0.5, -0.5, 0.25, -0.25})},
+		EnableLID:       true, // no LIDMethod set -> twonn default
+		ReferenceCorpus: makeCorpus(MinTwoNNCorpusSize),
+		MaxWorkers:      1,
+	}
+	resp := ProcessBatchParallel(req)
+	r := resp.Results[0]
+	if r.LIDAnalysis == nil {
+		t.Fatalf("LIDAnalysis must be populated; warnings=%v", r.Warnings)
+	}
+	if r.LIDAnalysis.LID < 1.0 {
+		t.Errorf("TwoNN LID must clamp to >= 1, got %v", r.LIDAnalysis.LID)
+	}
+	if r.LIDAnalysis.Method != "twonn" {
+		t.Errorf("Method: got %q want twonn (default)", r.LIDAnalysis.Method)
+	}
+	// TwoNN reports exactly 2 neighbours (r1, r2).
+	if len(r.LIDAnalysis.NearestNeighbors) != 2 {
+		t.Errorf("twonn must report 2 neighbours, got %d", len(r.LIDAnalysis.NearestNeighbors))
+	}
+}
+
+func TestProcessBatchParallel_LID_UnknownMethodFallsBackToTwoNN(t *testing.T) {
+	req := BatchAnalysisRequest{
+		Surahs:          []SurahData{makeSurah(1, []float64{0.5, -0.5, 0.25, -0.25})},
+		EnableLID:       true,
+		LIDMethod:       "totally-not-a-real-estimator",
+		ReferenceCorpus: makeCorpus(MinTwoNNCorpusSize),
+	}
+	resp := ProcessBatchParallel(req)
+	r := resp.Results[0]
+	if r.LIDAnalysis == nil || r.LIDAnalysis.Method != "twonn" {
+		t.Fatalf("unknown method must fall back to twonn; got %+v", r.LIDAnalysis)
+	}
+	var sawWarn bool
+	for _, w := range r.Warnings {
+		if strings.Contains(w, "unknown lid_method") {
+			sawWarn = true
+		}
+	}
+	if !sawWarn {
+		t.Errorf("must surface a warning when falling back; got %v", r.Warnings)
 	}
 }
 
