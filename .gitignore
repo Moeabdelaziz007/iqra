@@ -75,3 +75,13 @@ tsx-*/
 .tsx/
 deploy.sh
 wrangler.toml
+
+# Go build artifacts — compiled binaries must NOT be committed.
+# Both used to live next to the source at 9MB each, doubling repo size on every
+# rebuild. CI now builds them on-demand.
+/src/services/go-engine/go-engine
+/src/services/go-engine/iqra-engine
+/src/services/go-engine/engine
+/src/services/go-engine/*.exe
+/src/services/go-engine/*.test
+*.exe

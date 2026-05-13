@@ -117,9 +117,6 @@ func variance(data []float64) float64 {
 	return variance / float64(len(data))
 }
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
+// min was previously a manual implementation; Go 1.21+ ships a built-in `min`,
+// which is now used directly at the call sites in this file. Kept here as a
+// comment for historical reference — do not re-add the function.

@@ -77,10 +77,22 @@ func CalculateResonance(text string) ResonanceResult {
 	return result
 }
 
+// arabicDiacriticsRE matches Arabic diacritic marks (harakat, hamzas above/below,
+// Quranic annotation marks). Compiled once at package init for two reasons:
+//
+//  1. The previous in-function `regexp.MustCompile` re-compiled on every call,
+//     wasting cycles on hot paths like batch surah analysis.
+//  2. The previous pattern used `\u064B` escapes, which Go's RE2-based `regexp`
+//     package does NOT support — it requires `\x{064B}` syntax. As written,
+//     the previous regex panicked on its very first call, taking down
+//     CalculateTone and CalculateResonance with it. Tests in this PR catch
+//     that regression.
+var arabicDiacriticsRE = regexp.MustCompile(
+	`[\x{064B}-\x{065F}\x{0670}\x{06D6}-\x{06DC}\x{06DF}-\x{06E4}\x{06E7}\x{06E8}\x{06EA}-\x{06ED}]`,
+)
+
 func removeArabicDiacritics(text string) string {
-	// Simple regex for common Arabic diacritics
-	re := regexp.MustCompile(`[\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED]`)
-	return re.ReplaceAllString(text, "")
+	return arabicDiacriticsRE.ReplaceAllString(text, "")
 }
 
 func countLetters(text string) int {
