@@ -93,7 +93,9 @@ function shouldSkip(filePath: string): boolean {
 
 function getStagedFiles(): string[] {
   try {
-    const out = execSync('git diff --cached --name-only --diff-filter=AM', {
+    // 🤖 NOTE: A=Added, M=Modified, R=Renamed. تجاهل R يفتح ثغرة:
+    // rename+edit في commit واحد قد يُدخل سرّاً جديداً دون فحص.
+    const out = execSync('git diff --cached --name-only --diff-filter=AMR', {
       encoding: 'utf-8',
     });
     return out.split('\n').filter(Boolean);

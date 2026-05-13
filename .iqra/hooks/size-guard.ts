@@ -66,7 +66,9 @@ function appendPulse(action: string, meta: Record<string, unknown> = {}): void {
 
 function getStagedFiles(): string[] {
   try {
-    const out = execSync('git diff --cached --name-only --diff-filter=AM', {
+    // 🤖 NOTE: A=Added, M=Modified, R=Renamed. rename+expand قد يتجاوز
+    // الحد الأقصى للحجم لو استثنينا R.
+    const out = execSync('git diff --cached --name-only --diff-filter=AMR', {
       encoding: 'utf-8',
     });
     return out.split('\n').filter(Boolean);
