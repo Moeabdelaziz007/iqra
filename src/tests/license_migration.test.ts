@@ -5,7 +5,7 @@
  * - package.json (license field changed from ISC to Apache-2.0)
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { readFileSync, existsSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -255,5 +255,213 @@ describe('package.json — license field updated to Apache-2.0', () => {
     const raw = readText('package.json');
     // Should not have "license": "ISC"
     expect(raw).not.toMatch(/"license"\s*:\s*"ISC"/);
+  });
+});
+
+// ─── LICENSE — additional section & content checks ───────────────────────────
+
+describe('LICENSE — additional section and content coverage', () => {
+  let content: string;
+
+  beforeEach(() => {
+    content = readText('LICENSE');
+  });
+
+  it('header contains the exact date "January 2004"', () => {
+    expect(content).toContain('January 2004');
+  });
+
+  it('includes the TERMS AND CONDITIONS preamble header', () => {
+    expect(content).toContain('TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION');
+  });
+
+  it('includes the Definitions section (section 1)', () => {
+    expect(content).toContain('Definitions');
+  });
+
+  it('includes the Submission of Contributions section (section 5)', () => {
+    expect(content).toContain('Submission of Contributions');
+  });
+
+  it('includes the Trademarks section (section 6)', () => {
+    expect(content).toContain('Trademarks');
+  });
+
+  it('includes the Accepting Warranty section (section 9)', () => {
+    expect(content).toContain('Accepting Warranty');
+  });
+
+  it('does NOT contain GNU General Public License text', () => {
+    expect(content).not.toContain('GNU General Public License');
+    expect(content).not.toContain('GNU GENERAL PUBLIC LICENSE');
+  });
+
+  it('does NOT contain ISC license text', () => {
+    expect(content).not.toContain('ISC License');
+    // ISC characteristic phrase
+    expect(content).not.toMatch(/permission to use, copy, modify, and\/or distribute/i);
+  });
+
+  it('contains "Contributor" term as defined in Apache 2.0', () => {
+    expect(content).toContain('"Contributor"');
+  });
+
+  it('contains the "Derivative Works" term as defined in Apache 2.0', () => {
+    expect(content).toContain('"Derivative Works"');
+  });
+
+  it('contains "WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND" disclaimer', () => {
+    expect(content).toContain('WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND');
+  });
+
+  it('file uses consistent Unix-style or readable line endings (no null bytes)', () => {
+    // Ensure the file is clean text with no embedded null bytes
+    expect(content).not.toContain('\0');
+  });
+
+  // Regression: confirm the "Licensor" term is present (Apache 2.0 specific)
+  it('regression — "Licensor" term appears in the license text', () => {
+    expect(content).toContain('"Licensor"');
+  });
+});
+
+// ─── README.md — additional badge and content checks ─────────────────────────
+
+describe('README.md — additional badge accuracy and consistency checks', () => {
+  let content: string;
+
+  beforeEach(() => {
+    content = readText('README.md');
+  });
+
+  it('top license badge uses the neon green color 39FF14', () => {
+    // The badge URL should contain the green color code used in other badges
+    expect(content).toMatch(/LICENSE-Apache_2\.0-39FF14/);
+  });
+
+  it('top badge uses for-the-badge style', () => {
+    expect(content).toMatch(/LICENSE-Apache_2\.0[^)]*style=for-the-badge/);
+  });
+
+  it('does NOT reference ISC in any badge URL', () => {
+    expect(content).not.toMatch(/badge\/LICENSE-ISC/);
+    expect(content).not.toMatch(/badge\/License-ISC/);
+  });
+
+  it('does NOT reference GPL in any badge URL', () => {
+    expect(content).not.toMatch(/badge\/LICENSE-GPL/);
+    expect(content).not.toMatch(/badge\/License-GPL/);
+  });
+
+  it('the label on the top license badge is "LICENSE"', () => {
+    // shields.io format: /badge/LABEL-VALUE-COLOR
+    expect(content).toMatch(/badge\/LICENSE-Apache_2\.0/);
+  });
+
+  it('footer badge uses flat-square style', () => {
+    expect(content).toMatch(/License-Apache_2\.0[^"]*style=flat-square/);
+  });
+
+  it('README still contains the project name "iqra"', () => {
+    // Sanity: core content was not accidentally removed during badge update
+    expect(content.toLowerCase()).toContain('iqra');
+  });
+});
+
+// ─── package.json — additional structural integrity checks ───────────────────
+
+describe('package.json — additional structural integrity after license change', () => {
+  interface PackageJson {
+    name: string;
+    version: string;
+    license: string;
+    keywords?: string[];
+    repository?: { type: string; url: string };
+    [key: string]: unknown;
+  }
+
+  let pkg: PackageJson;
+
+  beforeEach(() => {
+    pkg = readJson<PackageJson>('package.json');
+  });
+
+  it('version field is present and non-empty', () => {
+    expect(pkg).toHaveProperty('version');
+    expect(typeof pkg.version).toBe('string');
+    expect(pkg.version.trim().length).toBeGreaterThan(0);
+  });
+
+  it('keywords array is present and contains "ai"', () => {
+    expect(pkg).toHaveProperty('keywords');
+    expect(Array.isArray(pkg.keywords)).toBe(true);
+    expect(pkg.keywords).toContain('ai');
+  });
+
+  it('repository field is present with a GitHub URL', () => {
+    expect(pkg).toHaveProperty('repository');
+    const repo = pkg.repository as { type: string; url: string };
+    expect(repo.url).toContain('github.com');
+  });
+
+  it('license value uses a hyphen (Apache-2.0) not a space (Apache 2.0)', () => {
+    // SPDX identifiers use hyphens; verify the exact format
+    expect(pkg.license).not.toMatch(/^Apache\s+2/);
+    expect(pkg.license).toMatch(/^Apache-2\.0$/);
+  });
+
+  it('raw JSON text does not contain "MIT" as a license value', () => {
+    const raw = readText('package.json');
+    expect(raw).not.toMatch(/"license"\s*:\s*"MIT"/);
+  });
+});
+
+// ─── Cross-file consistency checks ───────────────────────────────────────────
+
+describe('Cross-file consistency — LICENSE, README.md, and package.json agree', () => {
+  it('LICENSE file content is consistent with package.json SPDX identifier', () => {
+    const licenseContent = readText('LICENSE');
+    const pkg = readJson<{ license: string }>('package.json');
+    // package.json says Apache-2.0; LICENSE file must declare Apache 2.0
+    expect(pkg.license).toBe('Apache-2.0');
+    expect(licenseContent).toContain('Apache License');
+    expect(licenseContent).toContain('Version 2.0');
+  });
+
+  it('README license badge label matches package.json license family', () => {
+    const readme = readText('README.md');
+    const pkg = readJson<{ license: string }>('package.json');
+    // package.json is Apache-2.0 → README must reference Apache in badge
+    expect(pkg.license).toMatch(/^Apache/);
+    expect(readme).toContain('Apache_2.0');
+  });
+
+  it('no file in the trio still references the superseded ISC license', () => {
+    const licenseContent = readText('LICENSE');
+    const readme = readText('README.md');
+    const pkgRaw = readText('package.json');
+
+    expect(licenseContent).not.toContain('ISC');
+    expect(readme).not.toMatch(/badge.*ISC/);
+    expect(pkgRaw).not.toMatch(/"license"\s*:\s*"ISC"/);
+  });
+
+  it('no file in the trio still references the old MIT license in badge/license context', () => {
+    const readme = readText('README.md');
+    const licenseContent = readText('LICENSE');
+
+    // LICENSE file must not contain MIT license boilerplate
+    expect(licenseContent).not.toContain('Permission is hereby granted, free of charge');
+    // README must not have MIT in badge URLs
+    expect(readme).not.toMatch(/shields\.io\/badge\/[^)]*-MIT/);
+  });
+
+  it('LICENSE copyright holder name appears nowhere contradictory', () => {
+    const licenseContent = readText('LICENSE');
+    // The copyright line should be a single consolidated entry
+    const copyrightMatches = licenseContent.match(/Copyright \d{4}/g);
+    expect(copyrightMatches).not.toBeNull();
+    // There should be exactly one copyright year declaration
+    expect(copyrightMatches!.length).toBe(1);
   });
 });
