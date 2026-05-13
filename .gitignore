@@ -36,6 +36,22 @@ tsconfig.tsbuildinfo
 *.tsbuildinfo
 raw_api_payload*.json
 *.bak
+*.backup
+
+# TypeScript compiler debug snapshots — created ad hoc, never useful in git
+ts_errors.txt
+tsc_output.txt
+
+# Scratch and debug scripts at the repo root. Real source lives under src/.
+/scratch/
+/scratch_*.ts
+/debug_*.ts
+/docs-out/
+
+# Go engine binaries are produced by `npm run engine:build` under /bin/.
+# The source under src/services/go-engine/ stays in git; the binary does not.
+/bin/iqra-engine
+/bin/iqra-engine.exe
 
 # Repomix output — ضخم جداً ولا فائدة منه في git
 repomix*.txt
