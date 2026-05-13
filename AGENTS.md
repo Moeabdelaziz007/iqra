@@ -1,5 +1,7 @@
 # AGENTS.md — Operating Manual for AI Coding Agents
 
+> 📜 **Stack-wide protocol rules**: read [`AXIOM.md`](https://github.com/Moeabdelaziz007/aix-format/blob/main/AXIOM.md) first. This file complements it with repo-local operating instructions for IQRA.
+
 > **A briefing packet for any AI agent (Jules, Codex, Cursor, Copilot, Codesmith, …) working in this repository.**
 > Read this file in full before opening any pull request. The rules here are absolute.
 
