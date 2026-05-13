@@ -69,16 +69,45 @@ function detectLicenseType(content: string): { name: string; spdx: string } {
   return { name: 'unknown', spdx: 'unknown' };
 }
 
-// 🤖 NOTE: مقارنة pkg.license بالـ SPDX المكتشف. نتسامح مع variants شائعة
-// (MIT vs MIT-0, Apache-2.0 vs Apache 2.0, إلخ).
+// 🤖 NOTE: مقارنة pkg.license بالـ SPDX المكتشف من الملف.
+// pkg.license قد يكون:
+//   - token مفرد:  "MIT", "Apache-2.0"
+//   - SPDX expression: "(MIT OR Apache-2.0)", "MIT AND BSD-3-Clause"
+//   - meta:  "SEE LICENSE IN LICENSE", "UNLICENSED"
+// نتسامح مع كل هذه: لو أي token في الـ expression يطابق المكتشف، نجح.
+function normalizeLicenseToken(s: string): string {
+  return s.toLowerCase().replace(/[\s_.]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+}
+
+function extractLicenseTokens(declared: string): string[] {
+  const trimmed = declared.trim();
+  // "SEE LICENSE IN ..." — تأجيل إلى المحتوى المكتشف؛ نمرّر كل شيء (دائماً يطابق).
+  if (/^SEE LICENSE IN/i.test(trimmed)) return ['*SEE_LICENSE*'];
+  // "UNLICENSED" أو "UNKNOWN" — معروف؛ لا نقارن.
+  if (/^(UNLICENSED|UNKNOWN)$/i.test(trimmed)) return ['*UNLICENSED*'];
+  // SPDX expression: ضع تعابيره وأرجع كل tokens (نتجاهل OR/AND/WITH operators).
+  // نزيل الأقواس ونقسم على whitespace، ثم نُزيل الكلمات المحجوزة.
+  const reserved = new Set(['or', 'and', 'with']);
+  return trimmed
+    .replace(/[()]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+    .filter((t) => !reserved.has(t.toLowerCase()));
+}
+
 function licensesMatch(declared: string, detectedSpdx: string): boolean {
   if (detectedSpdx === 'unknown') return false;
-  const norm = (s: string) => s.toLowerCase().replace(/[\s_.]+/g, '-').replace(/-+/g, '-');
-  const d = norm(declared);
-  const det = norm(detectedSpdx);
-  if (d === det) return true;
-  // تطابق partial: MIT vs MIT-0، Apache-2.0 vs Apache
-  if (d.startsWith(det) || det.startsWith(d)) return true;
+  const tokens = extractLicenseTokens(declared);
+  // metadata-only: لا تقارن، اعتبره pass (المالك أعلن صراحة "see LICENSE").
+  if (tokens.includes('*SEE_LICENSE*') || tokens.includes('*UNLICENSED*')) return true;
+
+  const det = normalizeLicenseToken(detectedSpdx);
+  for (const tok of tokens) {
+    const d = normalizeLicenseToken(tok);
+    if (!d) continue;
+    if (d === det) return true;
+    if (d.startsWith(det) || det.startsWith(d)) return true;
+  }
   return false;
 }
 

@@ -28,8 +28,16 @@ const SKIP_PREFIXES = ['.iqra/memory'];
 // نمط الروابط في markdown
 const INLINE_LINK = /(?<!\!)\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
 const IMAGE_LINK = /!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
-// reference-style:  [text][ref] أو ![alt][ref]
-const REF_USE = /(!?)\[([^\]]*)\]\[([^\]]+)\]/g;
+// reference-style: نمطان منفصلان
+// 🤖 NOTE: CommonMark يدعم ثلاث صيغ:
+//   1. full:      [text][ref]
+//   2. collapsed: [text][]   (يستخدم text كـ ref)
+//   3. shortcut:  [text]     (نفس الشيء، بدون []) — أصعب: نتجنّب false positives
+//      عبر التأكد من عدم وجود  ](  أو  ]:  أو  ][  بعدها
+const REF_USE_FULL = /(!?)\[([^\]]*)\]\[([^\]]+)\]/g;
+const REF_USE_COLLAPSED = /(!?)\[([^\]]+)\]\[\]/g;
+// shortcut: [text] غير متبوع بـ ( أو [ أو :
+const REF_USE_SHORTCUT = /(!?)\[([^\]]+)\](?!\s*[(:\[])/g;
 // تعريف المرجع:  [ref]: ./target.md "optional title"
 const REF_DEF = /^\s*\[([^\]]+)\]:\s*(\S+)(?:\s+.+)?$/;
 
@@ -75,13 +83,17 @@ function isAnchor(url: string): boolean {
 
 type Broken = { file: string; line: number; target: string };
 
-function resolveLink(target: string, fileDir: string): string {
+function resolveLink(target: string, fileDir: string): { resolved: string; escapes: boolean } {
   // 🤖 NOTE: المسارات التي تبدأ بـ '/' في markdown نسبية لجذر المستودع
   // (process.cwd() في الـ workflow)، ليس filesystem root.
-  if (target.startsWith('/')) {
-    return path.join(process.cwd(), target);
-  }
-  return path.resolve(fileDir, target);
+  // لكن path.join يطبّق normalize فيعالج '/../../etc/passwd' كـ سلسلة تخرج عن المستودع.
+  // نتحقق أن الـ resolved يبقى تحت root، وإلا نعتبره كسر.
+  const root = path.resolve(process.cwd());
+  const resolved = target.startsWith('/')
+    ? path.resolve(root, '.' + target)
+    : path.resolve(fileDir, target);
+  const escapes = !(resolved === root || resolved.startsWith(root + path.sep));
+  return { resolved, escapes };
 }
 
 function checkFile(file: string): Broken[] {
@@ -110,14 +122,32 @@ function checkFile(file: string): Broken[] {
     const [pathOnly] = target.split('#');
     if (!pathOnly) return;
 
-    const resolved = resolveLink(pathOnly, fileDir);
+    const { resolved, escapes } = resolveLink(pathOnly, fileDir);
+    if (escapes) {
+      // 🤖 NOTE: مسار يخرج عن جذر المستودع (مثلاً /../../etc/passwd) — كسر
+      // حتى لو كان الملف موجوداً محلياً، فالـ doc-link المقصود داخلي.
+      broken.push({ file, line: lineNum, target: `${displayed} (يخرج عن جذر المستودع)` });
+      return;
+    }
     if (!fs.existsSync(resolved)) {
       broken.push({ file, line: lineNum, target: displayed });
     }
   }
 
+  function checkRef(refKey: string, lineNum: number, label: string): void {
+    const def = refDefs.get(refKey.toLowerCase());
+    if (def === undefined) {
+      broken.push({ file, line: lineNum, target: `[ref:${label}] (تعريف مفقود)` });
+      return;
+    }
+    checkTarget(def, lineNum, `[${label}] → ${def}`);
+  }
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+
+    // SKIP السطور التي تحوي تعريف مرجع: [foo]: target — لا نريد فحصها كـ shortcut.
+    const isDefLine = REF_DEF.test(line);
 
     // inline + image
     const patterns = [INLINE_LINK, IMAGE_LINK];
@@ -130,18 +160,32 @@ function checkFile(file: string): Broken[] {
       }
     }
 
-    // reference-style: [text][ref] أو ![alt][ref]
-    REF_USE.lastIndex = 0;
+    if (isDefLine) continue; // تخطّى الأنماط الـ reference على سطور التعريف
+
+    // reference-style FULL: [text][ref] أو ![alt][ref]
+    REF_USE_FULL.lastIndex = 0;
     let rm: RegExpExecArray | null;
-    while ((rm = REF_USE.exec(line)) !== null) {
-      const refKey = rm[3].toLowerCase();
-      const def = refDefs.get(refKey);
-      if (def === undefined) {
-        // مرجع غير مُعرَّف — كسر
-        broken.push({ file, line: i + 1, target: `[ref:${rm[3]}] (تعريف مفقود)` });
-        continue;
+    while ((rm = REF_USE_FULL.exec(line)) !== null) {
+      checkRef(rm[3], i + 1, rm[3]);
+    }
+
+    // reference-style COLLAPSED: [text][] — يستخدم text كـ ref
+    REF_USE_COLLAPSED.lastIndex = 0;
+    while ((rm = REF_USE_COLLAPSED.exec(line)) !== null) {
+      checkRef(rm[2], i + 1, rm[2]);
+    }
+
+    // reference-style SHORTCUT: [text] — text هو الـ ref
+    // 🤖 NOTE: نتحقق أن السطر بعد إزالة كل inline/image/full/collapsed
+    // matches يحوي shortcut حقيقي، وإلا سنطابق أي [bracketed] داخل النص.
+    // الحل: نطلب أن يكون الـ ref موجوداً في refDefs (و إلا لا نُبلِّغ كسر —
+    // shortcut بدون def عادة ليس link حقيقي بل نص brackets).
+    REF_USE_SHORTCUT.lastIndex = 0;
+    while ((rm = REF_USE_SHORTCUT.exec(line)) !== null) {
+      const refKey = rm[2].toLowerCase();
+      if (refDefs.has(refKey)) {
+        checkRef(rm[2], i + 1, rm[2]);
       }
-      checkTarget(def, i + 1, `[${rm[3]}] → ${def}`);
     }
   }
 
