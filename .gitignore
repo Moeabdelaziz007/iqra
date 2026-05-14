@@ -29,6 +29,7 @@ npm-debug.log*
 # لكن النسخ الاحتياطية والنبضات تبقى محلية
 .iqra/memory/
 .iqra/pulses.jsonl
+.iqra/evolution_log.jsonl
 .iqra_loop_state
 
 # Build artifacts

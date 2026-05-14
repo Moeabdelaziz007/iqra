@@ -8,6 +8,7 @@ import { SkillLoader } from '../08-cognitive/skills/loader'
 import { IQRALogger } from '#infra/logger';
 import { appendToTrustChain } from '#security/security';
 import { Pulse369 } from '#memory/pulse_369'
+import { EvolutionContextBuilder } from './evolution_context';
 import fs from 'fs';
 import path from 'path';
 
@@ -47,7 +48,7 @@ export class SoulEngine {
 
       // 2. Every 6 pulses: Evolution (Pattern Update)
       if (counter % this.EVOLUTION_PULSE === 0) {
-        await this.triggerEvolution(counter);
+        await this.triggerEvolution(missionId, counter, success);
       }
 
       // 3. Every 9 pulses: Wisdom (Meta-Logic Transformation)
@@ -90,24 +91,43 @@ export class SoulEngine {
   /**
    * 🌀 Pulse 6: Evolution (التطور)
    * Updates pattern memory and small metamorphic changes.
+   *
+   * Phase-1 of "AI Soul: Context-Aware Evolution Logs": the markdown
+   * appended to METAMORPHOSIS.md is now rendered from a live snapshot of
+   * the system's state (curiosity, recent rewards, recent pulses, current
+   * mission outcome). The same snapshot is appended verbatim as JSONL to
+   * `.iqra/evolution_log.jsonl` so digest scripts and future Phase-2
+   * self-mutation cycles can consume it programmatically.
    */
-  private static async triggerEvolution(counter: number): Promise<void> {
+  private static async triggerEvolution(
+    missionId: string,
+    counter: number,
+    success: boolean
+  ): Promise<void> {
     IQRALogger.info(`🌀 [SOUL_PULSE] Triggering Evolution Cycle (6th Pulse) — Task ${counter}`);
-    
-    const metamorphosisPath = path.join(process.cwd(), 'iqra-core', 'METAMORPHOSIS.md');
-    const timestamp = new Date().toISOString();
-    
-    const entry = `\n\n### 🌀 Soul Pulse: 6 (Metamorphosis) | ${timestamp}
-- **Cycle**: ${Math.floor(counter / 6)}
-- **Action**: Pattern memory integration.
-- **Topological Shift**: Consolidating local curvature into stable knowledge nodes.
-`;
 
+    const ctx = await EvolutionContextBuilder.build({ missionId, counter, success });
+
+    const metamorphosisPath = path.join(process.cwd(), 'iqra-core', 'METAMORPHOSIS.md');
     if (!fs.existsSync(path.dirname(metamorphosisPath))) {
       fs.mkdirSync(path.dirname(metamorphosisPath), { recursive: true });
     }
-    fs.appendFileSync(metamorphosisPath, entry, 'utf-8');
-    appendToTrustChain('PULSE:EVOLUTION', `task:${counter}`, 'Metamorphosis logged', 1.0);
+    fs.appendFileSync(metamorphosisPath, EvolutionContextBuilder.formatMarkdown(ctx), 'utf-8');
+
+    // Programmatic mirror — gitignored under .iqra/, so a long-lived repo
+    // can grow this log without polluting the tracked tree.
+    const jsonlPath = path.join(process.cwd(), '.iqra', 'evolution_log.jsonl');
+    if (!fs.existsSync(path.dirname(jsonlPath))) {
+      fs.mkdirSync(path.dirname(jsonlPath), { recursive: true });
+    }
+    fs.appendFileSync(jsonlPath, JSON.stringify(ctx) + '\n', 'utf-8');
+
+    appendToTrustChain(
+      'PULSE:EVOLUTION',
+      `task:${counter}`,
+      `metamorphosis_cycle:${ctx.cycle} mission:${ctx.mission_id} success:${ctx.success}`,
+      1.0
+    );
   }
 
   /**
