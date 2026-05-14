@@ -257,7 +257,6 @@ export const PERSONA_REGISTRY: Record<string, Persona> = {
  */
 export function getPersona(id: string): Persona {
   if (!id) return PERSONA_REGISTRY['iqra-core'];
-export function getPersona(id: string): Persona {
   const namespaced = id.startsWith('iqra-') ? id : `iqra-${id}`;
   return PERSONA_REGISTRY[id] || PERSONA_REGISTRY[namespaced] || PERSONA_REGISTRY['iqra-core'];
 }
