@@ -1,0 +1,211 @@
+# .github/workflows/self-healing-ci.yml
+#
+# 🧬 IQRA Self-Healing CI/CD — Phase-1
+#
+# يُشغَّل تلقائياً بعد فشل خط Sidq، أو يدوياً عبر workflow_dispatch.
+# Phase-1 لا يكتب أبداً إلى main — أي إصلاح آمن يتولد منه PR للمراجعة
+# البشرية. هذا يحترم Mithaq No-Mock و قاعدة "لا تجاوز للـ hooks".
+#
+# 🤖 NOTE TO FUTURE AI AGENTS:
+#   - Trigger #1: workflow_run conclusion=failure على Sidq Pipeline.
+#   - Trigger #2: workflow_dispatch يدوي للاختبار من أي فرع.
+#   - الـ workflow لا يحدّث main أبداً. يفتح PR من فرع auto/healing-*.
+#   - الـ PR يُفتح فقط إذا غيّر healer ملفاً واحداً على الأقل.
+#   - permissions محدودة: contents:write لإنشاء الفرع، pull-requests:write
+#     لفتح PR. لا أي صلاحية أخرى.
+#   - لا تضف خطوات تكتب إلى main حتى لو أغراك ذلك — الـ Phase التالية
+#     ستوسّع هذا، لكن Phase-1 = مراجعة بشرية فقط.
+
+name: 🧬 IQRA Self-Healing CI
+
+on:
+  workflow_run:
+    workflows: ['🕋 IQRA Sovereign Truth Pipeline']
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: 'Skip vitest probe (faster, lint/typecheck only)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: iqra-self-healing
+  cancel-in-progress: false
+
+jobs:
+  heal:
+    name: 🧬 Self-Heal Cycle
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Only run on a *failed* upstream workflow_run; manual dispatches always run.
+    if: >-
+      github.event_name == 'workflow_dispatch'
+      || (github.event_name == 'workflow_run'
+          && github.event.workflow_run.conclusion == 'failure')
+
+    steps:
+      - name: 📥 Checkout (failing SHA or current ref)
+        uses: actions/checkout@v4
+        with:
+          # For workflow_run we want the SHA that failed, not the latest main.
+          # For workflow_dispatch we just use the ref the user selected.
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🟢 Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: 🧬 Run self-heal cycle
+        id: heal
+        run: |
+          # `set +e` so we can capture the script's exit code rather than
+          # letting the step short-circuit on non-zero. The exit code is then
+          # consumed by the "Healer crash gate" step below — never silently
+          # dropped.
+          set +e
+          ARGS=""
+          if [ "${{ github.event.inputs.skip_tests }}" = "true" ]; then
+            ARGS="--skip-tests"
+          fi
+          npx tsx .iqra/scripts/self-heal.ts $ARGS
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+
+      - name: 🚨 Healer crash gate
+        # The self-heal script exits 1 only when one of its healers crashed
+        # (spawn failure / signal kill — not just "lint errors remain").
+        # A crash means the patch on disk could be incomplete or
+        # inconsistent, so we annotate and fail the workflow rather than
+        # propose a half-baked PR to humans.
+        if: steps.heal.outputs.exit_code != '0'
+        run: |
+          echo "::error::Self-heal cycle exited with code ${{ steps.heal.outputs.exit_code }} — healer crashed. Refusing to open a healing PR."
+          {
+            echo "## 🚨 Healer crash"
+            echo
+            echo "Self-heal exited with code \`${{ steps.heal.outputs.exit_code }}\`. No healing PR will be opened on this run."
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+
+      - name: 📊 Detect changes
+        id: diff
+        # Only inspect the diff if the healer ran cleanly. The gate step
+        # above will have already failed the job otherwise.
+        if: steps.heal.outputs.exit_code == '0'
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "## 🧬 Self-Healing Diff"
+              echo
+              echo '```diff'
+              git diff --no-color | head -400
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "## 🧬 Self-Healing Diff" >> "$GITHUB_STEP_SUMMARY"
+            echo >> "$GITHUB_STEP_SUMMARY"
+            echo "_No changes produced by Phase-1 healers._" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: 🌱 Open healing PR
+        if: steps.heal.outputs.exit_code == '0' && steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Phase-1: a healing PR is *proposed*, never auto-merged. Reviewer
+          # decides if the patch is safe. The branch carries the run ID so
+          # multiple concurrent failures don't collide.
+          BRANCH="auto/healing-${{ github.run_id }}"
+          git config user.name "IQRA Self-Healing Agent"
+          git config user.email "heal@iqra.sovereign"
+          git checkout -b "$BRANCH"
+
+          # Defensive scrub before staging — two layers of protection so
+          # the healing PR is clean *by construction*, independent of
+          # what the healers chose to touch on disk:
+          #
+          #   1. package-lock.json: `npm install --legacy-peer-deps` in
+          #      the setup step can rewrite the lockfile due to peer-dep
+          #      resolution differences. Revert it here so lockfile drift
+          #      unrelated to lint/reindex never lands in a healing PR.
+          #
+          #   2. sovereign paths: `next lint --fix` operates on the whole
+          #      project and could, in principle, touch a file under
+          #      src/lib/iqra/00-manifest/, iqra-core/, IQRA_SUPREME.md
+          #      or AGENTS.md. The repo's "🔒 Protected Paths Guard"
+          #      would already block merging such a PR, but we revert
+          #      defensively here so the PR diff is clean for review.
+          #
+          # If any revert removes the only changes the healer produced,
+          # the commit step below will simply find nothing to stage and
+          # the PR-create step will fail loudly — which is the correct
+          # outcome (no proposal to humans if nothing useful remains).
+          if git diff --quiet -- package-lock.json; then :; else
+            echo "::notice::Reverting package-lock.json drift before staging."
+            git checkout HEAD -- package-lock.json
+          fi
+          SOVEREIGN_PATHS=(
+            IQRA_SUPREME.md
+            AGENTS.md
+            tsconfig.json
+            .husky/pre-commit
+            src/lib/iqra/00-manifest
+            iqra-core
+          )
+          for p in "${SOVEREIGN_PATHS[@]}"; do
+            if [ -e "$p" ] && ! git diff --quiet -- "$p"; then
+              echo "::warning::Reverting healer change to sovereign path: $p"
+              git checkout HEAD -- "$p"
+            fi
+          done
+
+          # Re-check that we still have something worth proposing after
+          # the defensive scrubs. If not, exit 0 so the workflow ends
+          # cleanly with no PR rather than committing nothing.
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "::notice::All healer changes were on protected paths; nothing to propose."
+            exit 0
+          fi
+
+          # Stage explicitly — never `git add -A` — so any future side
+          # channel that dirties the worktree cannot piggy-back into a
+          # healing PR. We pass the current dirty set as a tracked list.
+          git status --porcelain | awk '{ $1=""; sub(/^ +/, ""); print }' \
+            | while IFS= read -r f; do
+                [ -n "$f" ] && git add -- "$f"
+              done
+          git commit -m "fix(ci): self-healing patch from run ${{ github.run_id }}"
+          git push origin "$BRANCH"
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "fix(ci): self-healing patch (run ${{ github.run_id }})" \
+            --body "Automated Phase-1 self-healing patch produced by \`.iqra/scripts/self-heal.ts\`.
+
+Review the diff before merging — this PR is a *proposal*, not an autonomous correction.
+
+Source workflow: ${{ github.event.workflow_run.html_url || 'manual dispatch' }}"
+
+      - name: 📝 Upload healing log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: healing-log-${{ github.run_id }}
+          path: |
+            .iqra/healing_log.jsonl
+            .iqra/pulses.jsonl
+          if-no-files-found: ignore
+          retention-days: 30

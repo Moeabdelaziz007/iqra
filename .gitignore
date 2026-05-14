@@ -18,6 +18,7 @@ npm-debug.log*
 # كل محتوى .iqra/ بيانات محلية سيادية، باستثناء محرك النمو (Growth Engine)
 .iqra/*
 !.iqra/README.md
+!.iqra/SELF_HEALING.md
 !.iqra/cycle.txt
 !.iqra/scripts/
 !.iqra/hooks/

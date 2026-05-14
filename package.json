@@ -38,7 +38,8 @@
     "iqra:guard:names": "npx tsx .iqra/hooks/name-validator.ts",
     "iqra:guard:secrets": "npx tsx .iqra/hooks/secret-guard.ts",
     "iqra:guard:size": "npx tsx .iqra/hooks/size-guard.ts",
-    "iqra:guard:all": "npx tsx .iqra/hooks/name-validator.ts --all && npx tsx .iqra/hooks/secret-guard.ts --all && npx tsx .iqra/hooks/size-guard.ts --all"
+    "iqra:guard:all": "npx tsx .iqra/hooks/name-validator.ts --all && npx tsx .iqra/hooks/secret-guard.ts --all && npx tsx .iqra/hooks/size-guard.ts --all",
+    "iqra:heal": "npx tsx .iqra/scripts/self-heal.ts"
   },
   "repository": {
     "type": "git",
