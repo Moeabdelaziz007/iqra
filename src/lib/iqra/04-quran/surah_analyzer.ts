@@ -30,7 +30,12 @@
 import fs from 'fs';
 import path from 'path';
 import { TopologicalCuriosityEngine, TopologicalResonance } from './topological_curiosity';
-import { goEngine } from './go_engine_client';
+// Use the proximity wrapper rather than the raw client so all Go-engine
+// calls go through the same health-checked, no-fallback path the rest of
+// the codebase uses ("No fallback - Go engine required for truth"). The
+// in-method healthCheck() guard below remains as a cheap belt-and-braces
+// short-circuit before constructing a batch request.
+import { goEngine } from './go_engine_proximity';
 import { PatternMemory } from '#memory/pattern_memory';
 import { IQRAMemory } from '#memory/memory';
 import { appendToTrustChain } from '#security/security';
@@ -602,10 +607,14 @@ ${result.quran_signature_surahs.length > 0
         const hit = batch.results?.find((r) => r.surah_number === surahNumber);
         if (hit) {
           if (!this.isValidSurahAnalysisResult(hit)) {
+            // Fall through to the next-older file instead of returning
+            // null. Mirrors the sibling JSON-parse / file-read catch on
+            // line ~615 — a single corrupt newest entry must not
+            // shadow valid historical data for the same surah.
             IQRALogger.error(
               `⚠️ [SURAH_ANALYZER] getSurahStats: invalid result shape for surah=${surahNumber} in ${full}`
             );
-            return null;
+            continue;
           }
           IQRALogger.info(
             `📖 [SURAH_ANALYZER] getSurahStats hit: surah=${surahNumber} source=${full}`
