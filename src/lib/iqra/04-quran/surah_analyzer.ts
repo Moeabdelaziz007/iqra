@@ -263,6 +263,10 @@ export class SurahAnalyzer {
               `⚠️ [SURAH_ANALYZER] Go Engine returned error for surah ${surahNumber}: ${goResult.error}`
             );
           }
+        } else {
+          IQRALogger.warn(
+            `⚠️ [SURAH_ANALYZER] Go Engine health check failed for surah ${surahNumber}: ${surahName}, skipping analyzeBatch`
+          );
         }
       } catch (e) {
         IQRALogger.warn(`⚠️ [SURAH_ANALYZER] Go Engine unavailable: ${(e as Error).message}`);
@@ -521,6 +525,31 @@ ${result.quran_signature_surahs.length > 0
   }
 
   /**
+   * Type guard to validate SurahAnalysisResult shape at runtime
+   */
+  private static isValidSurahAnalysisResult(hit: unknown): hit is SurahAnalysisResult {
+    if (!hit || typeof hit !== 'object') {
+      return false;
+    }
+    const h = hit as Record<string, unknown>;
+    return (
+      typeof h.surah_number === 'number' &&
+      typeof h.surah_name === 'string' &&
+      typeof h.total_verses === 'number' &&
+      typeof h.average_resonance === 'number' &&
+      typeof h.max_resonance === 'number' &&
+      typeof h.high_resonance_count === 'number' &&
+      typeof h.total_h1_cycles === 'number' &&
+      typeof h.is_fractal === 'boolean' &&
+      typeof h.has_quran_signature === 'boolean' &&
+      Array.isArray(h.numerical_patterns) &&
+      Array.isArray(h.top_verses) &&
+      typeof h.processing_time_ms === 'number' &&
+      typeof h.timestamp === 'number'
+    );
+  }
+
+  /**
    * الحصول على إحصائيات سورة من الذاكرة
    *
    * يبحث أولاً في ملفات JSON المحفوظة بواسطة saveResults() —
@@ -572,6 +601,12 @@ ${result.quran_signature_surahs.length > 0
         const batch = JSON.parse(raw) as BatchAnalysisResult;
         const hit = batch.results?.find((r) => r.surah_number === surahNumber);
         if (hit) {
+          if (!this.isValidSurahAnalysisResult(hit)) {
+            IQRALogger.error(
+              `⚠️ [SURAH_ANALYZER] getSurahStats: invalid result shape for surah=${surahNumber} in ${full}`
+            );
+            return null;
+          }
           IQRALogger.info(
             `📖 [SURAH_ANALYZER] getSurahStats hit: surah=${surahNumber} source=${full}`
           );
