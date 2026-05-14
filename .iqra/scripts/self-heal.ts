@@ -129,11 +129,19 @@ function listChangedFiles(): string[] {
 function probeTsc(): ProbeResult {
   const r = run('npx', ['tsc', '--noEmit']);
   const errors = countTscErrors(r.stdout, r.stderr);
-  return {
-    name: 'tsc',
-    ok: r.ok && errors === 0,
-    detail: r.ok ? `0 TypeScript errors` : `${errors} TypeScript error(s)`,
-  };
+  let detail: string;
+  if (r.ok) {
+    detail = '0 TypeScript errors';
+  } else if (errors > 0) {
+    detail = `${errors} TypeScript error(s)`;
+  } else {
+    // tsc failed for a reason that did NOT print `error TS\d+` lines
+    // (missing tsconfig, Node crash, spawn failure, internal error).
+    // Surface the real exit code instead of "0 TypeScript error(s)",
+    // which would contradict ok=false and hide the actual failure mode.
+    detail = `tsc exited with code ${r.code} (no TS errors parsed — possible config or runtime failure)`;
+  }
+  return { name: 'tsc', ok: r.ok && errors === 0, detail };
 }
 
 function probeTests(): ProbeResult {
