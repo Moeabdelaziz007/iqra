@@ -79,3 +79,10 @@ export {
   verifyManifest,
   type ManifestExportInput,
 } from './manifest_exporter';
+export {
+  MarketplaceLoader,
+  type MarketplaceLoaderOptions,
+  type SignaturePolicy,
+  type SkillRecord,
+  type VerificationResult,
+} from './marketplace_loader';
