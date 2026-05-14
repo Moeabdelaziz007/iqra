@@ -42,12 +42,83 @@ export class ToolRouter {
   }
 
   private async handleGitAction(action: string, params: any): Promise<any> {
-    // This will eventually call GitSovereign, but for now we map to the old GitSkill
-    if (action === 'git_push') {
-      return await GitSkill.pushToBranch(params.branch, params.message);
+    // This will eventually call GitSovereign, but for now we map to the old
+    // GitSkill. Every branch — including the default — produces a typed
+    // `{ success, data?, error? }` shape so callers never need to handle
+    // mixed return types. `git_push` keeps its boolean return for
+    // backwards-compat with the existing pushToBranch contract.
+    switch (action) {
+      case 'git_push':
+        return await GitSkill.pushToBranch(params?.branch, params?.message);
+
+      case 'git_head':
+        return { success: true, data: { sha: GitSkill.head() } };
+
+      case 'git_branch':
+        return { success: true, data: { branch: GitSkill.branch() } };
+
+      case 'git_status':
+        return { success: true, data: { clean: GitSkill.isClean() } };
+
+      case 'git_create_branch': {
+        if (!params?.branch) {
+          return { success: false, error: 'git_create_branch: `branch` is required' };
+        }
+        const ok = GitSkill.createBranch(params.branch);
+        return ok
+          ? { success: true, data: { branch: params.branch } }
+          : { success: false, error: `git_create_branch: failed for "${params.branch}"` };
+      }
+
+      case 'git_commit': {
+        const paths = Array.isArray(params?.paths) ? params.paths : null;
+        if (!paths || paths.length === 0 || !params?.message) {
+          return {
+            success: false,
+            error: 'git_commit: `paths` (non-empty array) and `message` are required',
+          };
+        }
+        const sha = GitSkill.commit(paths, params.message);
+        return sha
+          ? { success: true, data: { sha } }
+          : { success: false, error: 'git_commit: commit failed' };
+      }
+
+      case 'git_revert': {
+        if (!params?.ref) {
+          return { success: false, error: 'git_revert: `ref` is required' };
+        }
+        const ok = GitSkill.revertTo(params.ref);
+        return ok
+          ? { success: true, data: { ref: params.ref } }
+          : { success: false, error: `git_revert: failed to reset to "${params.ref}"` };
+      }
+
+      case 'git_recent_commits': {
+        const raw = params?.limit;
+        const limit = typeof raw === 'number' && Number.isFinite(raw) ? raw : 20;
+        return { success: true, data: { commits: GitSkill.recentCommits(limit) } };
+      }
+
+      case 'git_open_pr': {
+        if (!params?.title) {
+          return { success: false, error: 'git_open_pr: `title` is required' };
+        }
+        const url = await GitSkill.openPR(params.title, params.body || '');
+        return url
+          ? { success: true, data: { url } }
+          : {
+              success: false,
+              error: 'git_open_pr: `gh` CLI unavailable or PR creation rejected',
+            };
+      }
+
+      default:
+        return {
+          success: false,
+          error: `GitSovereign: action "${action}" is not implemented`,
+        };
     }
-    // TODO: Implement other git actions in GitSovereign
-    return { success: false, error: 'Action not implemented in GitSovereign' };
   }
 
   private async handleSearchAction(action: string, params: any): Promise<any> {
