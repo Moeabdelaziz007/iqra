@@ -101,9 +101,27 @@ export class GitSkill {
     return run(['rev-parse', '--short', 'HEAD']);
   }
 
+  /**
+   * Like `head()` but exposes the structured exit-code result so callers
+   * that need to surface failure (instead of treating broken-git as
+   * "empty SHA") can decide based on `.ok`.
+   */
+  static headResult(): GitRunResult {
+    return runResult(['rev-parse', '--short', 'HEAD']);
+  }
+
   /** Current branch name, empty string if detached HEAD. */
   static branch(): string {
     return run(['rev-parse', '--abbrev-ref', 'HEAD']);
+  }
+
+  /**
+   * Like `branch()` but exposes the structured exit-code result. A
+   * caller that wants to distinguish "git is broken" from "we are on
+   * a real branch" inspects `.ok` here; otherwise prefer `branch()`.
+   */
+  static branchResult(): GitRunResult {
+    return runResult(['rev-parse', '--abbrev-ref', 'HEAD']);
   }
 
   /**
@@ -116,6 +134,16 @@ export class GitSkill {
     const r = runResult(['status', '--porcelain']);
     if (!r.ok) return false;
     return r.stdout === '';
+  }
+
+  /**
+   * Structured equivalent of `isClean()`: returns the raw `GitRunResult`
+   * for `git status --porcelain` so callers can distinguish "git
+   * invocation failed" (`!ok`) from "tree is dirty" (`ok` with non-empty
+   * `stdout`) from "tree is clean" (`ok` with empty `stdout`).
+   */
+  static statusResult(): GitRunResult {
+    return runResult(['status', '--porcelain']);
   }
 
   /**
