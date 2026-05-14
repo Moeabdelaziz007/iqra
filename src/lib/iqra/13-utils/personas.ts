@@ -250,10 +250,11 @@ export const PERSONA_REGISTRY: Record<string, Persona> = {
 };
 
 /**
- * Gets a persona by ID, accepting either the namespaced form
- * (`iqra-core`) or the bare form (`core`). Falls back to `iqra-core`
- * when nothing matches so callers never need to handle a null
- * persona — the AIX exporter contract requires a real persona.
+ * Selects a registered persona by identifier, accepting either namespaced (`iqra-...`) or bare forms.
+ *
+ * If `id` is falsy or no matching persona exists, returns the default `iqra-core` persona so callers always receive a valid persona.
+ *
+ * @returns The matching persona, or the `iqra-core` persona if no match is found.
  */
 export function getPersona(id: string): Persona {
   if (!id) return PERSONA_REGISTRY['iqra-core'];
