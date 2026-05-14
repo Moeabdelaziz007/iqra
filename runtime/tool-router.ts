@@ -45,79 +45,98 @@ export class ToolRouter {
     // This will eventually call GitSovereign, but for now we map to the old
     // GitSkill. Every branch — including the default — produces a typed
     // `{ success, data?, error? }` shape so callers never need to handle
-    // mixed return types. `git_push` keeps its boolean return for
-    // backwards-compat with the existing pushToBranch contract.
-    switch (action) {
-      case 'git_push':
-        return await GitSkill.pushToBranch(params?.branch, params?.message);
+    // mixed return types or worry about thrown exceptions: any throw from
+    // GitSkill is caught below and converted into the same shape.
+    const RECENT_COMMITS_DEFAULT = 20;
+    const RECENT_COMMITS_MAX = 100;
 
-      case 'git_head':
-        return { success: true, data: { sha: GitSkill.head() } };
-
-      case 'git_branch':
-        return { success: true, data: { branch: GitSkill.branch() } };
-
-      case 'git_status':
-        return { success: true, data: { clean: GitSkill.isClean() } };
-
-      case 'git_create_branch': {
-        if (!params?.branch) {
-          return { success: false, error: 'git_create_branch: `branch` is required' };
+    try {
+      switch (action) {
+        case 'git_push': {
+          const ok = await GitSkill.pushToBranch(params?.branch, params?.message);
+          return ok
+            ? { success: true, data: { pushed: true } }
+            : { success: false, error: 'git_push: push failed' };
         }
-        const ok = GitSkill.createBranch(params.branch);
-        return ok
-          ? { success: true, data: { branch: params.branch } }
-          : { success: false, error: `git_create_branch: failed for "${params.branch}"` };
-      }
 
-      case 'git_commit': {
-        const paths = Array.isArray(params?.paths) ? params.paths : null;
-        if (!paths || paths.length === 0 || !params?.message) {
+        case 'git_head':
+          return { success: true, data: { sha: GitSkill.head() } };
+
+        case 'git_branch':
+          return { success: true, data: { branch: GitSkill.branch() } };
+
+        case 'git_status':
+          return { success: true, data: { clean: GitSkill.isClean() } };
+
+        case 'git_create_branch': {
+          if (!params?.branch) {
+            return { success: false, error: 'git_create_branch: `branch` is required' };
+          }
+          const ok = GitSkill.createBranch(params.branch);
+          return ok
+            ? { success: true, data: { branch: params.branch } }
+            : { success: false, error: `git_create_branch: failed for "${params.branch}"` };
+        }
+
+        case 'git_commit': {
+          const paths = Array.isArray(params?.paths) ? params.paths : null;
+          if (!paths || paths.length === 0 || !params?.message) {
+            return {
+              success: false,
+              error: 'git_commit: `paths` (non-empty array) and `message` are required',
+            };
+          }
+          const sha = GitSkill.commit(paths, params.message);
+          return sha
+            ? { success: true, data: { sha } }
+            : { success: false, error: 'git_commit: commit failed' };
+        }
+
+        case 'git_revert': {
+          if (!params?.ref) {
+            return { success: false, error: 'git_revert: `ref` is required' };
+          }
+          const ok = GitSkill.revertTo(params.ref);
+          return ok
+            ? { success: true, data: { ref: params.ref } }
+            : { success: false, error: `git_revert: failed to reset to "${params.ref}"` };
+        }
+
+        case 'git_recent_commits': {
+          // Coerce, validate, clamp. Negatives, NaN, fractional, and huge
+          // values all collapse to a safe positive integer in [1, MAX].
+          const raw = Number(params?.limit);
+          const limit = Number.isFinite(raw)
+            ? Math.min(RECENT_COMMITS_MAX, Math.max(1, Math.floor(raw)))
+            : RECENT_COMMITS_DEFAULT;
+          return { success: true, data: { commits: GitSkill.recentCommits(limit) } };
+        }
+
+        case 'git_open_pr': {
+          if (!params?.title) {
+            return { success: false, error: 'git_open_pr: `title` is required' };
+          }
+          const url = await GitSkill.openPR(params.title, params.body || '');
+          return url
+            ? { success: true, data: { url } }
+            : {
+                success: false,
+                error: 'git_open_pr: `gh` CLI unavailable or PR creation rejected',
+              };
+        }
+
+        default:
           return {
             success: false,
-            error: 'git_commit: `paths` (non-empty array) and `message` are required',
+            error: `GitSovereign: action "${action}" is not implemented`,
           };
-        }
-        const sha = GitSkill.commit(paths, params.message);
-        return sha
-          ? { success: true, data: { sha } }
-          : { success: false, error: 'git_commit: commit failed' };
       }
-
-      case 'git_revert': {
-        if (!params?.ref) {
-          return { success: false, error: 'git_revert: `ref` is required' };
-        }
-        const ok = GitSkill.revertTo(params.ref);
-        return ok
-          ? { success: true, data: { ref: params.ref } }
-          : { success: false, error: `git_revert: failed to reset to "${params.ref}"` };
-      }
-
-      case 'git_recent_commits': {
-        const raw = params?.limit;
-        const limit = typeof raw === 'number' && Number.isFinite(raw) ? raw : 20;
-        return { success: true, data: { commits: GitSkill.recentCommits(limit) } };
-      }
-
-      case 'git_open_pr': {
-        if (!params?.title) {
-          return { success: false, error: 'git_open_pr: `title` is required' };
-        }
-        const url = await GitSkill.openPR(params.title, params.body || '');
-        return url
-          ? { success: true, data: { url } }
-          : {
-              success: false,
-              error: 'git_open_pr: `gh` CLI unavailable or PR creation rejected',
-            };
-      }
-
-      default:
-        return {
-          success: false,
-          error: `GitSovereign: action "${action}" is not implemented`,
-        };
+    } catch (e) {
+      // Any thrown error from GitSkill (e.g. invalid ref token, shell
+      // failure) is normalised into the standard shape so callers see a
+      // single contract instead of a mix of returns and exceptions.
+      const message = e instanceof Error ? e.message : String(e);
+      return { success: false, error: `GitSovereign:${action}: ${message}` };
     }
   }
 
