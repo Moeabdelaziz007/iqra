@@ -14,7 +14,6 @@ const mapping = {
   '08-skills': '#skills',
   '09-evolution': '#evolution',
   '10-topology': '#topology',
-  '11-trading': '#trading',
   '12-infrastructure': '#infra',
   '13-utils': '#utils',
 };
@@ -64,7 +63,6 @@ files.forEach(file => {
     'skills': '#skills',
     'llm': '#llm',
     'rewards': '#rewards',
-    'trading': '#trading',
     'intelligence': '#core/intelligence',
     'utils': '#utils',
     'topology': '#topology',

@@ -29,7 +29,6 @@ import { DamirConscience } from '#security/damir_conscience';
 import { ResourceFactory } from '#security/conscience/resource_factory';
 import { IQRAVoice } from '#utils/voice';
 import { ByzantineFilter, AnomalyReport } from '#security/byzantine_filter';
-import { BybitEngine } from '#trading/bybit';
 import { IQRALogger } from '#infra/logger';
 import { TopologicalAnalyzer } from '#skills/topological_analyzer';
 import { TawbahLoop } from '#evolution/tawbah_loop';
@@ -282,7 +281,10 @@ export class SovereignEngine {
     // 💓 Sovereign Pulse Integration
     // PulseEngine start removed as it's missing
 
-    // 1. Micro Pulse (9s): Market Ticking & Hot Cache
+    // 1. Micro Pulse (9s): Hot Cache heartbeat
+    // Trading-side market ticking was removed per ADR 0002 — that
+    // responsibility lives in L4 (AlphaAxiom). L2 keeps the pulse
+    // cadence; trading agents write audit entries via TrustChain.
     if (cycle % 1 === 0) {
       await this.runMicroPulse();
     }
@@ -312,15 +314,35 @@ export class SovereignEngine {
     await this.mapQuantumTopology();
   }
 
+  /**
+   * Memory key tracking the timestamp of the last announced anomaly.
+   * Used to deduplicate voice alerts across micro-pulse cycles so a
+   * single L4 report does not loop every 9 seconds.
+   */
+  private static readonly LAST_ANOMALY_ANNOUNCE_KEY = 'system:anomaly:last_announced_ts';
+
   private static async runMicroPulse() {
-    // Market Observation (One Body)
-    const ticker = await BybitEngine.updateMarketPulse('BTCUSDT');
-    if (ticker) {
-      const anomaly = await IQRAMemory.get<AnomalyReport>(`market:anomaly:BTCUSDT`);
-      if (anomaly && anomaly.isAnomaly && anomaly.score > 4.0) {
-        await IQRAVoice.speak(`تنبيه سيادي: رصدت انحرافاً في السوق بمقدار ${anomaly.score.toFixed(2)}.`, { provider: 'elevenlabs', autoplay: true });
-      }
+    // Trading market observation was removed per ADR 0002; the runtime
+    // now only consumes anomaly reports written into TrustChain by L4
+    // (AlphaAxiom). When L4 writes a high-severity anomaly under
+    // `system:anomaly`, L2 surfaces it via the voice channel — but only
+    // once per report (deduped by `anomaly.timestamp`).
+    const anomaly = await IQRAMemory.get<AnomalyReport>(`system:anomaly`);
+    if (!anomaly || !anomaly.isAnomaly || anomaly.score <= 4.0) {
+      return;
     }
+
+    const lastAnnounced = await IQRAMemory.get<number>(this.LAST_ANOMALY_ANNOUNCE_KEY);
+    if (lastAnnounced && lastAnnounced >= anomaly.timestamp) {
+      // Already announced this (or a newer) report.
+      return;
+    }
+
+    await IQRAVoice.speak(
+      `تنبيه سيادي: رصدت انحرافاً بمقدار ${anomaly.score.toFixed(2)}.`,
+      { provider: 'elevenlabs', autoplay: true },
+    );
+    await IQRAMemory.set(this.LAST_ANOMALY_ANNOUNCE_KEY, anomaly.timestamp);
   }
 
   private static async runWarmPulse() {
@@ -350,9 +372,13 @@ export class SovereignEngine {
     IQRALogger.info(`🛡️ [2-3-7] Initiating Sovereign Protocol for: ${intent.type}`);
 
     // --- STAGE 1: DETECTION (2) ---
-    // Dual-input verification (Market + Byzantine)
-    const anomaly = await IQRAMemory.get<AnomalyReport>(`market:anomaly:BTCUSDT`);
-    const byzantinePass = anomaly ? anomaly.score < 5.0 : true; // High score = risk
+    // Byzantine verification reads the L4-supplied anomaly report
+    // from TrustChain; the runtime never fetches market data itself
+    // (ADR 0002). Only enforce the score cutoff when the report is
+    // actually flagged anomalous — a benign report under the same key
+    // must not halt sovereign actions.
+    const anomaly = await IQRAMemory.get<AnomalyReport>(`system:anomaly`);
+    const byzantinePass = !anomaly || !anomaly.isAnomaly || anomaly.score < 5.0;
     if (!byzantinePass) {
       await IQRAVoice.speak('توقف سيادي. انحراف بيزنطي عالٍ جداً. لن أنفذ هذه المهمة.', { provider: 'elevenlabs', autoplay: true });
       return null;

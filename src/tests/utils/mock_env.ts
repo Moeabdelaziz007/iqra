@@ -32,10 +32,6 @@ export function setupMockEnv() {
   process.env.IMAP_USER = 'test@example.com';
   process.env.IMAP_PASS = 'test-imap-pass';
 
-  // Trading (mock)
-  process.env.BYBIT_API_KEY = 'test-bybit-key';
-  process.env.BYBIT_API_SECRET = 'test-bybit-secret';
-
   // Paths
   process.env.IQRA_CORE_PATH = './iqra-core';
   process.env.IQRA_DATA_PATH = './iqra-core/data';
@@ -56,7 +52,6 @@ export function resetMockEnv() {
     'UPSTASH_REDIS_REST_TOKEN',
     'RESEND_API_KEY',
     'IMAP_PASS',
-    'BYBIT_API_SECRET',
   ];
 
   for (const key of mockKeys) {

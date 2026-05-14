@@ -73,7 +73,6 @@
     "#cognitive/*": "./src/lib/iqra/08-cognitive/*",
     "#evolution/*": "./src/lib/iqra/09-evolution/*",
     "#topology/*": "./src/lib/iqra/10-topology/*",
-    "#trading/*": "./src/lib/iqra/11-trading/*",
     "#infra/*": "./src/lib/iqra/12-infrastructure/*",
     "#utils/*": "./src/lib/iqra/13-utils/*",
     "#aix/*": "./src/lib/iqra/14-aix/*",

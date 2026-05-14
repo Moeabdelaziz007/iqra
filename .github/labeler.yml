@@ -37,11 +37,6 @@ area:llm:
       - any-glob-to-any-file:
           - src/lib/iqra/07-llm/**
 
-area:trading:
-  - changed-files:
-      - any-glob-to-any-file:
-          - src/lib/iqra/11-trading/**
-
 area:tests:
   - changed-files:
       - any-glob-to-any-file:

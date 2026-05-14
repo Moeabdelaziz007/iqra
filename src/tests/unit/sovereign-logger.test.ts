@@ -116,12 +116,6 @@ vi.mock('#security/byzantine_filter', () => ({
   AnomalyReport: vi.fn(),
 }));
 
-vi.mock('#trading/bybit', () => ({
-  BybitEngine: {
-    updateMarketPulse: vi.fn().mockResolvedValue(null),
-  },
-}));
-
 vi.mock('#skills/topological_analyzer', () => ({
   TopologicalAnalyzer: {
     analyze: vi.fn().mockResolvedValue({ resonance: 0.5 }),
