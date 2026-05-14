@@ -71,7 +71,7 @@ describe('Gemma4Local — النموذج المحلي', () => {
   describe('Tool Execution — تنفيذ الأدوات مباشرة', () => {
     it('get_verse(1,1) يُرجع البسملة', async () => {
       // نستدعي الأداة مباشرة بدون LLM
-      const { executeIQRATool } = await import('../#llm/ollama').then(
+      const { executeIQRATool } = await import('#llm/ollama').then(
         m => ({ executeIQRATool: (m as any).executeIQRATool })
       ).catch(() => ({ executeIQRATool: null }));
 
@@ -144,7 +144,7 @@ describe('Gemma4Local — النموذج المحلي', () => {
     });
 
     it('compute_shannon_hel يحسب إنتروبي صحيح', async () => {
-      const { MicroMemory } = await import('../#memory/memory/micro_memory.ts');
+      const { MicroMemory } = await import('#memory/micro_memory');
       const hel = MicroMemory.computeShannonHEL('بسم الله الرحمن الرحيم');
       expect(hel).toBeGreaterThan(0);
       expect(hel).toBeLessThan(5);
@@ -221,7 +221,7 @@ describe('Gemma4Local — النموذج المحلي', () => {
 
   describe('isLocalMode() — وضع التشغيل', () => {
     it('يُرجع false بدون IQRA_LLM_LOCAL', async () => {
-      const { isLocalMode } = await import('../#llm/ollama');
+      const { isLocalMode } = await import('#llm/ollama');
       const original = process.env.IQRA_LLM_LOCAL;
       delete process.env.IQRA_LLM_LOCAL;
       expect(isLocalMode()).toBe(false);
@@ -229,7 +229,7 @@ describe('Gemma4Local — النموذج المحلي', () => {
     });
 
     it('يُرجع true مع IQRA_LLM_LOCAL=true', async () => {
-      const { isLocalMode } = await import('../#llm/ollama');
+      const { isLocalMode } = await import('#llm/ollama');
       process.env.IQRA_LLM_LOCAL = 'true';
       expect(isLocalMode()).toBe(true);
       delete process.env.IQRA_LLM_LOCAL;
