@@ -30,7 +30,7 @@ async function runTest(): Promise<void> {
     if (result.audit && result.audit.alignmentScore >= 0.5) {
       console.log("✅ Sovereign cycle passed constitutional audit.");
     } else {
-      console.log("❌ Sovereign cycle failed constitutional audit.");
+      throw new Error("Sovereign cycle failed constitutional audit.");
     }
 
     // Test 2: Memory Persistence
@@ -59,6 +59,7 @@ async function runTest(): Promise<void> {
     console.log("\n✨ All integrity tests completed successfully.");
   } catch (error) {
     console.error("💥 Test failed with error:", error);
+    process.exitCode = 1;
   }
 }
 
