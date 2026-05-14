@@ -229,9 +229,40 @@ export class SurahAnalyzer {
       try {
         const isHealthy = await goEngine.healthCheck();
         if (isHealthy) {
-          // TODO: تكامل مع Go Engine لتحليل السورة كاملة
-          // const goResult = await goEngine.analyzeBatch({ ... });
-          IQRALogger.info(`🚀 [SURAH_ANALYZER] Go Engine available for Surah ${surahNumber}`);
+          // Build verse references using the same "S:A" convention the
+          // per-verse loop above uses, so the Go engine can resolve them
+          // against its own corpus where available and fall back to
+          // character-level analysis otherwise.
+          const verseRefs: string[] = [];
+          for (let ayah = 1; ayah <= totalVerses; ayah++) {
+            verseRefs.push(`${surahNumber}:${ayah}`);
+          }
+
+          const batch = await goEngine.analyzeBatch({
+            surahs: [{ number: surahNumber, name: surahName, verses: verseRefs }],
+            enable_shannon: true,
+            enable_homology: true,
+            max_workers: 1,
+          });
+
+          const goResult = batch.results?.[0];
+          if (goResult && !goResult.error) {
+            if (goResult.homology_analysis) {
+              isFractal = goResult.homology_analysis.is_fractal;
+            }
+            if (goResult.shannon_analysis) {
+              hasQuranSignature = goResult.shannon_analysis.has_quran_signature;
+            }
+            IQRALogger.info(
+              `🚀 [SURAH_ANALYZER] Go Engine: surah=${surahNumber} ` +
+              `is_fractal=${isFractal} has_quran_signature=${hasQuranSignature} ` +
+              `processing_time_ms=${goResult.processing_time_ms}`
+            );
+          } else if (goResult?.error) {
+            IQRALogger.warn(
+              `⚠️ [SURAH_ANALYZER] Go Engine returned error for surah ${surahNumber}: ${goResult.error}`
+            );
+          }
         }
       } catch (e) {
         IQRALogger.warn(`⚠️ [SURAH_ANALYZER] Go Engine unavailable: ${(e as Error).message}`);
@@ -491,9 +522,68 @@ ${result.quran_signature_surahs.length > 0
 
   /**
    * الحصول على إحصائيات سورة من الذاكرة
+   *
+   * يبحث أولاً في ملفات JSON المحفوظة بواسطة saveResults() —
+   * أحدث ملف يحتوي على نتيجة لـ surahNumber هو ما يُعاد.
+   * إذا لم يُعثر على أي ملف، يُرجع null (no fabrication).
    */
   static async getSurahStats(surahNumber: number): Promise<SurahAnalysisResult | null> {
-    // TODO: استرجاع من PatternMemory أو ملفات JSON المحفوظة
+    if (surahNumber < 1 || surahNumber > 114) {
+      return null;
+    }
+
+    const outputDir = path.join(process.cwd(), '.iqra');
+    if (!fs.existsSync(outputDir)) {
+      return null;
+    }
+
+    let files: string[];
+    try {
+      files = fs
+        .readdirSync(outputDir)
+        .filter((f) => f.startsWith('surah_analysis_') && f.endsWith('.json'));
+    } catch (e) {
+      IQRALogger.warn(
+        `⚠️ [SURAH_ANALYZER] getSurahStats: failed to read ${outputDir}: ${(e as Error).message}`
+      );
+      return null;
+    }
+
+    if (files.length === 0) {
+      return null;
+    }
+
+    // Sort newest-first by mtime so the most recent analysis wins.
+    const sorted = files
+      .map((name) => {
+        const full = path.join(outputDir, name);
+        try {
+          return { name, full, mtimeMs: fs.statSync(full).mtimeMs };
+        } catch {
+          return null;
+        }
+      })
+      .filter((x): x is { name: string; full: string; mtimeMs: number } => x !== null)
+      .sort((a, b) => b.mtimeMs - a.mtimeMs);
+
+    for (const { full } of sorted) {
+      try {
+        const raw = fs.readFileSync(full, 'utf-8');
+        const batch = JSON.parse(raw) as BatchAnalysisResult;
+        const hit = batch.results?.find((r) => r.surah_number === surahNumber);
+        if (hit) {
+          IQRALogger.info(
+            `📖 [SURAH_ANALYZER] getSurahStats hit: surah=${surahNumber} source=${full}`
+          );
+          return hit;
+        }
+      } catch (e) {
+        IQRALogger.warn(
+          `⚠️ [SURAH_ANALYZER] getSurahStats: skipping ${full}: ${(e as Error).message}`
+        );
+      }
+    }
+
     return null;
   }
 }
