@@ -19,11 +19,13 @@ export async function callEconomyModel(input: string, context: any[]): Promise<s
     const glmKey = process.env.GLM_API_KEY;
     const qwenKey = process.env.QWEN_API_KEY;
     const openaiKey = process.env.OPENAI_API_KEY;
+    const geminiKey = process.env.GEMINI_API_KEY;
 
     if (ollamaUrl) providers.push({ name: 'OLLAMA', key: process.env.OLLAMA_API_KEY, model: process.env.OLLAMA_MODEL || 'gemma-4o-mini', baseURL: ollamaUrl, transport: 'ollama' });
     if (glmKey) providers.push({ name: 'GLM', key: glmKey, model: process.env.GLM_MODEL || 'glm-4.7-flash', baseURL: process.env.GLM_BASE_URL || 'https://open.bigmodel.cn/api/paas/v4/' });
     if (qwenKey) providers.push({ name: 'QWEN', key: qwenKey, model: process.env.QWEN_MODEL || 'qwen-2.5-72b-instruct', baseURL: process.env.QWEN_BASE_URL || 'https://open.bigmodel.cn/api/paas/v4/' });
     if (openRouterKey) providers.push({ name: 'OPENROUTER', key: openRouterKey, model: process.env.OPENROUTER_MODEL || 'llama-3.3-70b', baseURL: process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/v1' });
+    if (geminiKey) providers.push({ name: 'GEMINI', key: geminiKey, model: 'gemini-1.5-flash', baseURL: undefined, transport: 'gemini' });
     if (openaiKey) providers.push({ name: 'OPENAI', key: openaiKey, model: process.env.OPENAI_ECONOMY_MODEL || 'gpt-4o-mini', baseURL: process.env.OPENAI_BASE_URL || undefined });
 
     if (providers.length === 0) {
@@ -62,6 +64,12 @@ export async function callEconomyModel(input: string, context: any[]): Promise<s
         const data = await response.json();
         const content = data?.choices?.[0]?.message?.content || data?.output || data?.response?.[0]?.content || data?.text || '';
         return content;
+    } else if (provider.transport === 'gemini') {
+        const { GoogleGenerativeAI } = await import('@google/generative-ai');
+        const genAI = new GoogleGenerativeAI(provider.key);
+        const model = genAI.getGenerativeModel({ model: provider.model });
+        const result = await model.generateContent(input);
+        return result.response.text();
     }
 
     const { default: OpenAI } = await import('openai');
