@@ -346,9 +346,9 @@ export class IQRAVoice {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(tmpPath, buffer);
 
-    const { exec } = await import('child_process');
+    const { execFile } = await import('child_process');
     await new Promise<void>((resolve) => {
-      exec(`afplay "${tmpPath}"`, () => {
+      execFile('afplay', [tmpPath], () => {
         try { fs.unlinkSync(tmpPath); } catch { /* ignore */ }
         resolve();
       });
@@ -399,7 +399,7 @@ export class IQRAVoice {
       .replace(/\s+/g, ' ')
       .trim();
 
-    const { exec } = await import('child_process');
+    const { execFile } = await import('child_process');
     const tmpPath = path.join(process.cwd(), '.iqra', 'tmp_edge.mp3');
     const dir = path.dirname(tmpPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -407,8 +407,9 @@ export class IQRAVoice {
     // محاولة Edge TTS أولاً (أفضل جودة)
     try {
       await new Promise<void>((resolve, reject) => {
-        const proc = exec(
-          `edge-tts --voice ar-SA-HamedNeural --text "${clean.replace(/"/g, "'")}" --write-media "${tmpPath}"`,
+        const proc = execFile(
+          'edge-tts',
+          ['--voice', 'ar-SA-HamedNeural', '--text', clean, '--write-media', tmpPath],
           (err) => err ? reject(err) : resolve()
         );
         // timeout 10 ثوانٍ
@@ -417,7 +418,7 @@ export class IQRAVoice {
 
       if (autoplay && fs.existsSync(tmpPath)) {
         await new Promise<void>((resolve) => {
-          exec(`afplay "${tmpPath}"`, () => {
+          execFile('afplay', [tmpPath], () => {
             try { fs.unlinkSync(tmpPath); } catch { /* ignore */ }
             resolve();
           });
@@ -431,7 +432,7 @@ export class IQRAVoice {
 
     // macOS built-in fallback
     await new Promise<void>((resolve, reject) => {
-      exec(`say -v "Majed" "${clean.replace(/"/g, "'")}"`, (err) => {
+      execFile('say', ['-v', 'Majed', clean], (err) => {
         if (err) reject(err);
         else resolve();
       });
