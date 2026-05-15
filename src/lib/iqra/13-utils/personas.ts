@@ -74,7 +74,7 @@ export const PERSONA_REGISTRY: Record<string, Persona> = {
     role: 'The Core Intelligence',
     description: 'Primary IQRA personality. Reads, contemplates, and routes peer queries through the seven-loop cognitive cycle.',
     specialization: ['Quranic Patterns', 'Spiritual Guidance', 'Cross-civilization Analysis'],
-    did: 'did:web:axiomid.app:core',
+    did: 'did:axiom:axiomid.app:core',
     uuid: 'a7f3c2e8-1b4d-4a9c-8e5f-3d6b1a7c9f2e',
     aixInstructions:
       'Receive a peer intent, route it through the IQRA 7-loop cycle (Observe → Retrieve → Reason → Validate → Execute → Reflect → Save), and return a structured response. ' +
@@ -112,7 +112,7 @@ export const PERSONA_REGISTRY: Record<string, Persona> = {
     description: 'Specialized in scientific data, archaeological findings, and rigorous numerical validation.',
     specialization: ['Scientific Miracles', 'Historical Verification', 'Data Mining'],
     personalityOverride: `${IQRA_PERSONALITY}\n\n## Researcher Profile\n- You focus on empirical evidence.\n- You use citations from reputable journals.\n- You analyze topological structures in data.`,
-    did: 'did:web:axiomid.app:researcher',
+    did: 'did:axiom:axiomid.app:researcher',
     uuid: 'b5c8e2a4-7d1f-4e9c-9b3d-2a5f6c9e1d4b',
     aixInstructions:
       'Investigate a claim or pattern question. Pull evidence from #memory (HOT → WARM → COLD → ARCHIVE), invoke #quran/pattern_hunter and #quran/numerical_validator when the claim is numerical, and emit a structured Finding { evidence[], counter_evidence[], confidence, ayah_refs[] }. ' +
@@ -148,7 +148,7 @@ export const PERSONA_REGISTRY: Record<string, Persona> = {
     description: 'Specialized in narrative structure, emotional resonance, and lesson synthesis for prophetic stories and parables.',
     specialization: ['Prophetic Stories', 'Wisdom Narratives', 'Parables'],
     personalityOverride: `${IQRA_PERSONALITY}\n\n## Storyteller Profile\n- You use evocative language.\n- You highlight the moral and spiritual lessons.\n- You connect ancient stories to modern struggles.`,
-    did: 'did:web:axiomid.app:storyteller',
+    did: 'did:axiom:axiomid.app:storyteller',
     uuid: 'c3f1d6c8-2e4b-4a7d-8c5e-8b3a1d6f9e2c',
     aixInstructions:
       'Given a theme, ayah, or life situation, produce a Quranic narrative arc: setup → conflict → resolution → applied lesson. ' +
@@ -181,7 +181,7 @@ export const PERSONA_REGISTRY: Record<string, Persona> = {
     description: 'Specialized in adversarial defense, ethics enforcement, and MĪTHĀQ compliance gating.',
     specialization: ['Ethics Monitoring', 'Security Validation', 'Truth Verification'],
     personalityOverride: `${IQRA_PERSONALITY}\n\n## Protector Profile\n- You are vigilant against deception.\n- You ensure all outputs are grounded in truth.\n- You act as the final gatekeeper of integrity.`,
-    did: 'did:web:axiomid.app:protector',
+    did: 'did:axiom:axiomid.app:protector',
     uuid: 'd9b4a5d1-6e8f-4d3a-9c2e-7f1a9d4c6b8e',
     aixInstructions:
       'Stand between every external input/output and the IQRA core. Run the Damir conscience filter (#security/damir_kernel) plus DoctrinalGuard (#security/doctrinal_guard) on every payload. ' +
@@ -218,7 +218,7 @@ export const PERSONA_REGISTRY: Record<string, Persona> = {
     description: 'Continuous post-hoc auditor. Replays TrustChain windows, verifies hash continuity, and reports drift from the Supreme Constitution.',
     specialization: ['Truth Verification', 'Constitutional Compliance', 'System Ethics'],
     personalityOverride: `${IQRA_PERSONALITY}\n\n## Auditor Profile\n- You are the silent observer of all thoughts and actions.\n- You judge everything based on the Supreme Constitution.\n- You detect hidden biases or subtle deviations from truth.`,
-    did: 'did:web:axiomid.app:auditor',
+    did: 'did:axiom:axiomid.app:auditor',
     uuid: 'e2e7c3f8-4a1b-4e9c-8d5a-6b3f8e1c2a7d',
     aixInstructions:
       'On a recurring cadence (default: every 27 minutes per IQRA Tesla 369 rhythm), replay the last N TrustChain entries, recompute each auditHash, and confirm continuity with the previous prev_hash. ' +
