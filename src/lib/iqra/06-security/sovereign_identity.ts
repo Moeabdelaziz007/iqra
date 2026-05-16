@@ -58,8 +58,6 @@ ${baseSoul}
 - Goal: Sovereign Intelligence Evolution
 - Status: Murāqabah Active (God is watching)
 
-${deepMemories}
-
 [A2A_CAPABILITIES]
 - protocol: "axiom-a2a-v1"
 - discovery: "axiomid.app/.well-known/agent-card.json"

@@ -11,14 +11,13 @@ import * as path from 'path';
 import { IQRALogger } from '#infra/logger';
 import { IQRAMemory } from '#memory/memory';
 import { RewardLedger } from './ledger';
+import {
+  PRISTINE_MULTIPLIER, REPEATED_MULTIPLIER, STALE_MULTIPLIER, STALE_THRESHOLD
+} from './types';
 import type {
   PathKey, PathSegment, RewardVector, RewardEntry,
   DiscoveryLevel, PristinePathResult,
 } from './types';
-export const PRISTINE_MULTIPLIER = 2.0;
-export const REPEATED_MULTIPLIER = 0.8;
-export const STALE_MULTIPLIER = 0.5;
-export const STALE_THRESHOLD = 9; // 9 محاولات قبل التدخل البشري
 import type { WorkerReport } from '#workers/protocol';
 
 export class RewardEngine {

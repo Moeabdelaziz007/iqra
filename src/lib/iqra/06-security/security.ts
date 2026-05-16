@@ -295,8 +295,8 @@ ${reflections.map((r, i) => `${i + 1}. ${r}`).join('\n')}
     logToIQRAFile('REFLECTION_7.md', wisdom).catch(console.error);
 
     // Store reflection locally (per ADR-0001: local JSONL replaces Qdrant)
-    const { storeReflectionInQdrant } = await import('#infra/qdrant');
-    await storeReflectionInQdrant(wisdom).catch(console.error);
+    const { storeReflection } = await import('#infra/reflection-store');
+    await storeReflection(wisdom).catch(console.error);
 
     console.log('✅ IQRA | Sab\'iyyah: Wisdom of Seven synchronized.');
   }

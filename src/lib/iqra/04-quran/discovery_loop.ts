@@ -1,7 +1,7 @@
 import { PatternType, QuranPattern, topologicalDiscovery } from './pattern_engine';
 import { NumericalValidator } from './numerical_validator';
 import { Qalbin_VM } from './qalbin/qalbin_vm';
-import { storeReflectionInQdrant } from '#infra/qdrant';
+import { storeReflection } from '#infra/reflection-store';
 import { IQRALogger } from '#infra/logger';
 import { iqraThink } from '#core/brain';
 import { goEngine } from './go_engine_client';
@@ -69,7 +69,7 @@ export class TadabburLoop {
       await this.recordDiscovery(surah, result, shannon, numericalRes, topologicalRes, isVerified, confidence);
       
       try {
-        await storeReflectionInQdrant(`Discovery in Surah ${surah}: Resonance ${result.resonance}`, {
+        await storeReflection(`Discovery in Surah ${surah}: Resonance ${result.resonance}`, {
           surah,
           confidence,
           entropy: shannon.total_entropy,

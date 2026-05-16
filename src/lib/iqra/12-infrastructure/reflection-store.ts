@@ -9,7 +9,7 @@ import path from 'path';
 
 const REFLECTIONS_PATH = path.join(process.cwd(), '.iqra', 'reflections.jsonl');
 
-export async function storeReflectionInQdrant(content: string, metadata: Record<string, any> = {}) {
+export async function storeReflection(content: string, metadata: Record<string, any> = {}) {
   try {
     const dir = path.dirname(REFLECTIONS_PATH);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });

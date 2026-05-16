@@ -12,6 +12,7 @@ export class MemoryGovernor {
 
   // Sovereign Thresholds
   private readonly HOT_LIMIT = 29;     // Upstash Redis entries
+  private readonly WARM_LIMIT = 100;   // Local JSONL entries
   private readonly LEARNINGS_PATH = path.join(process.cwd(), 'LEARNINGS.md');
   private readonly COLD_STORAGE_DIR = path.join(process.cwd(), 'iqra-core', 'data', 'cold_storage');
   

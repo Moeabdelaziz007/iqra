@@ -39,8 +39,6 @@ const LOCAL_PATTERN_PATH = path.join(process.cwd(), '.iqra', 'pattern_memory.jso
 
 export class PatternMemory {
   // Uses local JSONL + sqlite-vec per ADR-0001. Qdrant was removed.
-    }
-  }
 
   // ── Local fallback helpers ─────────────────────────────────────────────────
   private static async _readLocal(): Promise<PatternRecord[]> {
