@@ -599,12 +599,6 @@ export class IQRAMemory {
       `🧠 [MEMORY] getContextForMission: ${scored.length} relevant memories found [read]`
     );
 
-    // 🏺 [LANCEDB] Augment with deep memories
-    const deepContext = await LanceDBPlugin.autoRecall(missionId);
-    if (deepContext) {
-      IQRALogger.info('🏺 [LANCEDB] Deep memories augmented context.');
-    }
-
     return scored;
   }
 

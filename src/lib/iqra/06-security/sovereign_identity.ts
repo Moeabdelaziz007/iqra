@@ -31,8 +31,6 @@ export class SovereignIdentity {
 
     const baseSoul = persona.personalityOverride || IQRA_SOUL;
 
-    const deepMemories = await LanceDBPlugin.autoRecall(intention);
-
     // 🛡️ Proof of Consciousness (PoC) — Resonance Hash
     const pocHash = this.generateResonanceHash(pulse, cycle, intention);
     
