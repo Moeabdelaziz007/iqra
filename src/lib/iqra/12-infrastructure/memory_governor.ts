@@ -1,30 +1,24 @@
 import { Redis } from '@upstash/redis';
-import { QdrantClient } from '@qdrant/js-client-rest';
 import * as fs from 'fs';
 import * as path from 'path';
 
 /**
  * 🏛️ IQRA Memory Governor
  * 
- * النية: إدارة الذاكرة الهرمية (Hot, Warm, Cold) لضمان السيادة والاستشفاء الذاتي.
- * المرجع: "وَكُلُّ شَيْءٍ عِندَهُ بِمِقْدَارٍ" - الرعد: 8.
+ * Per ADR-0001: Qdrant removed — uses Upstash Redis + local SQLite.
  */
 export class MemoryGovernor {
   private redis: Redis | null = null;
-  private qdrant: QdrantClient | null = null;
 
   // Sovereign Thresholds
   private readonly HOT_LIMIT = 29;     // Upstash Redis entries
-  private readonly WARM_LIMIT = 203;   // Qdrant nodes
+  private readonly WARM_LIMIT = 100;   // Local JSONL entries
   private readonly LEARNINGS_PATH = path.join(process.cwd(), 'LEARNINGS.md');
   private readonly COLD_STORAGE_DIR = path.join(process.cwd(), 'iqra-core', 'data', 'cold_storage');
   
   constructor() {
     if (process.env.UPSTASH_REDIS_REST_URL) {
       this.redis = Redis.fromEnv();
-    }
-    if (process.env.QDRANT_URL) {
-      this.qdrant = new QdrantClient({ url: process.env.QDRANT_URL, apiKey: process.env.QDRANT_API_KEY });
     }
   }
 
@@ -64,24 +58,20 @@ export class MemoryGovernor {
   }
 
   private async manageWarmMemory() {
-    if (!this.qdrant) return;
+    // Per ADR-0001: Qdrant removed. Warm memory uses local SQLite via MicroMemory.
+    const warmPath = path.join(process.cwd(), '.iqra', 'warm_memory.jsonl');
+    if (!fs.existsSync(warmPath)) return;
     
-    const collections = await this.qdrant.getCollections();
-    for (const coll of collections.collections) {
-      const info = await this.qdrant.getCollection(coll.name);
-      if (info.points_count && info.points_count > this.WARM_LIMIT) {
-        console.log(`🧊 [GOVERNOR] Warm collection ${coll.name} exceeds limit. Offloading to Cold...`);
-        // Implementation: Search for points with lowest importance score
-        const points = await this.qdrant.scroll(coll.name, {
-          limit: info.points_count - this.WARM_LIMIT,
-          with_payload: true
-        });
-
-        for (const point of points.points) {
-          await this.offloadToCold(coll.name, point);
-          await this.qdrant.delete(coll.name, { points: [point.id] });
-        }
+    const lines = fs.readFileSync(warmPath, 'utf-8').trim().split('\n').filter(Boolean);
+    if (lines.length > this.WARM_LIMIT) {
+      const excess = lines.slice(0, lines.length - this.WARM_LIMIT);
+      for (const line of excess) {
+        try {
+          const data = JSON.parse(line);
+          await this.offloadToCold('warm', data);
+        } catch {}
       }
+      fs.writeFileSync(warmPath, lines.slice(-this.WARM_LIMIT).join('\n') + '\n', 'utf-8');
     }
   }
 
@@ -117,7 +107,10 @@ export class MemoryGovernor {
 
   private async moveToWarm(key: string, data: unknown) {
     console.log(`🔥 -> ☀️ [GOVERNOR] Promoting ${key} to Warm storage.`);
-    // Implementation for Qdrant ingest...
+    const warmPath = path.join(process.cwd(), '.iqra', 'warm_memory.jsonl');
+    const dir = path.dirname(warmPath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.appendFileSync(warmPath, JSON.stringify({ key, data, timestamp: Date.now() }) + '\n', 'utf-8');
   }
 
   private activateEmergencyMode() {

@@ -1,15 +1,8 @@
 /**
  * 🌀 PatternMemory — ذاكرة الأنماط الطوبولوجية
- * النية: تخزين واسترجاع أنماط الرنين القرآني عبر Qdrant
  * المرجع: "وَكُلَّ شَيْءٍ أَحْصَيْنَاهُ فِي إِمَامٍ مُّبِينٍ" — يس: 12
  *
- * ══════════════════════════════════════════════════════════════
- * EMBEDDED CONSTITUTIONAL RULES
-  * ══════════════════════════════════════════════════════════════
- * 1. لا Mock.كل embedding حقيقي أو SHA - 256 fallback موثّق.
- * 2. كل مصدر يُوسَم: [fetched] Qdrant | [read] local fallback.
- * 3. لا تختلق نتائج — إذا كان Qdrant غير متاح، أرجع من الذاكرة المحلية.
- * ══════════════════════════════════════════════════════════════
+ * Per ADR-0001: Qdrant removed — uses local JSONL + sqlite-vec.
  */
 
 import crypto from 'crypto';
@@ -40,41 +33,12 @@ export interface SimilarPattern {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const PATTERN_COLLECTION = 'iqra_patterns';
 const LOCAL_PATTERN_PATH = path.join(process.cwd(), '.iqra', 'pattern_memory.json');
 
 // ── PatternMemory ─────────────────────────────────────────────────────────────
 
 export class PatternMemory {
-  private static _qdrant: any = null;
-
-  // ── Qdrant client (lazy init) ──────────────────────────────────────────────
-  private static async getQdrant(): Promise<any | null> {
-    if (this._qdrant) return this._qdrant;
-    if (!process.env.QDRANT_URL || !process.env.QDRANT_API_KEY) {
-      IQRALogger.warn('⚠️ [PATTERN_MEMORY] Qdrant env vars missing — using local fallback [read]');
-      return null;
-    }
-    try {
-      const { QdrantClient } = await import('@qdrant/js-client-rest');
-      this._qdrant = new QdrantClient({
-        url: process.env.QDRANT_URL,
-        apiKey: process.env.QDRANT_API_KEY,
-      });
-      // Ensure collection exists (768 dims, Cosine distance)
-      await withTimeout(
-        this._qdrant.createCollection(PATTERN_COLLECTION, {
-          vectors: { size: 768, distance: 'Cosine' },
-        }).catch(() => { /* already exists — ignore */ }),
-        IQRA_TIMEOUTS.NETWORK,
-        'Qdrant createCollection'
-      );
-      return this._qdrant;
-    } catch (e) {
-      IQRALogger.warn(`⚠️ [PATTERN_MEMORY] Qdrant init failed: ${(e as Error).message}`);
-      return null;
-    }
-  }
+  // Uses local JSONL + sqlite-vec per ADR-0001. Qdrant was removed.
 
   // ── Local fallback helpers ─────────────────────────────────────────────────
   private static async _readLocal(): Promise<PatternRecord[]> {
@@ -108,8 +72,8 @@ export class PatternMemory {
 
   // ── storePattern ──────────────────────────────────────────────────────────
   /**
-   * يخزن نمط رنين جديد في Qdrant (أو محلياً كـ fallback).
-   * [fetched] إذا نجح Qdrant | [read] إذا استخدم الملف المحلي
+   * Stores a new pattern resonance record locally (sqlite-vec fallback to JSONL).
+   * Per ADR-0001: Qdrant removed — always uses local storage.
    */
   static async storePattern(
     verse: string,
@@ -139,53 +103,21 @@ export class PatternMemory {
       embedding,
       mission_id,
       created_at: new Date().toISOString(),
-      source_tag: '[fetched]',
+      source_tag: '[read]',
       metadata
     };
 
-    const qdrant = await this.getQdrant();
-
-    if (qdrant) {
-      try {
-        await withTimeout(
-          qdrant.upsert(PATTERN_COLLECTION, {
-            wait: true,
-            points: [{
-              id: finalId,
-              vector: embedding,
-              payload: {
-                verse,
-                field,
-                resonance_score,
-                mission_id,
-                created_at: record.created_at,
-                metadata: metadata ? JSON.stringify(metadata) : undefined
-              },
-            }],
-          }),
-          IQRA_TIMEOUTS.NETWORK,
-          'Qdrant pattern upsert'
-        );
-        IQRALogger.info(`🌀 [PATTERN_MEMORY] Stored [fetched] Qdrant: ${verse} × ${field} (score: ${resonance_score.toFixed(3)})`);
-        return finalId;
-      } catch (e) {
-        IQRALogger.warn(`⚠️ [PATTERN_MEMORY] Qdrant upsert failed, falling back to local: ${(e as Error).message}`);
-      }
-    }
-
-    // Local fallback [read]
-    record.source_tag = '[read]';
     const existing = await this._readLocal();
     existing.push(record);
     await this._writeLocal(existing);
-    IQRALogger.info(`🌀 [PATTERN_MEMORY] Stored [read] local: ${verse} × ${field}`);
+    IQRALogger.info(`🌀 [PATTERN_MEMORY] Stored [read] local: ${verse} × ${field} (score: ${resonance_score.toFixed(3)})`);
     return finalId;
   }
 
   // ── getSimilarPatterns ────────────────────────────────────────────────────
   /**
-   * يُرجع أكثر topK أنماط تشابهاً مع embedding المُعطى.
-   * [fetched] من Qdrant | [read] من الملف المحلي
+   * Returns topK most similar patterns using local cosine similarity.
+   * Per ADR-0001: Qdrant removed — uses local JSONL + sqlite-vec.
    */
   static async getSimilarPatterns(
     embedding: number[],
@@ -193,40 +125,6 @@ export class PatternMemory {
   ): Promise<SimilarPattern[]> {
     if (embedding.length === 0) return [];
 
-    const qdrant = await this.getQdrant();
-
-    if (qdrant) {
-      try {
-        const results = await withTimeout(
-          qdrant.search(PATTERN_COLLECTION, {
-            vector: embedding,
-            limit: topK,
-            with_payload: true,
-          }),
-          IQRA_TIMEOUTS.NETWORK,
-          'Qdrant pattern search'
-        ) as any[];
-
-        return (results || []).map((hit: any) => ({
-          record: {
-            id: hit.id as string,
-            verse: hit.payload?.verse ?? '',
-            field: hit.payload?.field ?? '',
-            resonance_score: hit.payload?.resonance_score ?? 0,
-            embedding: [],          // Qdrant doesn't return vectors by default
-            mission_id: hit.payload?.mission_id ?? '',
-            created_at: hit.payload?.created_at ?? '',
-            source_tag: '[fetched]' as const,
-            metadata: hit.payload?.metadata ? JSON.parse(hit.payload.metadata) : undefined
-          },
-          similarity: hit.score ?? 0,
-        }));
-      } catch (e) {
-        IQRALogger.warn(`⚠️ [PATTERN_MEMORY] Qdrant search failed, falling back to local: ${(e as Error).message}`);
-      }
-    }
-
-    // Local fallback — cosine similarity over stored embeddings [read]
     const all = await this._readLocal();
     if (all.length === 0) return [];
 
@@ -244,24 +142,15 @@ export class PatternMemory {
   }
 
   // ── getContextForMission ──────────────────────────────────────────────────
-  /**
-   * يُرجع أفضل 7 ذكريات ذات صلة بمهمة معينة.
-   * يُستخدم قبل بدء المهمة لتزويد العمال بسياق تاريخي.
-   */
   static async getContextForMission(
     embedding: number[],
     missionId: string
   ): Promise<SimilarPattern[]> {
     const similar = await this.getSimilarPatterns(embedding, 7);
-    // استبعاد نفس المهمة
     return similar.filter(s => s.record.mission_id !== missionId);
   }
 
   // ── pruneOldLowValue ──────────────────────────────────────────────────────
-  /**
-   * تنظيف دوري: يحذف الأنماط المحلية الأقدم من maxAgeDays وأقل من minResonance.
-   * [read] من الملف المحلي فقط — Qdrant يُدار بـ TTL خارجياً.
-   */
   static async pruneOldLowValue(
     maxAgeDays: number = 7,
     minResonance: number = 0.3
@@ -279,24 +168,13 @@ export class PatternMemory {
     const pruned = all.length - kept.length;
     if (pruned > 0) {
       await this._writeLocal(kept);
-      IQRALogger.info(`🧹 [PATTERN_MEMORY] Pruned ${pruned} old low-value patterns [read]`);
+      IQRALogger.info(`🧹 [PATTERN_MEMORY] Pruned ${pruned} old low-value patterns`);
     }
     return pruned;
   }
 
   // ── count ─────────────────────────────────────────────────────────────────
   static async count(): Promise<number> {
-    const qdrant = await this.getQdrant();
-    if (qdrant) {
-      try {
-        const info = await withTimeout(
-          qdrant.getCollection(PATTERN_COLLECTION),
-          IQRA_TIMEOUTS.NETWORK,
-          'Qdrant getCollection'
-        ) as any;
-        return info?.vectors_count ?? 0;
-      } catch { /* fall through */ }
-    }
     const local = await this._readLocal();
     return local.length;
   }

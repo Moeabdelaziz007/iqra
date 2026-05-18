@@ -3,7 +3,8 @@
  *
  * "وَمَا كَانَ رَبُّكَ نَسِيًّا" — مريم: 64
  *
- * Powered by Upstash Redis (TTL=7 days), Supabase, and Qdrant.
+ * Powered by Upstash Redis (TTL=7 days) + SQLite (sqlite-vec) + Supabase.
+ * Per ADR-0001: Qdrant and LanceDB removed — use local-first sqlite-vec.
  *
  * ══════════════════════════════════════════════════════════════
  * EMBEDDED CONSTITUTIONAL RULES
@@ -23,7 +24,6 @@ import { IQRALogger } from '../12-infrastructure/logger';
 import { IQRAFilter } from '../06-security/filter';
 import { IQRAConsciousness } from '../01-core/consciousness';
 import { SovereignError, SovereignErrorCode } from '../01-core/sovereign_error';
-import { LanceDBPlugin } from './lancedb_plugin';
 import path from 'path';
 import crypto from 'crypto';
 import fs from 'fs';
@@ -70,7 +70,6 @@ export class IQRAMemory {
 
   private static _redis: any = null;
   private static _supabase: any = null;
-  private static _qdrant: any = null;
   private static _googleAI: any = null;
   private static readonly ERROR_THRESHOLD: number = 7;
   private static _errorCount: number = 0;
@@ -138,19 +137,6 @@ export class IQRAMemory {
       }
     }
     return this._supabase;
-  }
-
-  public static async getQdrant() {
-    if (this._qdrant) return this._qdrant;
-    if (process.env.QDRANT_URL && process.env.QDRANT_API_KEY) {
-      try {
-        const { QdrantClient } = await import('@qdrant/js-client-rest');
-        this._qdrant = new QdrantClient({ url: process.env.QDRANT_URL, apiKey: process.env.QDRANT_API_KEY });
-      } catch (e) {
-        IQRALogger.warn('⚠️ [MEMORY] Qdrant module missing.');
-      }
-    }
-    return this._qdrant;
   }
 
   private static async getGoogleAI() {
@@ -496,45 +482,23 @@ export class IQRAMemory {
 
     const { error } = await withTimeout(supabase.from(table).insert([data]), IQRA_TIMEOUTS.NETWORK, `Supabase INSERT ${table}`) as { error: any };
     if (error) IQRALogger.error(`❌ Long-term memory error (${table}):`, error);
-
-    // 🏺 [LANCEDB] Also archive in deep storage
-    await LanceDBPlugin.archive(content, { table, ...data });
   }
 
   static async saveSemantic(text: string, metadata: any) {
-    const qdrant = await this.getQdrant();
-    const googleAI = await this.getGoogleAI();
-
-    if (!qdrant || !googleAI) {
-      IQRALogger.warn('⚠️ Semantic memory offline.');
-      return;
-    }
-
     if (!await this.muraqabahCheck(text, 'semantic')) return;
 
     try {
-      const model = googleAI.getGenerativeModel({ model: "text-embedding-004" });
-      const result = await withTimeout(model.embedContent(text), IQRA_TIMEOUTS.LLM, 'Google AI Embedding') as any;
-      const embedding = result.embedding.values;
+      const embedding = await this.generateEmbedding(text);
+      const entry = { content: text, ...metadata, iqra_version: '1.0', timestamp: Date.now() };
 
-      await withTimeout(qdrant.upsert(COLLECTION_NAME, {
-        wait: true,
-        points: [{
-          id: crypto.randomUUID(),
-          vector: embedding,
-          payload: { 
-            content: text, 
-            ...metadata, 
-            iqra_version: '1.0',
-            timestamp: Date.now()
-          }
-        }]
-      }), IQRA_TIMEOUTS.NETWORK, 'Qdrant UPSERT');
+      // Local sqlite-vec via MicroMemory
+      const MicroMemory = (await import('#memory/micro_memory')).MicroMemory;
+      await MicroMemory.store('semantic', embedding, JSON.stringify(entry));
 
       await this.appendList('embeddings_history', { vector: embedding, timestamp: Date.now() });
-      IQRALogger.info('🧠 Semantic Memory: Wisdom point preserved in Qdrant Cloud.');
+      IQRALogger.info('🧠 Semantic Memory: Wisdom point preserved locally (sqlite-vec).');
     } catch (error) {
-      IQRALogger.error('❌ Qdrant Save Error:', error);
+      IQRALogger.error('❌ Semantic Memory Save Error:', error);
     }
   }
 
@@ -545,26 +509,17 @@ export class IQRAMemory {
   }
 
   private static async searchSemanticInternal(query: string, limit: number = 3) {
-    const qdrant = await this.getQdrant();
-    const googleAI = await this.getGoogleAI();
-    if (!qdrant || !googleAI) return [];
     try {
-      const model = googleAI.getGenerativeModel({ model: "text-embedding-004" });
-      const result = await model.embedContent(query);
-      const embedding = result.embedding.values;
-      const searchResult = await qdrant.search(COLLECTION_NAME, {
-        vector: embedding,
-        limit,
-        with_payload: true,
-        params: { hnsw_ef: 128 }
-      });
-      return (searchResult as any[]).map(hit => ({
-        content: hit.payload?.content,
-        score: hit.score,
-        metadata: hit.payload
+      // Local semantic search via MicroMemory (sqlite-vec)
+      const MicroMemory = (await import('#memory/micro_memory')).MicroMemory;
+      const results = await MicroMemory.search('semantic', query, limit);
+      return results.map((r: any) => ({
+        content: typeof r.payload === 'string' ? JSON.parse(r.payload).content : r.content,
+        score: r.similarity,
+        metadata: r.payload
       }));
     } catch (error) {
-      IQRALogger.error('❌ Qdrant Search Error:', error);
+      IQRALogger.error('❌ Semantic Search Error:', error);
       return [];
     }
   }
@@ -644,12 +599,6 @@ export class IQRAMemory {
       `🧠 [MEMORY] getContextForMission: ${scored.length} relevant memories found [read]`
     );
 
-    // 🏺 [LANCEDB] Augment with deep memories
-    const deepContext = await LanceDBPlugin.autoRecall(missionId);
-    if (deepContext) {
-      IQRALogger.info('🏺 [LANCEDB] Deep memories augmented context.');
-    }
-
     return scored;
   }
 
@@ -724,30 +673,12 @@ export class QuantumTopologyStore {
         ...entry
       };
 
-      const qdrant = await IQRAMemory.getQdrant();
-      if (qdrant) {
-        await withTimeout(qdrant.upsert(this.QUANTUM_COLLECTION, {
-          wait: true,
-          points: [{
-            id: quantumId,
-            vector: embedding,
-            payload: {
-              content: entry.content,
-              coordinates: entry.coordinates,
-              superposition: entry.superposition,
-              timestamp: fullEntry.timestamp
-            }
-          }]
-        }), IQRA_TIMEOUTS.NETWORK, 'Qdrant Quantum UPSERT');
-      }
-
       const redis = await IQRAMemory.getRedisClient();
       if (redis) {
         const coordinateKey = `quantum:coord:${entry.coordinates.concept.toLowerCase()}`;
         await redis.sadd(coordinateKey, quantumId);
         await redis.set(`quantum:entry:${quantumId}`, JSON.stringify(fullEntry));
       } else {
-        // Local fallback storage
         const localEntries = await IQRAMemory.get<any>('quantum_entries') || {};
         localEntries[quantumId] = fullEntry;
         await IQRAMemory.set('quantum_entries', localEntries);
@@ -763,57 +694,24 @@ export class QuantumTopologyStore {
 
   static async searchQuantum(query: string, targetConcept?: string): Promise<QuantumMemoryEntry[]> {
     try {
-      const qdrant = await IQRAMemory.getQdrant();
-      if (!qdrant) {
-        IQRALogger.warn('⚠️ [QUANTUM] Qdrant offline. Performing local resonant search.');
-        const localData = await IQRAMemory.get<any>('quantum_entries') || {};
-        const queryEmbedding = await this.generateEmbedding(query);
-        
-        const results = Object.values(localData).map((payload: any) => {
-          const sim = IQRAMemory.cosineSimilarity(queryEmbedding, payload.vector || []);
-          let resonance = sim;
-          if (targetConcept && payload.coordinates?.concept?.toLowerCase() === targetConcept.toLowerCase()) {
-            resonance += 0.2;
-          }
-          return {
-            id: payload.id,
-            content: payload.content,
-            coordinates: { ...payload.coordinates, resonance: Math.min(1.0, resonance) },
-            vector: payload.vector,
-            timestamp: payload.timestamp
-          } as QuantumMemoryEntry;
-        });
-        return results.sort((a, b) => (b.coordinates.resonance || 0) - (a.coordinates.resonance || 0)).slice(0, 5);
-      }
-
+      const localData = await IQRAMemory.get<any>('quantum_entries') || {};
       const queryEmbedding = await this.generateEmbedding(query);
       
-      const semanticHits = await qdrant.search(this.QUANTUM_COLLECTION, {
-        vector: queryEmbedding,
-        limit: 5,
-        with_payload: true
-      });
-
-      const results = semanticHits.map((hit: any) => {
-        const payload = hit.payload as any;
-        const baseScore = hit.score;
-        let resonance = baseScore;
-
+      const results = Object.values(localData).map((payload: any) => {
+        const sim = IQRAMemory.cosineSimilarity(queryEmbedding, payload.vector || []);
+        let resonance = sim;
         if (targetConcept && payload.coordinates?.concept?.toLowerCase() === targetConcept.toLowerCase()) {
           resonance += 0.2;
         }
-
         return {
-          id: hit.id as string,
+          id: payload.id,
           content: payload.content,
           coordinates: { ...payload.coordinates, resonance: Math.min(1.0, resonance) },
-          vector: [],
-          timestamp: payload.timestamp,
-          superposition: payload.superposition
+          vector: payload.vector,
+          timestamp: payload.timestamp
         } as QuantumMemoryEntry;
       });
-
-      return results.sort((a: any, b: any) => (b.coordinates.resonance || 0) - (a.coordinates.resonance || 0));
+      return results.sort((a, b) => (b.coordinates.resonance || 0) - (a.coordinates.resonance || 0)).slice(0, 5);
     } catch (error) {
       IQRALogger.error('❌ [QUANTUM] Search Failure:', error);
       return [];

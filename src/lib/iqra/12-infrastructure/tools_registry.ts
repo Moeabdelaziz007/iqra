@@ -363,7 +363,6 @@ export class ToolsRegistry {
         limit: z.number().int().min(1).max(20).default(7),
       }),
       handler: async ({ query, limit }) => IQRAMemory.searchSemantic(query, limit),
-      circuit_breaker: 'qdrant',
     });
 
     this._tools.set('memory.get_stats', {
@@ -526,20 +525,6 @@ export class ToolsRegistry {
   // ── MCP Tools ─────────────────────────────────────────────────────────────
 
   private static _registerMCPTools(): void {
-
-    this._tools.set('mcp.qdrant_search', {
-      name: 'mcp.qdrant_search',
-      description_ar: 'بحث في Qdrant عبر MCP',
-      description_en: 'Search Qdrant via MCP',
-      category: 'MCP',
-      inputSchema: z.object({
-        query: z.string().min(1),
-        limit: z.number().int().min(1).max(20).default(5),
-      }),
-      handler: async ({ query, limit }) => IQRAMemory.searchSemantic(query, limit),
-      circuit_breaker: 'qdrant',
-      is_mcp: true,
-    });
 
     this._tools.set('mcp.filesystem_read', {
       name: 'mcp.filesystem_read',

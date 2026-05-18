@@ -12,7 +12,7 @@ import { IQRALogger } from '#infra/logger';
 import { Qalbin_VM } from '#quran/qalbin/qalbin_vm';
 import { findSeed } from '#quran/qalbin/quran_seeds';
 import { Modality } from '#quran/qalbin/qalbin_node';
-import { storeReflectionInQdrant } from '#infra/qdrant';
+import { storeReflection } from '#infra/reflection-store';
 import { discover, PatternType } from '#quran/pattern_engine';
 
 export interface ResonanceResult {
@@ -73,7 +73,7 @@ export class DamirKernel {
       };
     } catch (e: any) {
       // Store failures in Qdrant as well for future experience replay
-      await storeReflectionInQdrant(`Failure in DamirKernel: ${e.message}`, {
+      await storeReflection(`Failure in DamirKernel: ${e.message}`, {
         type: 'FAILURE',
         action,
         context
@@ -225,7 +225,7 @@ export class DamirKernel {
   private loop7_AlIkhlas(score: number): number {
     // Store high-resonance outcomes in Qdrant
     if (score > 0.8) {
-      storeReflectionInQdrant(`High resonance achieved: ${score.toFixed(3)}`, {
+      storeReflection(`High resonance achieved: ${score.toFixed(3)}`, {
         type: 'SUCCESS',
         score
       }).catch(() => {}); // Fire and forget for PoC

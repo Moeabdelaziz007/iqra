@@ -135,10 +135,10 @@ export interface RewardSummary {
 export const PRISTINE_MULTIPLIER = 2.0;
 
 /** مضاعف المسار المكرر */
-export const REPEATED_MULTIPLIER = 1.0;
+export const REPEATED_MULTIPLIER = 0.8;
 
-/** مضاعف المسار المتكرر كثيراً (> 7 مرات) */
-export const STALE_MULTIPLIER = 0.7;
+/** مضاعف المسار المتكرر كثيراً (> 9 مرات) */
+export const STALE_MULTIPLIER = 0.5;
 
-/** عتبة التكرار للتخفيض */
-export const STALE_THRESHOLD = 7;
+/** عتبة التكرار للتخفيض — 9 محاولات قبل التدخل البشري */
+export const STALE_THRESHOLD = 9;

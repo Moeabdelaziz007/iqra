@@ -42,7 +42,6 @@ export interface SystemHealth {
   pulse_count: number;
   checks: {
     redis: boolean;
-    qdrant: boolean;
     memory_bridge: boolean;
     quran_db: boolean;
     llm_groq: boolean;
@@ -313,13 +312,11 @@ export class HeartbeatSystem {
 
     const [
       redisOk,
-      qdrantOk,
       quranDbOk,
       groqOk,
       geminiOk,
     ] = await Promise.allSettled([
       this._checkRedis(),
-      this._checkQdrant(),
       this._checkQuranDb(),
       this._checkGroq(),
       this._checkGemini(),
@@ -329,9 +326,8 @@ export class HeartbeatSystem {
     const curiosity = await IQRAMemory.getCuriosity().catch(() => 0);
     const cycleCounter = await IQRAMemory.getCycleCounter().catch(() => 0);
 
-    // تحديد الحالة العامة
     const criticalFailed = !redisOk;
-    const degraded = !qdrantOk || !groqOk || !geminiOk;
+    const degraded = !groqOk || !geminiOk;
 
     const status: HeartbeatStatus = criticalFailed
       ? 'CRITICAL'
@@ -346,7 +342,6 @@ export class HeartbeatSystem {
       pulse_count: this._pulseCount,
       checks: {
         redis: redisOk,
-        qdrant: qdrantOk,
         memory_bridge: true,
         quran_db: quranDbOk,
         llm_groq: groqOk,
@@ -468,15 +463,6 @@ export class HeartbeatSystem {
     } catch { return false; }
   }
 
-  private static async _checkQdrant(): Promise<boolean> {
-    try {
-      const qdrant = await (IQRAMemory as any).getQdrant();
-      if (!qdrant) return false;
-      await qdrant.getCollections();
-      return true;
-    } catch { return false; }
-  }
-
   private static async _checkQuranDb(): Promise<boolean> {
     try {
       const path = await import('path');
@@ -558,7 +544,6 @@ export class HeartbeatSystem {
       ``,
       `*الأنظمة:*`,
       `${checks.redis ? '✅' : '❌'} Redis (Upstash)`,
-      `${checks.qdrant ? '✅' : '❌'} Qdrant`,
       `${checks.quran_db ? '✅' : '❌'} قاعدة القرآن`,
       `${checks.llm_groq ? '✅' : '❌'} Groq LLM`,
       `${checks.llm_gemini ? '✅' : '❌'} Gemini LLM`,

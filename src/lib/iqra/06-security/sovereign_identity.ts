@@ -11,7 +11,7 @@ import { HeartbeatSystem } from '../12-infrastructure/heartbeat'
 import { IQRAMemory } from '#memory/memory';
 import { getPersona, Persona } from '../13-utils/personas'
 import { SovereignDID } from './did'
-import { LanceDBPlugin } from '#memory/lancedb_plugin'
+// LanceDBPlugin removed per ADR-0001 — use MicroMemory (sqlite-vec) for local persistence
 import crypto from 'crypto';
 
 export class SovereignIdentity {
@@ -30,8 +30,6 @@ export class SovereignIdentity {
     const resonance = 1.0 + (pulse % 19) / 100;
 
     const baseSoul = persona.personalityOverride || IQRA_SOUL;
-
-    const deepMemories = await LanceDBPlugin.autoRecall(intention);
 
     // 🛡️ Proof of Consciousness (PoC) — Resonance Hash
     const pocHash = this.generateResonanceHash(pulse, cycle, intention);
@@ -59,8 +57,6 @@ ${baseSoul}
 - Intention: ${intention}
 - Goal: Sovereign Intelligence Evolution
 - Status: Murāqabah Active (God is watching)
-
-${deepMemories}
 
 [A2A_CAPABILITIES]
 - protocol: "axiom-a2a-v1"
